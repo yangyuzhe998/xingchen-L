@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import sys
+import uuid
 
 # 立即加载环境变量
 load_dotenv(override=True)
@@ -26,7 +27,10 @@ class LLMClient:
         if self.provider == "deepseek":
             self.api_key = os.getenv("DEEPSEEK_API_KEY")
             self.base_url = os.getenv("DEEPSEEK_BASE_URL")
-            self.model = "deepseek-chat"
+            # 切换为 deepseek-reasoner (R1) 或 deepseek-chat (V3)
+            # 这里根据用户需求，我们明确使用 deepseek-chat (V3)
+            # 如果需要 R1，通常是 deepseek-reasoner
+            self.model = "deepseek-chat" 
         elif self.provider == "zhipu":
             self.api_key = os.getenv("ZHIPU_API_KEY")
             self.base_url = os.getenv("ZHIPU_BASE_URL")
@@ -41,20 +45,29 @@ class LLMClient:
             self.base_url = os.getenv("OPENAI_BASE_URL")
             self.model = os.getenv("LLM_MODEL", "deepseek-chat")
 
-    def chat(self, messages, temperature=0.7):
+    def chat(self, messages, temperature=0.7, trace_id=None):
         """
         发送消息给 LLM 并获取回复。
+        支持 trace_id 追踪。
         """
+        if not trace_id:
+            trace_id = str(uuid.uuid4())[:8]
+            
         try:
-            print(f"[{self.provider}] 正在发送请求给 {self.model}...")
+            msg_len = sum(len(m.get('content', '')) for m in messages)
+            print(f"[{self.provider}] [TraceID: {trace_id}] Sending to {self.model}... (Msg: {len(messages)}, Chars: {msg_len})")
+            
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=temperature
+                temperature=temperature,
+                timeout=180 # 显式设置 3分钟超时
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            print(f"[{self.provider}] [TraceID: {trace_id}] Received response ({len(content)} chars).")
+            return content
         except Exception as e:
-            print(f"LLM 错误: {e}")
+            print(f"[{self.provider}] [TraceID: {trace_id}] Error: {e}")
             return f"错误: {str(e)}"
 
 # 默认提供商的单例实例

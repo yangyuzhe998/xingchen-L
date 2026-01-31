@@ -2,3 +2,5 @@ python-dotenv
 openai
 colorama
 pydantic
+requests
+chromadb

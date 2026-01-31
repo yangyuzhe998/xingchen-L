@@ -11,3 +11,6 @@ __pycache__/
 
 # Project specific
 src/memory/storage.json
+src/memory/bus.db
+src/memory/chroma_db/
+openclaw_temp/

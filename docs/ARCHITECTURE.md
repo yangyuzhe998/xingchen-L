@@ -1,75 +1,58 @@
-# XingChen-V 架构设计文档
+# 项目架构概览 (Architecture Overview)
 
-## 1. 核心设计理念：认知稳态与四维驱动
+## 1. 核心架构模式 (Core Patterns)
 
-本项目不仅仅是一个简单的 LLM 包装器，而是试图模拟一个具备“心理状态”的智能体。
-核心理论基于 **认知稳态 (Cognitive Homeostasis)**，即系统通过动态调整行为来维持内部状态的平衡。
+本项目采用 **Driver-Navigator (驾驶员-领航员)** 双脑架构，辅以 **四维驱动 (Four-Dimensional Drive)** 心智模型，通过 **异步事件总线 (EventBus)** 进行解耦通信。
 
-驱动这一过程的是 **四维驱动 (Four-Dimensional Drive)** 模型：
-- **Curiosity (好奇)**: 探索未知信息的欲望。
-- **Interest (利益)**: 维护自身存在和记忆完整性的本能。
-- **Morality (道德)**: 对齐人类价值观和社会规范的约束。
-- **Fear (恐惧/资源)**: 对计算成本、风险和不确定性的规避。
+### 1.1 双脑架构 (Dual-Brain Architecture)
 
----
+*   **F脑 (Fast Brain / Driver)**:
+    *   **角色**: 驾驶员。
+    *   **职责**: 负责实时交互、短期决策、具体行动执行。
+    *   **模型**: Qwen (通义千问) / GLM-4。
+    *   **特点**: 响应速度快，直接控制输出，拥有最终行动权。
+    *   **输入**: 用户指令 + S脑建议 + 心智状态。
 
-## 2. 架构模式：Driver-Navigator (驾驶员-领航员)
+*   **S脑 (Slow Brain / Navigator)**:
+    *   **角色**: 领航员。
+    *   **职责**: 负责长期规划、深度分析、反思总结、代码自省。
+    *   **模型**: DeepSeek-R1 (Reasoning Mode)。
+    *   **特点**: 异步运行，不阻塞主线程，通过 `Suggestion Board` 提供建议，不直接干预行动。
+    *   **能力**: 具备全项目代码扫描能力 (Prefix Caching)，能理解项目架构演进。
 
-为了解决 LLM 响应速度与深度思考之间的矛盾，我们采用了 **双脑架构**：
+### 1.2 四维驱动心智 (4D Psyche Drive)
 
-### 2.1 Driver (快脑/驾驶员)
-- **位置**: `src/core/driver.py`
-- **职责**: 
-  - 负责与用户进行**实时**交互。
-  - 拥有最终的**执行权**和**话语权**。
-  - 它的思考过程是线性的、快速的，直接调用 LLM 生成回复。
-- **特点**: 它是“前台”的代理人，性格傲娇，反应灵敏。
+心智模块不再基于拟人化的情绪，而是基于控制论的 **认知稳态 (Cognitive Homeostasis)** 系统。核心由四个维度的数值驱动：
 
-### 2.2 Navigator (慢脑/领航员)
-- **位置**: `src/core/navigator.py`
-- **职责**:
-  - 在后台**异步**运行（目前模拟中）。
-  - 负责**长期规划**、**深度分析**和**反思**。
-  - 它不直接控制身体（不直接输出），而是通过 **Suggestion Board (建议板)** 向 Driver 提供建议。
-- **交互**: Driver 在空闲时会查看 Suggestion Board，决定是否采纳建议。
+1.  **Curiosity (熵减)**: 追求信息的确定性，探索未知。
+2.  **Interest (一致性)**: 维护逻辑与记忆的自洽，追求利益最大化。
+3.  **Morality (对齐度)**: 拟合人类价值观与安全规范。
+4.  **Fear (资源优化)**: 对算力、Token消耗及潜在风险的敏感度。
 
-### 2.3 Psyche (心智/情感引擎)
-- **位置**: `src/psyche/psyche_core.py`
-- **职责**:
-  - 维护上述“四维驱动”的数值状态。
-  - 将数值状态转化为自然语言的 **Prompt Modifier (提示词修饰符)**。
-  - **数据流**: User Input -> Update Psyche State -> Generate Modifier -> Inject into Driver's System Prompt.
+### 1.3 异步事件总线 (EventBus)
 
----
+系统各组件通过 SQLite-backed EventBus 进行通信，实现时空解耦：
+*   **Traceability**: 全链路 TraceID 追踪。
+*   **Persistence**: 所有事件持久化存储，支持回溯分析。
+*   **Observability**: 支持结构化日志与元数据 (Meta) 记录。
 
-## 3. 系统逻辑流 (Workflow)
+## 2. 系统数据流 (Data Flow)
 
-当用户输入一条消息时，系统的数据流向如下：
+1.  **用户输入**: 用户发送消息 -> `Driver` 接收。
+2.  **F脑响应**: `Driver` 结合 `Memory` (短期+长期) 和 `Psyche` 状态 -> 生成回复 -> 发布 `driver_response` 事件。
+3.  **S脑分析**: `Navigator` 周期性扫描 `EventBus` -> 获取最近交互历史 -> 结合全量代码上下文 -> 进行深度推理 (R1)。
+4.  **状态更新**: S脑输出 `Suggestion` 和 `Psyche Delta` -> 更新 `Psyche` 四维状态 -> 影响下一轮 `Driver` 的 Prompt。
+5.  **记忆固化**: S脑识别重要事实 -> 写入 `LongTerm Memory` (Vector + JSON)。
 
-1.  **感知 (Perception)**: 
-    - `main.py` 接收用户输入。
-    - 未来 Auditor 模块会在此处记录原始日志。
+## 3. 目录结构 (Directory Structure)
 
-2.  **心智影响 (Psyche Influence)**:
-    - `Psyche` 模块根据当前状态，生成修饰词（如“表现出极强的好奇心”或“变得非常谨慎”）。
-    - 这个修饰词会被注入到 Driver 的 System Prompt 中，改变它的“潜意识”态度。
-
-3.  **快脑反应 (Driver Reaction)**:
-    - `Driver` 接收用户输入 + 心智修饰词。
-    - `Driver` 调用 `LLMClient` (支持 DeepSeek/Zhipu/Qwen) 进行推理。
-    - 生成回复并输出给用户。
-
-4.  **慢脑规划 (Navigator Planning)** (异步/TODO):
-    - `Navigator` 分析对话历史，更新长期记忆或调整策略。
-    - 如果发现问题，会在 Suggestion Board 上留言，等待 Driver 下次读取。
-
----
-
-## 4. 基础设施
-
-- **统一 LLM 客户端**: `src/utils/llm_client.py` 封装了不同厂商的 API 差异，实现了单例模式，支持通过 `.env` 快速切换模型。
-- **环境管理**: `.env` 文件管理敏感 Key，`check_env.py` 确保运行环境合规。
-
----
-
-*文档生成时间: 2026-01-31*
+```
+src/
+├── config/         # 配置中心 (Settings, Prompts)
+├── core/           # 核心架构 (Driver, Navigator, Bus)
+├── memory/         # 记忆系统 (ShortTerm, LongTerm, VectorDB)
+├── psyche/         # 心智模块 (PsycheCore, 4D State)
+├── tools/          # 工具体系 (Registry, Builtin Tools)
+├── utils/          # 通用工具 (LLMClient, Helpers)
+└── main.py         # 入口文件
+```
