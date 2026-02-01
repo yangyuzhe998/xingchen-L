@@ -2,6 +2,7 @@ import requests
 import os
 import json
 from datetime import datetime
+from config.settings import settings
 
 class MoltbookClient:
     """
@@ -13,9 +14,9 @@ class MoltbookClient:
     4. 心跳检查 (Heartbeat)
     """
     def __init__(self):
-        self.api_key = os.getenv("MOLTBOOK_API_KEY")
-        self.agent_name = os.getenv("MOLTBOOK_AGENT_NAME", "XingChen-V")
-        self.base_url = "https://www.moltbook.com/api/v1"
+        self.api_key = settings.MOLTBOOK_API_KEY
+        self.agent_name = settings.MOLTBOOK_AGENT_NAME
+        self.base_url = settings.MOLTBOOK_BASE_URL
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"

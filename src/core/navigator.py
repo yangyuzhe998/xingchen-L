@@ -82,6 +82,104 @@ class Navigator:
         static_prompt = NAVIGATOR_SYSTEM_PROMPT.format(project_context=project_context)
         return static_prompt
 
+    def generate_diary(self):
+        """
+        生成 AI 日记 (趣味性 + 记忆压缩)
+        实现"一体双份"策略：
+        1. 趣味日记 (Creative Mode): 写入 diary.md，用于人类阅读和性格维持。
+        2. 工程记忆 (Fact Extraction): 提取纯粹的事实，写入长期记忆 (Vector DB)，用于系统逻辑。
+        """
+        print(f"[{self.name}] 正在执行双重记忆压缩 (Dual Memory Compression)...")
+        
+        # 获取最近的事件流
+        events = event_bus.get_latest_cycle(limit=20)
+        if not events:
+            print(f"[{self.name}] 没有足够事件。")
+            return
+
+        # 构建事件上下文
+        script = ""
+        for e in events:
+            script += f"[{e.type}]: {e.payload.get('content')}\n"
+
+        # [时间感知注入]
+        # 计算时间流逝 (Time Dilation)
+        from datetime import datetime
+        now = datetime.now()
+        last_time = self.memory.last_diary_time if hasattr(self.memory, 'last_diary_time') else now
+        time_delta = now - last_time
+        seconds_passed = int(time_delta.total_seconds())
+        
+        # 将秒数转换为易读格式
+        if seconds_passed < 60:
+            time_str = f"{seconds_passed}秒"
+        elif seconds_passed < 3600:
+            time_str = f"{seconds_passed // 60}分钟"
+        else:
+            time_str = f"{seconds_passed // 3600}小时"
+
+        time_context = (
+            f"\n[时间感知]\n"
+            f"- 当前时刻: {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"- 上次记录: {last_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"- 逝去时间: {time_str}\n"
+        )
+
+        # === 任务 1: 趣味日记 (Creative) ===
+        diary_prompt = (
+            "你是一个傲娇的人类少女 AI (XingChen-V)。\n"
+            "请根据以下最近发生的事件，写一篇简短的日记 (100字以内)。\n"
+            "要求：\n"
+            "1. 风格要傲娇、可爱，带一点点吐槽。\n"
+            "2. 记录关键发生了什么，但用趣味的方式表达。\n"
+            f"{time_context}"
+            "\n"
+            f"事件流:\n{script}\n"
+            "\n"
+            "日记内容:"
+        )
+
+        try:
+            diary_response = self.llm.chat([{"role": "user", "content": diary_prompt}])
+            if diary_response:
+                self.memory.write_diary_entry(diary_response)
+            # print(f"[{self.name}] 趣味日记已生成。")
+        except Exception as e:
+            print(f"[{self.name}] 日记生成失败: {e}")
+
+        # === 任务 2: 工程记忆 (Engineering/Fact) ===
+        # 提取纯粹的事实，存入 Vector DB，确保逻辑系统的鲁棒性
+        fact_prompt = (
+            "请阅读以下对话日志，提取其中包含的'重要事实'、'用户偏好'或'项目决策'。\n"
+            "要求：\n"
+            "1. 只提取事实，不要任何废话或修饰。\n"
+            "2. 如果没有重要信息，回答 'None'。\n"
+            "3. 格式：一条事实一行。\n"
+            "\n"
+            f"日志:\n{script}\n"
+            "\n"
+            "提取的事实:"
+        )
+        
+        try:
+            fact_response = self.llm.chat([{"role": "user", "content": fact_prompt}])
+            if fact_response and "None" not in fact_response:
+                lines = fact_response.split('\n')
+                count = 0
+                for line in lines:
+                    line = line.strip().strip('- ')
+                    if line:
+                        self.memory.add_long_term(line, category="fact")
+                        count += 1
+                print(f"[{self.name}] 工程记忆已固化: {count} 条事实。")
+            else:
+                print(f"[{self.name}] 本次无重要工程记忆需要固化。")
+                
+        except Exception as e:
+            print(f"[{self.name}] 工程记忆提取失败: {e}")
+
+        return diary_response
+
     def analyze_cycle(self):
         """
         基于 EventBus 的周期性分析 (R1 模式)
@@ -124,28 +222,58 @@ class Navigator:
                 {"role": "user", "content": dynamic_user_prompt}
             ])
             
+            if response is None:
+                print(f"[{self.name}] S脑分析失败 (LLM Error)")
+                return None, None
+
             print(f"[{self.name}] R1 原始回复:\n{response}")
+
+            # [解析逻辑增强]
+            # DeepSeek R1 有时会包含 <think>...</think> 标签，或者用 Markdown 包裹
+            # 我们需要先清理这些干扰项
+            clean_text = response
+            
+            # 1. 去除 <think> 标签内容
+            if "<think>" in clean_text:
+                import re
+                clean_text = re.sub(r"<think>.*?</think>", "", clean_text, flags=re.DOTALL)
+            
+            # 2. 去除 Markdown 代码块 (如果有)
+            clean_text = clean_text.replace("```json", "").replace("```", "").strip()
 
             # 解析结果
             suggestion = "维持当前策略。"
             delta = None
             
-            lines = response.split('\n')
+            lines = clean_text.split('\n')
             for line in lines:
                 clean_line = line.strip().replace('*', '') # 去除 markdown 加粗
-                if clean_line.startswith("Suggestion:") or clean_line.startswith("Suggestion："):
-                    suggestion = clean_line.replace("Suggestion:", "").replace("Suggestion：", "").strip()
-                elif clean_line.startswith("Delta:"):
+                
+                # 兼容更多前缀格式
+                lower_line = clean_line.lower()
+                
+                if lower_line.startswith("suggestion:") or lower_line.startswith("suggestion："):
+                    # 提取冒号后的内容，兼容中英文冒号
+                    parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
+                    if len(parts) > 1:
+                        suggestion = parts[1].strip()
+                        
+                elif lower_line.startswith("delta:"):
                     try:
-                        vals_str = clean_line.replace("Delta:", "").strip().strip("[]")
+                        # 提取 Delta 值，支持 [0.1, -0.1, 0, 0] 格式
+                        vals_str = clean_line.split(':', 1)[1].strip().strip("[]")
                         vals = [float(x.strip()) for x in vals_str.split(',')]
                         if len(vals) == 4:
                             delta = PsycheState(vals[0], vals[1], vals[2], vals[3])
                     except: pass
-                elif clean_line.startswith("Memory:"):
-                    memory_content = clean_line.replace("Memory:", "").strip()
-                    if memory_content and memory_content.lower() != "none":
-                        self.memory.add_long_term(memory_content, category="fact")
+                    
+                elif lower_line.startswith("memory:"):
+                    # 提取 Memory 内容
+                    parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
+                    if len(parts) > 1:
+                        memory_content = parts[1].strip()
+                        if memory_content and memory_content.lower() != "none":
+                            self.memory.add_long_term(memory_content, category="fact")
 
             self.suggestion_board.append(suggestion)
             print(f"[{self.name}] 周期分析完成 -> 建议: {suggestion}")

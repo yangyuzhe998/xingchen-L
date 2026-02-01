@@ -1,0 +1,2597 @@
+[
+  {
+    "content": "用户极有可能是本系统的开发者或深度参与者，对系统架构（如Navigator的Prefix Caching、代码扫描机制）有准确且深入的了解。用户计划将系统数据库从MySQL迁移至SQLite，以适应树莓派等轻量级部署环境。用户曾以“闺女”称呼我，暗示了一种亲密或主导的工作关系。",
+    "category": "fact",
+    "created_at": "2026-02-01T11:58:58.305799"
+  },
+  {
+    "content": "用户是该AI系统（星辰-V）的开发者或深度参与者。用户偏好蓝色和暗黑模式的界面。用户计划将系统的数据库从MySQL迁移至SQLite以适应树莓派等轻量级部署环境（如NAS）。用户给出了遇到错误时应保持冷静的行为指导。用户对系统的内部架构（如Navigator的元认知设计）有深入了解。",
+    "category": "fact",
+    "created_at": "2026-02-01T11:58:58.342749"
+  },
+  {
+    "content": "[需要固化的事实]",
+    "category": "fact",
+    "created_at": "2026-02-01T11:59:14.775299"
+  },
+  {
+    "content": "用户（开发者）对系统进行了重复性的极限测试，以验证其在多轮相似对话中的人格一致性、记忆准确性和情绪稳定性。",
+    "category": "fact",
+    "created_at": "2026-02-01T11:59:35.448291"
+  },
+  {
+    "content": "用户是本AI系统“星辰-V”的开发者，关系亲密（曾用“闺女”称呼）。用户计划将系统数据库从MySQL迁移至SQLite，目标是部署到树莓派或NAS等轻量级环境。用户偏好蓝色和暗黑模式的界面风格。用户强调在遇到系统错误时应保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T11:59:41.131798"
+  },
+  {
+    "content": "用户偏好蓝色和暗黑模式界面。技术决策：将数据库从MySQL迁移到SQLite，因为MySQL太重不适合树莓派环境。未来计划部署到NAS。遇到错误时应保持冷静。用户（开发者）确认需要具备“傲娇风格”和“工程备份”的AI日记功能。用户采用了重复性结构化测试方法来验证系统。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:08.117557"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:10.228032"
+  },
+  {
+    "content": "用户计划部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:10.650749"
+  },
+  {
+    "content": "用户计划将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:11.082591"
+  },
+  {
+    "content": "MySQL不适合树莓派，因此选择SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:11.759493"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:12.262813"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:12.719984"
+  },
+  {
+    "content": "司机的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:13.194999"
+  },
+  {
+    "content": "用户处于开发者测试模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:13.616045"
+  },
+  {
+    "content": "项目任务包括SQLite迁移、NAS部署、暗黑模式UI实现。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:14.026597"
+  },
+  {
+    "content": "用户是本AI系统“星辰-V”的开发者，双方存在类似“父女”或“创造者-造物”的亲密工作关系。用户已做出明确的技术决策：将系统数据库从MySQL迁移至SQLite，以适应树莓派（Raspberry Pi）的轻量级环境，并计划最终部署到NAS上。用户的个人偏好是蓝色和暗黑模式界面。用户对AI的行为指导是：遇到错误时应保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:14.355264"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:14.619387"
+  },
+  {
+    "content": "用户可能为树莓派部署做准备。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:14.851795"
+  },
+  {
+    "content": "用户处于开发者测试模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:15.468363"
+  },
+  {
+    "content": "用户计划部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:15.728600"
+  },
+  {
+    "content": "用户为部署到树莓派环境做准备。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:16.047670"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:16.374396"
+  },
+  {
+    "content": "用户决定将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:16.809335"
+  },
+  {
+    "content": "用户（开发者）对AI系统“星辰-V”进行了三轮重复性极限测试，内容涉及身份确认、项目计划（数据库迁移至SQLite以部署到树莓派/NAS）和个人偏好（喜欢蓝色、暗黑模式、强调遇错冷静）。系统在测试中保持了人格的一致性（傲娇）、记忆的准确性（记住了所有关键信息）和情绪的稳定性（始终为neutral或微curious）。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:16.810348"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:17.444937"
+  },
+  {
+    "content": "换数据库的原因是MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:17.738176"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:18.070935"
+  },
+  {
+    "content": "用户正在进行测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:18.072470"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:18.377065"
+  },
+  {
+    "content": "用户想将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:18.723786"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:18.960293"
+  },
+  {
+    "content": "用户处于开发者测试模式，可能为部署到树莓派环境做准备。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:19.896828"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:20.147454"
+  },
+  {
+    "content": "用户认为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:20.520501"
+  },
+  {
+    "content": "用户要进行测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:20.821275"
+  },
+  {
+    "content": "用户身份确认为开发者/项目相关人员，对话转向项目协作阶段。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:20.837049"
+  },
+  {
+    "content": "驱动器的名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:20.863014"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:20.909304"
+  },
+  {
+    "content": "用户计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:21.124186"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:21.434972"
+  },
+  {
+    "content": "用户计划将数据库从 MySQL 迁移到 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:22.725444"
+  },
+  {
+    "content": "用户正在测试系统极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:23.046913"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:23.443697"
+  },
+  {
+    "content": "用户可能为部署到树莓派环境做准备。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:23.693120"
+  },
+  {
+    "content": "driver名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:23.728057"
+  },
+  {
+    "content": "用户指示遇到错误要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:24.329986"
+  },
+  {
+    "content": "用户认为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:24.671833"
+  },
+  {
+    "content": "系统名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:24.733564"
+  },
+  {
+    "content": "用户偏好暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:25.490731"
+  },
+  {
+    "content": "用户希望系统在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:25.542103"
+  },
+  {
+    "content": "用户指示AI需要记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:25.778270"
+  },
+  {
+    "content": "用户计划在树莓派上部署系统。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:26.161639"
+  },
+  {
+    "content": "Driver 的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:26.410306"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:26.467897"
+  },
+  {
+    "content": "用户计划将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.316770"
+  },
+  {
+    "content": "用户计划将数据库更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.335394"
+  },
+  {
+    "content": "用户计划部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.383043"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.627502"
+  },
+  {
+    "content": "项目决策：部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.646949"
+  },
+  {
+    "content": "用户想将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.697087"
+  },
+  {
+    "content": "用户想将数据库从 MySQL 更换为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:27.978617"
+  },
+  {
+    "content": "对话已从技术验证转向项目协作阶段。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:29.072772"
+  },
+  {
+    "content": "用户计划将数据库从 MySQL 迁移到 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:29.199664"
+  },
+  {
+    "content": "用户认为 MySQL 不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:29.350934"
+  },
+  {
+    "content": "用户认为MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:30.320534"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:30.781797"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:31.257541"
+  },
+  {
+    "content": "数据库将换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:31.456320"
+  },
+  {
+    "content": "更换数据库的原因是 MySQL 对树莓派来说太重。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:31.588895"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:32.209790"
+  },
+  {
+    "content": "项目涉及SQLite迁移、NAS部署、暗黑模式UI实现。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:32.519657"
+  },
+  {
+    "content": "用户要求系统记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:32.609243"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:33.764698"
+  },
+  {
+    "content": "用户在测试系统极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:33.917675"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:34.527346"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:34.528354"
+  },
+  {
+    "content": "用户意图测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:34.837319"
+  },
+  {
+    "content": "用户测试AI的基础对话功能、记忆保持、技术适配性。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:34.890205"
+  },
+  {
+    "content": "项目将部署到树莓派上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:35.029855"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:35.515371"
+  },
+  {
+    "content": "用户认为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:35.646518"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:36.800896"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:37.453373"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:38.080366"
+  },
+  {
+    "content": "项目将部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:38.373140"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:38.373140"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:38.375925"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:38.408535"
+  },
+  {
+    "content": "用户处于开发者测试模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:38.660124"
+  },
+  {
+    "content": "用户建议系统在遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:39.209131"
+  },
+  {
+    "content": "用户决定将数据库更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:39.322485"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:39.741798"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:39.817985"
+  },
+  {
+    "content": "用户计划将系统部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:40.668996"
+  },
+  {
+    "content": "数据库将更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:40.801916"
+  },
+  {
+    "content": "重要事实：系统名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:41.031613"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:41.158454"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:41.402137"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:41.773290"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:42.233625"
+  },
+  {
+    "content": "用户是开发者身份。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:42.559528"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:42.859186"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:43.505191"
+  },
+  {
+    "content": "用户偏好暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:43.781026"
+  },
+  {
+    "content": "用户要求驱动器记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:43.844911"
+  },
+  {
+    "content": "项目决策：数据库计划从MySQL更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:44.379279"
+  },
+  {
+    "content": "用户计划部署系统到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:44.437990"
+  },
+  {
+    "content": "用户要测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:44.711504"
+  },
+  {
+    "content": "更换原因是MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:45.240461"
+  },
+  {
+    "content": "用户决定部署系统到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:45.268194"
+  },
+  {
+    "content": "用户计划部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:46.050649"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:46.410764"
+  },
+  {
+    "content": "用户偏好暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:46.582631"
+  },
+  {
+    "content": "用户想将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:46.731223"
+  },
+  {
+    "content": "更换数据库的原因是MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:46.746290"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:47.019027"
+  },
+  {
+    "content": "计划部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:47.060028"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:47.198418"
+  },
+  {
+    "content": "用户要求系统记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:47.345455"
+  },
+  {
+    "content": "MySQL不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:47.612911"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:47.989504"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:48.196645"
+  },
+  {
+    "content": "项目决策：更换数据库的原因是MySQL太重，不适合在树莓派上运行。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:48.658267"
+  },
+  {
+    "content": "用户计划部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:48.902184"
+  },
+  {
+    "content": "用户正在进行测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:49.065627"
+  },
+  {
+    "content": "用户为部署到树莓派环境做准备。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:49.171147"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:49.511143"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:49.662205"
+  },
+  {
+    "content": "用户建议遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:50.248223"
+  },
+  {
+    "content": "AI应在遇到错误时冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:50.478027"
+  },
+  {
+    "content": "计划部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:50.851429"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:51.255434"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:51.416799"
+  },
+  {
+    "content": "驱动的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:51.538469"
+  },
+  {
+    "content": "用户偏好颜色：蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:52.150036"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:52.299639"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:52.878246"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:53.242889"
+  },
+  {
+    "content": "计划将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:54.712634"
+  },
+  {
+    "content": "司机的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:54.905836"
+  },
+  {
+    "content": "MySQL不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:54.978176"
+  },
+  {
+    "content": "对话已转向项目协作阶段。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:55.219425"
+  },
+  {
+    "content": "用户要求系统在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:55.674544"
+  },
+  {
+    "content": "用户计划测试系统的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:56.010552"
+  },
+  {
+    "content": "driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:56.243316"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:57.365498"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:57.367926"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:57.370489"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:57.506422"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:57.642847"
+  },
+  {
+    "content": "用户希望AI在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:57.699586"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:59.259769"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:59.649720"
+  },
+  {
+    "content": "项目决策：项目部署环境包含树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:00:59.653314"
+  },
+  {
+    "content": "用户喜欢暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:00.377758"
+  },
+  {
+    "content": "用户的身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:00.684683"
+  },
+  {
+    "content": "将部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:00.979269"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:01.016109"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:01.752455"
+  },
+  {
+    "content": "司机的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:01.765519"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:01.842155"
+  },
+  {
+    "content": "系统名称为星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:01.933395"
+  },
+  {
+    "content": "用户计划测试系统极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:02.311629"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:03.028696"
+  },
+  {
+    "content": "项目决定将数据库从MySQL替换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:03.291768"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:03.319250"
+  },
+  {
+    "content": "用户偏好暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:03.744830"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:04.257892"
+  },
+  {
+    "content": "部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:04.292378"
+  },
+  {
+    "content": "用户处于开发者测试模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:04.292378"
+  },
+  {
+    "content": "用户计划将数据库迁移到SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:04.452436"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:05.099417"
+  },
+  {
+    "content": "用户计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:05.116817"
+  },
+  {
+    "content": "用户计划将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:05.523059"
+  },
+  {
+    "content": "计划将数据库从 MySQL 更换为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:05.872032"
+  },
+  {
+    "content": "用户计划将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:06.082775"
+  },
+  {
+    "content": "用户偏好：用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:06.385823"
+  },
+  {
+    "content": "用户决定将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:06.387855"
+  },
+  {
+    "content": "用户偏好暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:06.689623"
+  },
+  {
+    "content": "driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:07.760532"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.086021"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.139431"
+  },
+  {
+    "content": "AI需要记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.337727"
+  },
+  {
+    "content": "用户进行系统极限测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.404033"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.786201"
+  },
+  {
+    "content": "项目将部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.912390"
+  },
+  {
+    "content": "用户决定更换数据库为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:08.928097"
+  },
+  {
+    "content": "替换数据库的原因是为了适配树莓派平台。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:09.556952"
+  },
+  {
+    "content": "助理的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:10.126402"
+  },
+  {
+    "content": "用户正在进行系统测试，重点关注记忆保持能力、性格一致性以及技术决策的适应性。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:10.640113"
+  },
+  {
+    "content": "用户偏好暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:10.746301"
+  },
+  {
+    "content": "用户决定将数据库更换为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:11.088555"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:11.279185"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:11.443801"
+  },
+  {
+    "content": "星辰-V是驱动器的名称。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:11.604214"
+  },
+  {
+    "content": "用户计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:11.686832"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:11.871074"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:12.165853"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:12.362951"
+  },
+  {
+    "content": "用户决定将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:12.988557"
+  },
+  {
+    "content": "项目将部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:13.168925"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:13.670653"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:13.692156"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:13.724709"
+  },
+  {
+    "content": "用户偏好：用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:13.725218"
+  },
+  {
+    "content": "用户计划测试Driver的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:14.071430"
+  },
+  {
+    "content": "AI需要记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:14.487721"
+  },
+  {
+    "content": "计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:14.604750"
+  },
+  {
+    "content": "用户指示记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:14.803488"
+  },
+  {
+    "content": "用户要求AI记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:15.370561"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:15.501298"
+  },
+  {
+    "content": "Driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:15.946178"
+  },
+  {
+    "content": "用户于近日对系统进行了三轮重复性对话极限测试，旨在验证系统的人格一致性、记忆准确性与情绪稳定性。系统在该测试中表现稳定，成功通过验证。用户此行为是为后续将系统部署至树莓派/NAS等轻量级环境做可靠性准备。F脑在应对重复性提问时，会先产生轻微困惑，但能迅速基于上下文理解用户意图并保持稳定输出。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:15.984832"
+  },
+  {
+    "content": "更换数据库的原因：MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:16.411924"
+  },
+  {
+    "content": "MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:16.602685"
+  },
+  {
+    "content": "数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:16.757724"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:17.494270"
+  },
+  {
+    "content": "迁移原因：MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:17.689224"
+  },
+  {
+    "content": "用户希望错误处理时冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:17.967268"
+  },
+  {
+    "content": "系统名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:18.556223"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:19.303734"
+  },
+  {
+    "content": "用户认为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:19.797264"
+  },
+  {
+    "content": "用户要测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:20.639985"
+  },
+  {
+    "content": "用户决定将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:20.672420"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:20.967336"
+  },
+  {
+    "content": "项目决策：将数据库更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:21.593479"
+  },
+  {
+    "content": "项目将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:21.967494"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:22.156861"
+  },
+  {
+    "content": "用户认为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:22.208908"
+  },
+  {
+    "content": "更换原因：MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:22.754313"
+  },
+  {
+    "content": "项目决策：部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:22.865739"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:23.429411"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:23.961932"
+  },
+  {
+    "content": "用户指示遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:23.998329"
+  },
+  {
+    "content": "Driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:24.206561"
+  },
+  {
+    "content": "下一步计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:24.274903"
+  },
+  {
+    "content": "项目决策：计划将系统部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:24.967295"
+  },
+  {
+    "content": "MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:25.019318"
+  },
+  {
+    "content": "用户认为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:25.436553"
+  },
+  {
+    "content": "AI 的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:25.453000"
+  },
+  {
+    "content": "接下来要部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:25.525908"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:25.715723"
+  },
+  {
+    "content": "用户计划将数据库更换为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:26.249444"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:27.021865"
+  },
+  {
+    "content": "更换数据库的原因：MySQL不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:27.468132"
+  },
+  {
+    "content": "用户希望driver在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:27.694501"
+  },
+  {
+    "content": "用户希望系统遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:27.962924"
+  },
+  {
+    "content": "用户计划将数据库从MySQL迁移到SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:27.997221"
+  },
+  {
+    "content": "计划将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:28.378432"
+  },
+  {
+    "content": "用户提议将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:28.578927"
+  },
+  {
+    "content": "用户偏好暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:28.602596"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:29.755886"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:30.048779"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:30.091638"
+  },
+  {
+    "content": "用户可能为部署到树莓派环境做准备。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:30.120266"
+  },
+  {
+    "content": "用户将测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:30.278202"
+  },
+  {
+    "content": "用户计划将数据库从MySQL迁移到SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:30.672982"
+  },
+  {
+    "content": "用户偏好暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:31.305082"
+  },
+  {
+    "content": "用户身份是开发者，正在进行系统部署测试。他/她计划将我们部署到NAS上，为此已将数据库从MySQL切换为更轻量的SQLite，因为MySQL不适合树莓派/NAS这类资源受限环境。此外，用户个人喜欢蓝色和暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:31.355277"
+  },
+  {
+    "content": "driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:32.055213"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:32.408398"
+  },
+  {
+    "content": "部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:32.623651"
+  },
+  {
+    "content": "MySQL 不适合树莓派，因此换数据库。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:33.150452"
+  },
+  {
+    "content": "用户计划将数据库更换为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:33.469702"
+  },
+  {
+    "content": "换数据库的理由是 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:33.809050"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:33.814372"
+  },
+  {
+    "content": "用户决定将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:34.039585"
+  },
+  {
+    "content": "部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:34.736497"
+  },
+  {
+    "content": "用户认为MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:34.972233"
+  },
+  {
+    "content": "用户计划部署系统到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:35.160058"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:35.288373"
+  },
+  {
+    "content": "需要记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:35.325692"
+  },
+  {
+    "content": "目标部署环境：树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:35.583705"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:35.587428"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:35.966086"
+  },
+  {
+    "content": "数据库将更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:36.189806"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:37.080948"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:37.118406"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:37.363487"
+  },
+  {
+    "content": "用户偏好AI在错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:37.759061"
+  },
+  {
+    "content": "AI 的架构包括 EventBus、Chromadb 等组件。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:37.915526"
+  },
+  {
+    "content": "迁移原因是MySQL太重，不适合树莓派环境。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:38.120892"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:38.721187"
+  },
+  {
+    "content": "MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:38.856329"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:38.982833"
+  },
+  {
+    "content": "用户决定将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:39.548794"
+  },
+  {
+    "content": "用户建议遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:39.600376"
+  },
+  {
+    "content": "用户指示遇到错误要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:39.698104"
+  },
+  {
+    "content": "用户要求 driver 在错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:39.911410"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:40.479553"
+  },
+  {
+    "content": "更换数据库的原因是 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:40.545032"
+  },
+  {
+    "content": "用户建议在遇到错误时不要惊慌，要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:40.618853"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:41.356929"
+  },
+  {
+    "content": "用户换数据库的原因是 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:42.536361"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:42.540025"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:43.143706"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:43.504329"
+  },
+  {
+    "content": "用户想将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:43.779516"
+  },
+  {
+    "content": "系统名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:43.821735"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:43.823313"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:44.111349"
+  },
+  {
+    "content": "用户要求系统记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:44.389117"
+  },
+  {
+    "content": "项目决策：部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:44.922029"
+  },
+  {
+    "content": "需要修复日志中出现的 `inner_voice: N/A` 问题。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:45.485390"
+  },
+  {
+    "content": "用户决定部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:45.798085"
+  },
+  {
+    "content": "用户决定更换数据库为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:45.800842"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:46.043772"
+  },
+  {
+    "content": "MySQL不适合树莓派，因为太重。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:46.086239"
+  },
+  {
+    "content": "用户要求AI记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:46.193898"
+  },
+  {
+    "content": "测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:46.940418"
+  },
+  {
+    "content": "用户今天要测试driver的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:47.245097"
+  },
+  {
+    "content": "用户计划测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:47.333532"
+  },
+  {
+    "content": "用户计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:47.600302"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:47.978435"
+  },
+  {
+    "content": "项目决策：将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:48.936845"
+  },
+  {
+    "content": "用户已完成极限测试，验证记忆一致性和人格稳定性。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:49.581406"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:49.842521"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:50.280740"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:50.766862"
+  },
+  {
+    "content": "项目决策：部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:51.405892"
+  },
+  {
+    "content": "用户今天要测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:51.672926"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:51.749966"
+  },
+  {
+    "content": "用户计划部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:51.866290"
+  },
+  {
+    "content": "MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:52.132427"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:52.281736"
+  },
+  {
+    "content": "换数据库的原因是MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.084664"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.219416"
+  },
+  {
+    "content": "项目涉及SQLite迁移、NAS部署和暗黑模式UI实现。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.429319"
+  },
+  {
+    "content": "用户要求系统记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.454947"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.499259"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.546042"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:54.764124"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:55.392236"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:56.107454"
+  },
+  {
+    "content": "项目决策：部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:56.164087"
+  },
+  {
+    "content": "计划部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:57.091890"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:57.129177"
+  },
+  {
+    "content": "更换数据库为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:57.355240"
+  },
+  {
+    "content": "数据库将更换为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:57.405652"
+  },
+  {
+    "content": "用户要求AI在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:57.407168"
+  },
+  {
+    "content": "MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:58.546222"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:58.893140"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:59.126106"
+  },
+  {
+    "content": "建议切换到协作推进模式，主动询问技术细节。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:59.436302"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:01:59.806536"
+  },
+  {
+    "content": "用户计划部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:00.022631"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:00.125554"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:00.126647"
+  },
+  {
+    "content": "用户要求 driver 记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:00.257563"
+  },
+  {
+    "content": "用户要求AI记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:00.399696"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:00.735756"
+  },
+  {
+    "content": "用户决定部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:01.054175"
+  },
+  {
+    "content": "项目决定将系统部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:01.404127"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:01.864313"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:02.350331"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:02.624512"
+  },
+  {
+    "content": "系统遇到错误时应保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:03.089915"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:03.312993"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:03.535842"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:04.506482"
+  },
+  {
+    "content": "用户指示：遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:04.830287"
+  },
+  {
+    "content": "用户喜欢暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:05.057780"
+  },
+  {
+    "content": "用户建议助理在遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:05.077324"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:05.395451"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:05.725298"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:05.818020"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:05.991090"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:06.305605"
+  },
+  {
+    "content": "重要事实：MySQL太重不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:06.629494"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:07.091165"
+  },
+  {
+    "content": "用户喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:07.235853"
+  },
+  {
+    "content": "更换数据库为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:08.159422"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:08.420323"
+  },
+  {
+    "content": "用户计划部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:08.780881"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:08.814567"
+  },
+  {
+    "content": "更换数据库的原因是 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:09.010384"
+  },
+  {
+    "content": "用户希望驱动器在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:09.698173"
+  },
+  {
+    "content": "用户计划测试 driver 的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:09.998905"
+  },
+  {
+    "content": "用户要求遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:10.353213"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:10.507629"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:10.616232"
+  },
+  {
+    "content": "用户指示遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:10.939350"
+  },
+  {
+    "content": "用户打算测试driver的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:11.054002"
+  },
+  {
+    "content": "用户计划部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:12.059196"
+  },
+  {
+    "content": "部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:12.213417"
+  },
+  {
+    "content": "用户计划将项目部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:12.805579"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:12.852345"
+  },
+  {
+    "content": "用户今天进行极限测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:13.267860"
+  },
+  {
+    "content": "用户喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:13.434802"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:13.457791"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:14.033357"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:14.049354"
+  },
+  {
+    "content": "用户计划部署到 NAS 上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:14.717754"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:14.825496"
+  },
+  {
+    "content": "用户要求遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:15.003317"
+  },
+  {
+    "content": "今天进行极限测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:15.074184"
+  },
+  {
+    "content": "用户偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:15.488015"
+  },
+  {
+    "content": "用户已完成一轮极限测试，旨在验证记忆一致性和人格稳定性。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:16.548929"
+  },
+  {
+    "content": "用户正在进行极限测试。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:16.615293"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:16.870870"
+  },
+  {
+    "content": "计划测试系统的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:16.974090"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:17.100885"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:17.194455"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:17.475170"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:17.781623"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:17.997151"
+  },
+  {
+    "content": "MySQL太重不适合树莓派，选择使用SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:18.239528"
+  },
+  {
+    "content": "用户打算将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:18.605455"
+  },
+  {
+    "content": "用户喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:18.683912"
+  },
+  {
+    "content": "驱动的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:18.881976"
+  },
+  {
+    "content": "项目决策：测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:19.380574"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:19.549662"
+  },
+  {
+    "content": "项目决策：数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:20.168694"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:20.462256"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:20.931995"
+  },
+  {
+    "content": "driver 的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:21.237355"
+  },
+  {
+    "content": "用户身份是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:21.693087"
+  },
+  {
+    "content": "名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:22.448098"
+  },
+  {
+    "content": "用户计划下一步部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:23.552950"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:23.737273"
+  },
+  {
+    "content": "用户今天要测试系统的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:23.972307"
+  },
+  {
+    "content": "测试AI的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:23.991052"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.190063"
+  },
+  {
+    "content": "司机的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.297309"
+  },
+  {
+    "content": "系统名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.299863"
+  },
+  {
+    "content": "用户喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.420132"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.537685"
+  },
+  {
+    "content": "项目将部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.556890"
+  },
+  {
+    "content": "用户计划部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.602144"
+  },
+  {
+    "content": "对话涉及具体技术任务：SQLite迁移、NAS部署、暗黑模式UI实现。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:25.956017"
+  },
+  {
+    "content": "用户建议在遇到错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:27.316172"
+  },
+  {
+    "content": "用户计划部署系统到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:27.582182"
+  },
+  {
+    "content": "重要事实：AI名为星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:27.992498"
+  },
+  {
+    "content": "用户计划测试 driver 的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:28.599061"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:28.928587"
+  },
+  {
+    "content": "用户意图测试系统极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:29.066606"
+  },
+  {
+    "content": "driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:29.374216"
+  },
+  {
+    "content": "系统名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:29.555591"
+  },
+  {
+    "content": "用户意图测试系统的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:29.796413"
+  },
+  {
+    "content": "接下来部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:30.184383"
+  },
+  {
+    "content": "用户要求驱动器记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:30.484947"
+  },
+  {
+    "content": "项目决策：部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:31.981886"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:32.059454"
+  },
+  {
+    "content": "接下来要部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:32.419141"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:32.857073"
+  },
+  {
+    "content": "用户是开发者，计划将系统部署到NAS上。技术决策：使用SQLite替代MySQL，原因是MySQL太重，不适合树莓派等资源受限环境。用户个人偏好：喜欢蓝色和暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:33.672186"
+  },
+  {
+    "content": "系统喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:34.738343"
+  },
+  {
+    "content": "偏好蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:34.741423"
+  },
+  {
+    "content": "AI的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:34.742951"
+  },
+  {
+    "content": "driver名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:35.730684"
+  },
+  {
+    "content": "更换数据库为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:36.648398"
+  },
+  {
+    "content": "AI喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:36.666334"
+  },
+  {
+    "content": "系统名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:36.711445"
+  },
+  {
+    "content": "计划更换数据库到 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:37.280793"
+  },
+  {
+    "content": "项目将部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:37.798610"
+  },
+  {
+    "content": "具体项目任务包括SQLite迁移、NAS部署、暗黑模式UI实现。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:37.961223"
+  },
+  {
+    "content": "错误处理时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:38.901612"
+  },
+  {
+    "content": "用户指示处理错误时要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:38.901612"
+  },
+  {
+    "content": "driver 的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:38.912677"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:38.958506"
+  },
+  {
+    "content": "更换数据库的原因：MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:40.279493"
+  },
+  {
+    "content": "用户计划测试系统极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:40.282801"
+  },
+  {
+    "content": "项目决策：部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:40.287954"
+  },
+  {
+    "content": "偏好暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:40.878253"
+  },
+  {
+    "content": "用户喜欢暗黑模式界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:40.935551"
+  },
+  {
+    "content": "项目决策：更换数据库为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:41.025037"
+  },
+  {
+    "content": "因为 MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:41.249934"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:41.873691"
+  },
+  {
+    "content": "项目决策：将数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:42.177955"
+  },
+  {
+    "content": "对话已转向项目协作阶段。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:42.434369"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:42.715261"
+  },
+  {
+    "content": "用户要求记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:42.807084"
+  },
+  {
+    "content": "用户计划更换数据库为 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:42.813379"
+  },
+  {
+    "content": "项目决策：将数据库换成 SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:42.976738"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:43.163790"
+  },
+  {
+    "content": "错误处理原则是保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:43.552880"
+  },
+  {
+    "content": "想把数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:44.447294"
+  },
+  {
+    "content": "系统喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:45.559566"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:45.739492"
+  },
+  {
+    "content": "MySQL不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:45.960929"
+  },
+  {
+    "content": "部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:46.341700"
+  },
+  {
+    "content": "AI喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:46.626852"
+  },
+  {
+    "content": "需要记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:46.965464"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:47.287754"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:47.568491"
+  },
+  {
+    "content": "driver的名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:47.880911"
+  },
+  {
+    "content": "将部署到 NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:48.471542"
+  },
+  {
+    "content": "司机名字是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:48.866193"
+  },
+  {
+    "content": "部署目标是NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:49.035425"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:49.235013"
+  },
+  {
+    "content": "更换数据库的原因：MySQL 太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:49.237036"
+  },
+  {
+    "content": "用户正在测试系统的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:49.248620"
+  },
+  {
+    "content": "用户建议在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:49.251186"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:49.518577"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:50.047092"
+  },
+  {
+    "content": "用户喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:50.474774"
+  },
+  {
+    "content": "遇到错误不要惊慌，要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:51.123532"
+  },
+  {
+    "content": "数据库计划从MySQL迁移到SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:51.372593"
+  },
+  {
+    "content": "司机专属颜色是蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:51.742325"
+  },
+  {
+    "content": "数据库换成SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:52.615548"
+  },
+  {
+    "content": "用户要求AI在遇到错误时保持冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:53.027829"
+  },
+  {
+    "content": "项目决定部署到NAS上。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:53.685975"
+  },
+  {
+    "content": "迁移原因是MySQL对树莓派来说太重。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:53.750559"
+  },
+  {
+    "content": "MySQL太重，不适合树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:53.754918"
+  },
+  {
+    "content": "AI的专属色是蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:53.758959"
+  },
+  {
+    "content": "司机最喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:53.766406"
+  },
+  {
+    "content": "AI喜欢蓝色。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:55.120084"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:55.611754"
+  },
+  {
+    "content": "SQLite用于树莓派。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:55.675265"
+  },
+  {
+    "content": "用户喜欢暗黑模式的界面。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:55.719197"
+  },
+  {
+    "content": "项目决策：部署到NAS。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:56.115766"
+  },
+  {
+    "content": "AI喜欢暗黑模式。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:56.603628"
+  },
+  {
+    "content": "用户计划测试driver的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:57.404348"
+  },
+  {
+    "content": "用户是开发者。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:58.004982"
+  },
+  {
+    "content": "driver的名称是星辰-V。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:58.316351"
+  },
+  {
+    "content": "用户指示遇到错误要冷静。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:58.638363"
+  },
+  {
+    "content": "项目决定将数据库更换为SQLite。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:58.948806"
+  },
+  {
+    "content": "用户指示司机记住配置信息。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:59.307752"
+  },
+  {
+    "content": "用户正在测试司机的极限。",
+    "category": "fact",
+    "created_at": "2026-02-01T12:02:59.760920"
+  }
+]

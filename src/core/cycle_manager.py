@@ -1,6 +1,7 @@
 from core.bus import event_bus, Event
 from core.navigator import Navigator
 from psyche.psyche_core import Psyche
+from config.settings import settings
 import threading
 import time
 import sys
@@ -26,65 +27,50 @@ class CycleManager:
         self.last_analysis_time = time.time()
         self.running = True
         
-        # 启动监控线程
-        self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
-        self.monitor_thread.start()
-
-        # 启动 Moltbook 心跳线程 (每 4 小时检查一次，这里演示改为每 60s)
+        # 订阅总线事件 (Observer Mode)
+        event_bus.subscribe(self._on_event)
+        
+        # 启动 Moltbook 心跳线程
         self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop, daemon=True)
         self.heartbeat_thread.start()
         
-        print("[CycleManager] 动态周期监控 & 社交心跳已启动。")
+        print("[CycleManager] 动态周期监控(Observer) & 社交心跳已启动。")
+
+    def _on_event(self, event):
+        """事件回调函数"""
+        if not self.running:
+            return
+            
+        if event.type == "driver_response":
+            self.message_count += 1
+            self._check_triggers(event)
 
     def _heartbeat_loop(self):
         """Moltbook 心跳循环"""
+        if not moltbook_client:
+            return
+
         while self.running:
             try:
                 # 检查 Moltbook 状态
                 moltbook_client.check_heartbeat()
-                # 心跳间隔设为 1 小时 (3600s)
-                time.sleep(3600) 
+                # 心跳间隔设为 settings 中配置的值
+                time.sleep(settings.HEARTBEAT_INTERVAL) 
             except Exception as e:
                 print(f"[CycleManager] Heartbeat Error: {e}")
                 time.sleep(60)
 
-    def _monitor_loop(self):
-        """
-        监控循环：虽然 SQLite 不支持 Push，但我们可以轮询 ID 变化或者由 Driver 主动 notify
-        这里为了简单，我们采用“每次 Driver 回复后”检查一次
-        在实际生产中，应该是 EventBus 推送过来
-        """
-        last_event_id = 0
-        
-        while self.running:
-            try:
-                # 获取最新事件
-                events = event_bus.get_events(limit=10, start_time=self.last_analysis_time)
-                if not events:
-                    time.sleep(1)
-                    continue
-
-                for event in events:
-                    if event.id <= last_event_id:
-                        continue
-                    last_event_id = event.id
-                    
-                    if event.type == "driver_response":
-                        self.message_count += 1
-                        self._check_triggers(event)
-                
-                time.sleep(0.5)
-            except Exception as e:
-                print(f"[CycleManager] Monitor Error: {e}")
-                time.sleep(2)
+    # 废弃：不再需要轮询循环
+    # def _monitor_loop(self):
+    #     ...
 
     def _check_triggers(self, event):
         """检查是否满足触发条件"""
         trigger_reason = None
         
-        # 1. 计数器触发 (比如每 5 轮对话触发一次，方便演示)
-        if self.message_count >= 5:
-            trigger_reason = "Message Count Limit (5)"
+        # 1. 计数器触发
+        if self.message_count >= settings.CYCLE_TRIGGER_COUNT:
+            trigger_reason = f"Message Count Limit ({settings.CYCLE_TRIGGER_COUNT})"
         
         # 2. 情绪触发
         meta = event.meta

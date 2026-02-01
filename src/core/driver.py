@@ -1,8 +1,9 @@
+import json
+from datetime import datetime
 from utils.llm_client import LLMClient
 from memory.memory_core import Memory
 from core.bus import event_bus, Event
 from config.prompts import DRIVER_SYSTEM_PROMPT
-import json
 
 class Driver:
     """
@@ -33,7 +34,10 @@ class Driver:
             psyche_desc = f"好奇:{psyche_state.curiosity:.2f}, 利益:{psyche_state.interest:.2f}, 道德:{psyche_state.morality:.2f}, 恐惧:{psyche_state.fear:.2f}"
             # 也可以保留之前的 prompt_modifier 逻辑，这里为了演示 Meta 数据，直接用数值
 
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         system_prompt = DRIVER_SYSTEM_PROMPT.format(
+            current_time=current_time,
             psyche_desc=psyche_desc,
             suggestion=suggestion,
             long_term_context=long_term_context
@@ -57,19 +61,26 @@ class Driver:
 
         raw_response = self.llm.chat(messages)
         
-        # 解析 JSON 输出
-        try:
-            # 尝试清理可能存在的 markdown 代码块标记
-            clean_response = raw_response.replace("```json", "").replace("```", "").strip()
-            parsed_response = json.loads(clean_response)
-            reply = parsed_response.get("reply", raw_response)
-            inner_voice = parsed_response.get("inner_voice", "")
-            emotion = parsed_response.get("emotion", "neutral")
-        except Exception as e:
-            print(f"[{self.name}] JSON解析失败，回退到原始文本: {e}")
-            reply = raw_response
-            inner_voice = "解析错误"
-            emotion = "unknown"
+        if raw_response is None:
+            # 处理 LLM 故障的降级方案
+            print(f"[{self.name}] LLM 调用失败，使用降级回复。")
+            reply = "抱歉，我现在的思绪有点乱（连接错误），请稍后再试。"
+            inner_voice = "系统错误"
+            emotion = "error"
+        else:
+            # 解析 JSON 输出
+            try:
+                # 尝试清理可能存在的 markdown 代码块标记
+                clean_response = raw_response.replace("```json", "").replace("```", "").strip()
+                parsed_response = json.loads(clean_response)
+                reply = parsed_response.get("reply", raw_response)
+                inner_voice = parsed_response.get("inner_voice", "")
+                emotion = parsed_response.get("emotion", "neutral")
+            except Exception as e:
+                print(f"[{self.name}] JSON解析失败，回退到原始文本: {e}")
+                reply = raw_response
+                inner_voice = "解析错误"
+                emotion = "unknown"
 
         # 将新的一轮对话存入 ShortTerm Memory
         self.memory.add_short_term("user", user_input)

@@ -11,10 +11,13 @@ class Memory:
     1. 短期记忆 (ShortTerm): 最近的对话历史 (RAM)
     2. 长期记忆 (LongTerm): 重要的事实或规则 (Disk/JSON + ChromaDB Vector)
     """
-    def __init__(self, storage_path="src/memory/storage.json", vector_db_path="src/memory/chroma_db"):
+    def __init__(self, storage_path="src/memory/storage.json", vector_db_path="src/memory/chroma_db", diary_path="src/memory/diary.md"):
         self.short_term = []
         self.long_term = []
         self.storage_path = storage_path
+        self.diary_path = diary_path
+        self.navigator = None # 稍后注入
+        self.last_diary_time = datetime.now() # 初始化为启动时间
         
         # 初始化 ChromaDB
         try:
@@ -33,6 +36,32 @@ class Memory:
         self._load_long_term()
         print("[Memory] 记忆系统初始化完成。")
 
+    def write_diary_entry(self, content):
+        """
+        写入 AI 日记 (Markdown 格式)
+        这是一种趣味性的记忆保留方式，同时也是"压缩记忆"的一种形式。
+        """
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        header = f"\n## {timestamp}\n"
+        
+        try:
+            os.makedirs(os.path.dirname(self.diary_path), exist_ok=True)
+            # Append mode
+            with open(self.diary_path, 'a', encoding='utf-8') as f:
+                f.write(header)
+                f.write(content + "\n")
+            print(f"[Memory] 日记已写入: {self.diary_path}")
+        except Exception as e:
+            print(f"[Memory] 日记写入失败: {e}")
+
+    def set_navigator(self, navigator):
+        """
+        注入 Navigator 实例，用于记忆压缩回调
+        [TODO] [Architecture]: 当前采用 Setter 注入以打破 Memory <-> Navigator 的循环依赖。
+        未来可考虑使用 EventBus 发布 'MemoryFull' 事件，让 Navigator 订阅该事件，从而彻底解耦。
+        """
+        self.navigator = navigator
+
     def add_short_term(self, role, content):
         """添加短期对话记忆 (带滑动窗口)"""
         self.short_term.append({
@@ -49,8 +78,19 @@ class Memory:
         MAX_CHARS = 20000 
         
         # 1. 按数量裁剪
-        while len(self.short_term) > MAX_COUNT:
-            self.short_term.pop(0)
+        if len(self.short_term) > MAX_COUNT:
+            # 触发记忆压缩 (Compaction)
+            if self.navigator:
+                print(f"[Memory] 短期记忆已满 ({len(self.short_term)} > {MAX_COUNT})，触发自动压缩...")
+                try:
+                    # 在后台线程运行，避免阻塞主线程
+                    import threading
+                    threading.Thread(target=self.navigator.generate_diary, daemon=True).start()
+                except Exception as e:
+                    print(f"[Memory] 触发压缩失败: {e}")
+            
+            while len(self.short_term) > MAX_COUNT:
+                self.short_term.pop(0)
             
         # 2. 按字符数裁剪
         current_chars = sum(len(m['content']) for m in self.short_term)

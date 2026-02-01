@@ -25,5 +25,12 @@ class Settings:
     
     # S-Brain
     MAX_CODE_SCAN_SIZE = 50 * 1024 # 50KB
+    CYCLE_TRIGGER_COUNT = 5 # 对话轮数阈值
+    CYCLE_CHECK_INTERVAL = 0.5 # 监控轮询间隔 (秒)
+
+    # LLM Defaults
+    DEFAULT_LLM_PROVIDER = "deepseek"
+    DEFAULT_LLM_MODEL = "deepseek-chat"
+    DEFAULT_LLM_TIMEOUT = 180
 
 settings = Settings()

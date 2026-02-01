@@ -13,6 +13,8 @@ class Event:
     type: str  # e.g., "user_input", "driver_response", "navigator_suggestion"
     source: str # e.g., "user", "driver", "navigator"
     payload: Dict[str, Any] # 主要内容
+    # [TODO] [TypeSafety]: payload 目前为弱类型 Dict。
+    # 未来建议引入 Pydantic 模型或 TypedDict，为不同 type 的事件定义严格的 Schema 约束。
     meta: Dict[str, Any] # "暗物质"信息：trace_id, internal_thoughts, emotion, psyche_state
     trace_id: str = ""
     timestamp: float = 0.0
@@ -29,6 +31,11 @@ class SQLiteEventBus:
         self.db_path = db_path if db_path else settings.BUS_DB_PATH
         self._init_db()
         self._lock = threading.Lock() # 简单的线程锁，防止并发写入冲突
+        self._subscribers = [] # 观察者列表
+
+    def subscribe(self, callback):
+        """订阅事件"""
+        self._subscribers.append(callback)
 
     def _init_db(self):
         """初始化数据库表结构"""
@@ -71,8 +78,26 @@ class SQLiteEventBus:
                 ))
                 event_id = cursor.lastrowid
                 conn.commit()
+                
+                # 为新插入的事件设置 ID
+                event.id = event_id
+                
+                # 通知所有订阅者 (异步执行，避免阻塞发布者)
+                self._notify_subscribers(event)
+                
                 # print(f"[Bus] Event Published: [{event.type}] from {event.source} (ID: {event_id})")
                 return event_id
+
+    def _notify_subscribers(self, event):
+        """通知订阅者"""
+        for callback in self._subscribers:
+            try:
+                # [TODO] [FutureOptimization]: 当前使用每事件一线程的简单模式。
+                # 如果并发量过高 (>100 QPS)，应升级为 ThreadPoolExecutor 以防止线程爆炸。
+                # 目前保持简单，暂不引入线程池。
+                threading.Thread(target=callback, args=(event,), daemon=True).start()
+            except Exception as e:
+                print(f"[Bus] Subscriber Notification Failed: {e}")
 
     def get_events(self, limit=20, offset=0, event_type=None, start_time=None) -> List[Event]:
         """查询事件历史"""

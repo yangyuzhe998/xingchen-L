@@ -1,8 +1,8 @@
 import sys
 import os
 
-# 确保 src 在 python 路径中
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# 移除硬编码的 sys.path.append，假设通过 python -m src.main 或设置 PYTHONPATH 运行
+# sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from core.driver import Driver
 from core.navigator import Navigator
@@ -18,6 +18,10 @@ def main():
     memory = Memory()
     psyche = Psyche()
     navigator = Navigator(memory=memory)
+    
+    # 关键：注入 Navigator 到 Memory，启用自动压缩
+    memory.set_navigator(navigator)
+    
     driver = Driver(memory=memory)
     
     # 启动周期管理器 (后台线程)
