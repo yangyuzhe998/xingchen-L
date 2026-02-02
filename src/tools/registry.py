@@ -1,8 +1,9 @@
 
 from typing import Dict, List, Any, Callable
-from .definitions import ToolDefinition, ToolTier
+from src.tools.definitions import ToolDefinition, ToolTier
 import inspect
 import json
+import os
 
 class ToolRegistry:
     """
@@ -44,6 +45,22 @@ class ToolRegistry:
         if tier:
             return [t for t in cls._tools.values() if t.tier == tier and t.enabled]
         return list(cls._tools.values())
+
+    @classmethod
+    def get_openai_tools(cls, tier: ToolTier = None) -> List[Dict]:
+        """获取 OpenAI 格式的工具定义列表"""
+        tools = cls.get_tools(tier)
+        openai_tools = []
+        for t in tools:
+            openai_tools.append({
+                "type": "function",
+                "function": {
+                    "name": t.name,
+                    "description": t.description,
+                    "parameters": t.schema
+                }
+            })
+        return openai_tools
 
     @classmethod
     def get_tool(cls, name: str) -> ToolDefinition:

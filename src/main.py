@@ -4,15 +4,19 @@ import os
 # 移除硬编码的 sys.path.append，假设通过 python -m src.main 或设置 PYTHONPATH 运行
 # sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from core.driver import Driver
-from core.navigator import Navigator
-from psyche.psyche_core import Psyche
-from memory.memory_core import Memory
-from core.cycle_manager import CycleManager
-from core.bus import event_bus
+from src.core.driver import Driver
+from src.core.navigator import Navigator
+from src.psyche.psyche_core import Psyche
+from src.memory.memory_core import Memory
+from src.core.cycle_manager import CycleManager
+from src.core.bus import event_bus
+from src.skills.loader import skill_loader
 
 def main():
     print("XingChen-V 系统启动中 (Async/R1 Mode)...")
+    
+    # 0. 加载动态技能 (Hot-Swappable Skills)
+    skill_loader.scan_and_load()
     
     # 初始化组件
     memory = Memory()

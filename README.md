@@ -23,9 +23,15 @@
 2.  **双脑闭环 (Dual-Brain Loop)**
     *   **机制**: F脑秒回 (Qwen-Turbo) + S脑深思 (DeepSeek-R1)。
     *   **表现**: 在高频对话的同时，后台异步进行记忆压缩和战略复盘，实现了 "表里不一" 的复杂人格深度。
-3.  **元认知 (Meta-Cognition)**
+3.2.  **元认知 (Meta-Cognition)**
     *   **机制**: 启动时动态扫描 `src` 源码。
     *   **表现**: AI 清楚自己由哪些 Python 模块构成，能基于代码逻辑反驳不合理需求。
+3.  **自我进化 (Self-Evolution)**
+    *   **机制**: S脑提出需求 -> EvolutionManager 生成代码 -> SkillLoader 热加载。
+    *   **表现**: 成功在运行时生成并加载 `audio_extractor` 技能，无需重启即可使用新能力。
+4.  **技能图书馆 (Skill Library)**
+    *   **机制**: 基于 ChromaDB 的向量化技能存储与检索 (RAG)。
+    *   **表现**: S脑/F脑均可复用技能库能力。F脑能自动检索相关技能 (如 `weather`) 并获得使用指南，甚至可以直接执行 Shell 命令调用外部工具。
 
 ### ⚠️ 已知局限 (Limitations)
 1.  **Psyche 数值空转**: 四维驱动数值目前仅作为 Prompt 背景描述，尚未对行为产生强约束（如无法强制 AI 拒绝回答）。
@@ -67,6 +73,11 @@ python src/main.py
 ```
 
 ## 修改日志
+- **2026-02-02 (Skill Library)**:
+  - **Feature**: 构建"技能图书馆" (Skill Library)，支持基于 Markdown 的技能定义和向量检索。
+  - **Feature**: 实现 F脑 (Driver) 和 S脑 (Navigator) 的技能复用机制。
+  - **Feature**: 新增 `run_shell_command` 工具，赋予 AI 执行系统命令的能力 (需谨慎)。
+  - **Feature**: 验证 `weather` 技能的端到端流程。
 - **2026-02-01 (Basic Mature)**: 
   - **Feature**: 实现客观时间感知，修复时间幻觉问题。
   - **Feature**: 完成 20 轮次压力测试，验证双脑稳定性。

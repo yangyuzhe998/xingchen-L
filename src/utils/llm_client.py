@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import sys
 import uuid
-from config.settings import settings
+from src.config.settings import settings
 
 # 立即加载环境变量
 load_dotenv(override=True)
@@ -44,26 +44,48 @@ class LLMClient:
             self.base_url = os.getenv("OPENAI_BASE_URL")
             self.model = os.getenv("LLM_MODEL", settings.DEFAULT_LLM_MODEL)
 
-    def chat(self, messages, temperature=0.7, trace_id=None):
+    def complete(self, prompt: str, **kwargs):
+        """
+        简单的文本补全 (Compatibility wrapper)
+        """
+        return self.chat([{"role": "user", "content": prompt}], **kwargs)
+
+    def chat(self, messages, temperature=0.7, trace_id=None, tools=None, tool_choice=None):
         """
         发送消息给 LLM 并获取回复。
         支持 trace_id 追踪。
+        支持 Function Calling (Tools)。
         """
         if not trace_id:
             trace_id = str(uuid.uuid4())[:8]
             
         try:
-            msg_len = sum(len(m.get('content', '')) for m in messages)
-            print(f"[{self.provider}] [TraceID: {trace_id}] Sending to {self.model}... (Msg: {len(messages)}, Chars: {msg_len})")
+            msg_len = sum(len(m.get('content', '') or '') for m in messages)
+            tool_info = f", Tools: {len(tools)}" if tools else ""
+            print(f"[{self.provider}] [TraceID: {trace_id}] Sending to {self.model}... (Msg: {len(messages)}, Chars: {msg_len}{tool_info})")
             
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-                timeout=settings.DEFAULT_LLM_TIMEOUT
-            )
-            content = response.choices[0].message.content
-            print(f"[{self.provider}] [TraceID: {trace_id}] Received response ({len(content)} chars).")
+            kwargs = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "timeout": settings.DEFAULT_LLM_TIMEOUT
+            }
+            
+            if tools:
+                kwargs["tools"] = tools
+                if tool_choice:
+                    kwargs["tool_choice"] = tool_choice
+            
+            response = self.client.chat.completions.create(**kwargs)
+            message = response.choices[0].message
+            
+            # 如果使用了 Tools，返回完整的 message 对象以便处理 tool_calls
+            if tools:
+                print(f"[{self.provider}] [TraceID: {trace_id}] Received response (Tool Calls: {len(message.tool_calls) if message.tool_calls else 0}).")
+                return message
+            
+            content = message.content
+            print(f"[{self.provider}] [TraceID: {trace_id}] Received response ({len(content) if content else 0} chars).")
             return content
         except Exception as e:
             print(f"[{self.provider}] [TraceID: {trace_id}] Error: {e}")

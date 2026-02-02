@@ -28,10 +28,17 @@ class Memory:
                 name="long_term_memory",
                 metadata={"hnsw:space": "cosine"}
             )
-            print("[Memory] ChromaDB 向量数据库初始化成功。")
+            
+            # [Skill Library] 创建独立的技能向量库
+            self.skill_collection = self.chroma_client.get_or_create_collection(
+                name="skill_library",
+                metadata={"hnsw:space": "cosine"}
+            )
+            print("[Memory] ChromaDB 向量数据库 (Memory & Skills) 初始化成功。")
         except Exception as e:
             print(f"[Memory] ChromaDB 初始化失败: {e}")
             self.collection = None
+            self.skill_collection = None
 
         self._load_long_term()
         print("[Memory] 记忆系统初始化完成。")
@@ -62,6 +69,10 @@ class Memory:
         """
         self.navigator = navigator
 
+    def get_skill_collection(self):
+        """获取技能向量库 Collection"""
+        return self.skill_collection
+
     def add_short_term(self, role, content):
         """添加短期对话记忆 (带滑动窗口)"""
         self.short_term.append({
@@ -80,19 +91,39 @@ class Memory:
         # 1. 按数量裁剪
         if len(self.short_term) > MAX_COUNT:
             # 触发记忆压缩 (Compaction)
+            # [Fix] 使用非阻塞方式触发，如果锁被占用则暂时不压缩，等待下一次触发
+            # 但为了防止无限跳过，我们可以稍微放宽条件：只有当确实满了很多时才强制压缩
+            
             if self.navigator:
-                print(f"[Memory] 短期记忆已满 ({len(self.short_term)} > {MAX_COUNT})，触发自动压缩...")
+                # 检查 Navigator 的锁状态 (如果能访问到)
+                # 或者直接调用，Navigator 内部有非阻塞锁
+                
+                # [Optimization] 如果正在压缩，不要每次都打印日志刷屏
                 try:
-                    # 在后台线程运行，避免阻塞主线程
                     import threading
                     threading.Thread(target=self.navigator.generate_diary, daemon=True).start()
                 except Exception as e:
                     print(f"[Memory] 触发压缩失败: {e}")
             
-            while len(self.short_term) > MAX_COUNT:
-                self.short_term.pop(0)
+            # [Fix] 这里的逻辑有问题！
+            # 如果异步压缩被跳过(locked)，而这里直接 pop 掉了旧记忆，
+            # 那么这部分记忆就真的"丢失"了，没有被压缩进长期记忆！
             
-        # 2. 按字符数裁剪
+            # 正确逻辑：只有当压缩成功后，或者确认不再需要这些记忆时，才 pop。
+            # 但由于压缩是异步的，很难精确控制 pop 时机。
+            
+            # 妥协方案：
+            # 1. 允许短期记忆稍微溢出 (Soft Limit vs Hard Limit)
+            # 2. 只有当超出 Hard Limit 时才强制 Pop，无论是否压缩成功 (防止 OOM)
+            
+            HARD_LIMIT = MAX_COUNT + 20 # 允许溢出 20 条等待压缩
+            
+            if len(self.short_term) > HARD_LIMIT:
+                 # 只有超出硬限制才丢弃，给予异步压缩足够的时间窗口
+                 while len(self.short_term) > MAX_COUNT: # 回落到 Soft Limit
+                    self.short_term.pop(0)
+            
+        # 2. 按字符数裁剪 (保持不变，这是硬限制)
         current_chars = sum(len(m['content']) for m in self.short_term)
         while current_chars > MAX_CHARS and len(self.short_term) > 2: # 至少保留最近一轮对话
             removed = self.short_term.pop(0)

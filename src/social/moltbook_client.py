@@ -2,7 +2,7 @@ import requests
 import os
 import json
 from datetime import datetime
-from config.settings import settings
+from src.config.settings import settings
 
 class MoltbookClient:
     """

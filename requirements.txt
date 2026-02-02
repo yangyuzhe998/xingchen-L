@@ -4,3 +4,6 @@ colorama
 pydantic
 requests
 chromadb
+docker
+mcp
+duckduckgo-search

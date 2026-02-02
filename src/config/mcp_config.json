@@ -1,0 +1,13 @@
+{
+  "puppeteer": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-puppeteer"
+    ],
+    "env": {
+      "PUPPETEER_LAUNCH_OPTIONS": "{\"headless\": false, \"args\": [\"--no-sandbox\"]}",
+      "ALLOW_DANGEROUS": "true"
+    }
+  }
+}

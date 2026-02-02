@@ -1,15 +1,13 @@
-from core.bus import event_bus, Event
-from core.navigator import Navigator
-from psyche.psyche_core import Psyche
-from config.settings import settings
+from src.core.bus import event_bus, Event
+from src.core.navigator import Navigator
+from src.psyche.psyche_core import Psyche
+from src.config.settings import settings
 import threading
 import time
 import sys
 import os
 
-# 动态添加路径以导入 social 模块 (临时方案)
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
-from social.moltbook_client import moltbook_client
+from src.social.moltbook_client import moltbook_client
 
 class CycleManager:
     """
@@ -34,7 +32,27 @@ class CycleManager:
         self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop, daemon=True)
         self.heartbeat_thread.start()
         
+        # 启动空闲监控线程
+        self.idle_monitor_thread = threading.Thread(target=self._idle_monitor_loop, daemon=True)
+        self.idle_monitor_thread.start()
+        
         print("[CycleManager] 动态周期监控(Observer) & 社交心跳已启动。")
+
+    def _idle_monitor_loop(self):
+        """空闲监控循环：如果太久没有分析，强制触发一次 (避免 S脑 饿死)"""
+        IDLE_TIMEOUT = 60 # 60秒无分析则强制触发 (测试用)
+        while self.running:
+            time.sleep(10)
+            if time.time() - self.last_analysis_time > IDLE_TIMEOUT:
+                print(f"[CycleManager] 系统空闲超时 ({IDLE_TIMEOUT}s)，强制触发 S脑分析...")
+                # 注入心跳事件，确保 S脑 有米下锅
+                event_bus.publish(Event(
+                    type="system_heartbeat",
+                    source="cycle_manager",
+                    payload={"content": "系统已空闲一段时间。S脑需自发思考当前状态或决定是否进行社交活动。"},
+                    meta={}
+                ))
+                self._trigger_s_brain()
 
     def _on_event(self, event):
         """事件回调函数"""
