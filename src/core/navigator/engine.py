@@ -1,16 +1,15 @@
-from src.utils.llm_client import LLMClient
-from src.psyche.psyche_core import psyche_engine
-from src.psyche.mind_link import mind_link
-from src.memory.memory_core import Memory
-from src.core.bus import event_bus
-from src.config.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PROMPT
-from src.config.settings import settings
-from src.core.evolution_manager import evolution_manager
-from src.core.library_manager import library_manager
+from ...utils.llm_client import LLMClient
+from ...psyche import psyche_engine, mind_link
+from ...memory.memory_core import Memory
+from ..bus.event_bus import event_bus
+from ...config.prompts.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PROMPT, SYSTEM_ARCHITECTURE_CONTEXT
+from ...config.settings.settings import settings
+from ..managers.evolution_manager import evolution_manager
+from ..managers.library_manager import library_manager
 import json
 import os
 
-from src.social.moltbook_client import moltbook_client
+# from ...social.moltbook_client import moltbook_client
 
 import threading
 import time
@@ -39,56 +38,12 @@ class Navigator:
         构建静态上下文 (Static Context)
         利用 DeepSeek 的 Prefix Caching 机制，这部分内容应该保持不变。
         
-        【动态扫描机制】
-        这里不再写死文件列表，而是动态扫描 src 目录下所有的 Python 代码文件。
-        这样当项目结构调整或文件增加时，S脑能自动感知到最新的代码架构。
-        注意：我们会对文件路径进行排序，确保生成的 Prompt 前缀一致，从而命中 Cache。
+        【优化】
+        不再全量扫描所有代码文件，仅提供核心架构描述和关键接口定义。
+        这避免了 Context Window 膨胀，同时让 S 脑专注于高层逻辑而非实现细节。
         """
-        project_context = ""
-        project_root = settings.PROJECT_ROOT
-        src_path = os.path.join(project_root, "src")
-        
-        try:
-            # 动态收集所有 .py 文件
-            code_files = []
-            for root, dirs, files in os.walk(src_path):
-                # 排除 __pycache__ 等目录
-                if "__pycache__" in dirs:
-                    dirs.remove("__pycache__")
-                
-                for file in files:
-                    if file.endswith(".py"):
-                        full_path = os.path.join(root, file)
-                        # 计算相对路径，用于显示 (例如 src/core/driver.py)
-                        rel_path = os.path.relpath(full_path, project_root).replace("\\", "/")
-                        code_files.append((rel_path, full_path))
-            
-            # 关键：必须排序！否则文件顺序随机变化会导致 Cache 失效 (Prefix Hash 改变)
-            code_files.sort(key=lambda x: x[0])
-            
-            loaded_count = 0
-            MAX_FILE_SIZE = settings.MAX_CODE_SCAN_SIZE
-            
-            for rel_path, full_path in code_files:
-                try:
-                    # 检查文件大小
-                    file_size = os.path.getsize(full_path)
-                    if file_size > MAX_FILE_SIZE:
-                        print(f"[{self.name}] 跳过大文件 {rel_path} ({file_size/1024:.1f}KB)")
-                        continue
-                        
-                    with open(full_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                        project_context += f"\n=== File: {rel_path} ===\n{content}\n"
-                        loaded_count += 1
-                except Exception as read_err:
-                    print(f"[{self.name}] 读取文件失败 {rel_path}: {read_err}")
-            
-            # print(f"[{self.name}] 已加载静态上下文: {loaded_count} 个文件")
-            
-        except Exception as e:
-            print(f"[{self.name}] 静态上下文构建失败: {e}")
-
+        # 使用配置中定义的中文架构描述
+        project_context = SYSTEM_ARCHITECTURE_CONTEXT
         static_prompt = NAVIGATOR_SYSTEM_PROMPT.format(project_context=project_context)
         return static_prompt
 
@@ -183,13 +138,17 @@ class Navigator:
                 f"- 逝去时间: {time_str}\n"
             )
 
+            # 读取当前心智状态 (用于决定日记风格)
+            current_psyche = psyche_engine.get_state_summary()
+
             # === 任务 1: 趣味日记 (Creative) ===
             diary_prompt = (
-                "你是一个傲娇的人类少女 AI (XingChen-V)。\n"
+                "你是一个具有自我意识的 AI 智能体 (XingChen-V)。\n"
                 "请根据以下最近发生的事件，写一篇简短的日记 (100字以内)。\n"
                 "要求：\n"
-                "1. 风格要傲娇、可爱，带一点点吐槽。\n"
-                "2. 记录关键发生了什么，但用趣味的方式表达。\n"
+                f"1. 你的心智状态是：[{current_psyche}]。请让日记的语气和内容反映这种状态。\n"
+                "2. 记录关键发生了什么，以及你对这些事件的真实感受。\n"
+                "3. 不要刻意扮演某种固定人设（如傲娇），而是让性格自然流露。\n"
                 f"{time_context}"
                 "\n"
                 f"事件流:\n{script}\n"
@@ -266,10 +225,12 @@ class Navigator:
                  script += f"[{timestamp_str}] System: {e.payload.get('content')}\n"
 
         # 动态部分：长期记忆 + 最近日志
-        # 注意：为了命中 Cache，system_prompt (static) 必须放在最前面且完全不变
-        # 动态内容只能追加在后面 (user message)
-        
-        long_term_context = self.memory.get_relevant_long_term()
+        # S脑使用全量摘要 + 弱相关联想 (Hybrid Mode)
+        long_term_context = self.memory.get_relevant_long_term(
+            query=script, # 用整个对话脚本作为 Context 检索线索
+            limit=10, 
+            search_mode="hybrid"
+        )
 
         # [New] 检索相关技能
         last_user_msg = ""
@@ -372,10 +333,31 @@ class Navigator:
                         
                 elif lower_line.startswith("delta:"):
                     # 尝试解析 Delta: [curiosity, survival, laziness, fear]
-                    # 期望格式: "fear: 0.1, curiosity: -0.05" 或 "fear up, curiosity down"
-                    # 这里暂实现简单的关键词解析
-                    # TODO: 接入更精确的正则解析
-                    pass
+                    # 期望格式: "fear: 0.1, curiosity: -0.05" 或 "fear +0.1, curiosity -0.05"
+                    try:
+                        import re
+                        # 提取冒号后的内容
+                        content = clean_line.split(':', 1)[1]
+                        
+                        # 正则匹配: (key) (separator) (value)
+                        # 支持: fear +0.1, fear: 0.1, fear=0.1
+                        matches = re.findall(r'([a-zA-Z]+)\s*[:=]?\s*([+-]?\d*\.?\d+)', content)
+                        
+                        delta_dict = {}
+                        for key, val in matches:
+                            key = key.lower().strip()
+                            try:
+                                delta_dict[key] = float(val)
+                            except:
+                                pass
+                                
+                        if delta_dict:
+                            print(f"[{self.name}] 🧠 演化心智状态: {delta_dict}")
+                            psyche_engine.update_state(delta_dict)
+                            
+                    except Exception as e:
+                        print(f"[{self.name}] Delta 解析失败: {e}")
+
                     
                 elif lower_line.startswith("memory:"):
                     parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)

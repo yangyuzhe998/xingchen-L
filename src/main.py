@@ -4,23 +4,25 @@ import os
 # 移除硬编码的 sys.path.append，假设通过 python -m src.main 或设置 PYTHONPATH 运行
 # sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from src.core.driver import Driver
-from src.core.navigator import Navigator
-from src.psyche.psyche_core import Psyche
+from src.core.driver.engine import Driver
+from src.core.navigator.engine import Navigator
+from src.psyche import PsycheEngine
 from src.memory.memory_core import Memory
-from src.core.cycle_manager import CycleManager
-from src.core.bus import event_bus
-from src.skills.loader import skill_loader
+from src.core.managers.cycle_manager import CycleManager
+from src.core.bus.event_bus import event_bus, Event
+# from src.skills.loader import skill_loader
 
 def main():
     print("XingChen-V 系统启动中 (Async/R1 Mode)...")
     
     # 0. 加载动态技能 (Hot-Swappable Skills)
-    skill_loader.scan_and_load()
+    # skill_loader.scan_and_load() # Deprecated: 使用 LibraryManager
+    from src.core.managers.library_manager import library_manager
+    library_manager.scan_and_index()
     
     # 初始化组件
     memory = Memory()
-    psyche = Psyche()
+    psyche = PsycheEngine()
     navigator = Navigator(memory=memory)
     
     # 关键：注入 Navigator 到 Memory，启用自动压缩

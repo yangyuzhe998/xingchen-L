@@ -1,13 +1,12 @@
 import json
 from datetime import datetime
-from src.utils.llm_client import LLMClient
-from src.memory.memory_core import Memory
-from src.core.bus import event_bus, Event
-from src.core.library_manager import library_manager
-from src.psyche.psyche_core import psyche_engine
-from src.psyche.mind_link import mind_link
-from src.config.prompts import DRIVER_SYSTEM_PROMPT
-from src.tools.registry import tool_registry
+from ...utils.llm_client import LLMClient
+from ...memory.memory_core import Memory
+from ..bus.event_bus import event_bus, Event
+from ..managers.library_manager import library_manager
+from ...psyche import psyche_engine, mind_link
+from ...config.prompts.prompts import DRIVER_SYSTEM_PROMPT
+from ...tools.registry import tool_registry
 
 class Driver:
     """
@@ -64,8 +63,8 @@ class Driver:
             {"role": "system", "content": system_prompt} 
         ]
         
-        # 从 Memory 模块获取最近历史
-        messages.extend(self.memory.get_recent_history(limit=10))
+        # 从 Memory 模块获取最近历史 (修正为 15 轮)
+        messages.extend(self.memory.get_recent_history(limit=15))
         messages.append({"role": "user", "content": user_input})
         
         # 发布 UserInput 事件到总线

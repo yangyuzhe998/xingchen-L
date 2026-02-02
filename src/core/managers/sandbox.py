@@ -5,6 +5,8 @@ import time
 from typing import Dict, Any, Optional
 import shutil
 
+from ...config.settings.settings import settings
+
 class Sandbox:
     """
     Docker Sandbox Manager
@@ -53,12 +55,15 @@ class Sandbox:
             print(f"[Sandbox] ❌ Build failed: {e}")
             return None
 
-    def run_skill(self, image_tag: str, command: str, env: Dict[str, str] = None, timeout: int = 30) -> Dict[str, Any]:
+    def run_skill(self, image_tag: str, command: str, env: Dict[str, str] = None, timeout: int = None) -> Dict[str, Any]:
         """
         在容器中运行一次性命令
         """
         if not self.is_available():
             return {"error": "Docker not available"}
+            
+        if timeout is None:
+            timeout = settings.SANDBOX_TIMEOUT
 
         print(f"[Sandbox] Running {command} in {image_tag}...")
         try:
@@ -68,8 +73,8 @@ class Sandbox:
                 environment=env or {},
                 detach=True,
                 # 限制资源
-                mem_limit="128m",
-                nano_cpus=500000000, # 0.5 CPU
+                mem_limit=settings.SANDBOX_MEM_LIMIT,
+                nano_cpus=settings.SANDBOX_CPU_LIMIT, 
                 network_mode="none" # 默认无网络，安全第一 (需要联网则由 Skill 声明)
             )
             

@@ -1,0 +1,9 @@
+# Backward compatibility
+from .settings.settings import settings, Settings
+from .prompts.prompts import (
+    TOOL_CN_NAME_MAP,
+    DRIVER_SYSTEM_PROMPT,
+    NAVIGATOR_SYSTEM_PROMPT,
+    NAVIGATOR_USER_PROMPT,
+    SYSTEM_ARCHITECTURE_CONTEXT
+)

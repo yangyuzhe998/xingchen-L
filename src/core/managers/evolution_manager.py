@@ -3,10 +3,10 @@ import re
 import time
 import json
 from typing import Optional
-from src.utils.llm_client import LLMClient
-from src.config.prompts import EVOLUTION_SYSTEM_PROMPT
-from src.skills.loader import skill_loader
-from src.tools.registry import tool_registry
+from ...utils.llm_client import LLMClient
+from ...config.prompts.prompts import EVOLUTION_SYSTEM_PROMPT
+from .library_manager import library_manager
+from ...tools.registry import tool_registry
 
 class EvolutionManager:
     """
@@ -92,7 +92,7 @@ class EvolutionManager:
 
         # 5. Hot Reload
         print(f"[EvolutionManager] Reloading skills...")
-        skill_loader.scan_and_load()
+        library_manager.scan_and_index()
         
         # 6. Notify System (Memory Injection)
         msg = f"[System] 自我进化成功 (Code Gen Mode): 已编写并加载技能 ({request})。"
@@ -234,7 +234,7 @@ class EvolutionManager:
             if result.get("found") and result.get("config"):
                 config = result["config"]
                 print(f"[EvolutionManager] 🎯 Found potential MCP: {config}")
-                return skill_loader.load_mcp_tool(config)
+                return library_manager.load_mcp_tool(config)
                 
         except json.JSONDecodeError:
             print(f"[EvolutionManager] Failed to parse LLM response for MCP search.")

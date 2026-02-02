@@ -1,16 +1,10 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environment variables
+# Ignore memory data and sensitive files
+src/memory_data/
 .env
-
-# VS Code
+__pycache__/
+*.pyc
+.DS_Store
 .vscode/
-
-# Project specific
-src/memory/storage.json
-src/memory/bus.db
-src/memory/chroma_db/
 openclaw_temp/
+tests/verify_memory_function.py
+xingchen-L/

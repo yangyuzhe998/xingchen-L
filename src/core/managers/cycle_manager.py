@@ -1,13 +1,13 @@
-from src.core.bus import event_bus, Event
-from src.core.navigator import Navigator
-from src.psyche.psyche_core import Psyche
-from src.config.settings import settings
+from ..bus.event_bus import event_bus, Event
+from ..navigator.engine import Navigator
+from ...psyche import PsycheEngine
+from ...config.settings.settings import settings
 import threading
 import time
 import sys
 import os
 
-from src.social.moltbook_client import moltbook_client
+# from ...social.moltbook_client import moltbook_client
 
 class CycleManager:
     """
@@ -18,9 +18,10 @@ class CycleManager:
     2. 情绪剧烈波动 (Emotion Spike)
     3. 关键指令 (Key Instruction)
     """
-    def __init__(self, navigator: Navigator, psyche: Psyche):
+    def __init__(self, navigator: Navigator, psyche: PsycheEngine):
         self.navigator = navigator
         self.psyche = psyche
+
         self.message_count = 0
         self.last_analysis_time = time.time()
         self.running = True
@@ -28,19 +29,19 @@ class CycleManager:
         # 订阅总线事件 (Observer Mode)
         event_bus.subscribe(self._on_event)
         
-        # 启动 Moltbook 心跳线程
-        self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop, daemon=True)
-        self.heartbeat_thread.start()
+        # 启动 Moltbook 心跳线程 (已移除)
+        # self.heartbeat_thread = threading.Thread(target=self._heartbeat_loop, daemon=True)
+        # self.heartbeat_thread.start()
         
         # 启动空闲监控线程
         self.idle_monitor_thread = threading.Thread(target=self._idle_monitor_loop, daemon=True)
         self.idle_monitor_thread.start()
         
-        print("[CycleManager] 动态周期监控(Observer) & 社交心跳已启动。")
+        print("[CycleManager] 动态周期监控(Observer) 已启动。")
 
     def _idle_monitor_loop(self):
         """空闲监控循环：如果太久没有分析，强制触发一次 (避免 S脑 饿死)"""
-        IDLE_TIMEOUT = 60 # 60秒无分析则强制触发 (测试用)
+        IDLE_TIMEOUT = settings.CYCLE_IDLE_TIMEOUT
         while self.running:
             time.sleep(10)
             if time.time() - self.last_analysis_time > IDLE_TIMEOUT:
@@ -63,24 +64,27 @@ class CycleManager:
             self.message_count += 1
             self._check_triggers(event)
 
-    def _heartbeat_loop(self):
-        """Moltbook 心跳循环"""
-        if not moltbook_client:
-            return
+    # def _heartbeat_loop(self):
+    #     """Moltbook 心跳循环 (已移除)"""
+    #     if not moltbook_client:
+    #         return
+    #
+    #     while self.running:
+    #         try:
+    #             # 检查 Moltbook 状态
+    #             moltbook_client.check_heartbeat()
+    #             # 心跳间隔设为 settings 中配置的值
+    #             time.sleep(settings.HEARTBEAT_INTERVAL) 
+    #         except Exception as e:
+    #             print(f"[CycleManager] Heartbeat Error: {e}")
+    #             time.sleep(60)
 
-        while self.running:
-            try:
-                # 检查 Moltbook 状态
-                moltbook_client.check_heartbeat()
-                # 心跳间隔设为 settings 中配置的值
-                time.sleep(settings.HEARTBEAT_INTERVAL) 
-            except Exception as e:
-                print(f"[CycleManager] Heartbeat Error: {e}")
-                time.sleep(60)
+    def stop(self):
+        """优雅停止所有守护线程"""
+        self.running = False
+        print("[CycleManager] 正在停止监控线程...")
+        # 等待线程结束（可选，这里简单设置标志位）
 
-    # 废弃：不再需要轮询循环
-    # def _monitor_loop(self):
-    #     ...
 
     def _check_triggers(self, event):
         """检查是否满足触发条件"""

@@ -2,7 +2,9 @@ import os
 import yaml
 import time
 from typing import List, Dict, Optional
-from src.memory.memory_core import Memory
+from ...memory.memory_core import Memory
+
+from ...tools.registry import tool_registry, ToolTier
 
 class LibraryManager:
     """
@@ -11,6 +13,7 @@ class LibraryManager:
     1. 技能编目 (Cataloging): 扫描 SKILL.md，存入 ChromaDB
     2. 技能检索 (Retrieval): 根据 Query 查找相关技能
     3. 技能借阅 (Checkout): 读取 SKILL.md 内容
+    4. MCP 管理 (MCP Manager): 加载和管理 MCP 工具
     """
     _instance = None
     
@@ -29,6 +32,35 @@ class LibraryManager:
             self.collection = None
             
         self.root_dir = os.path.join("src", "skills_library")
+
+    def load_mcp_tool(self, config: Dict) -> bool:
+        """
+        加载 MCP 工具
+        :param config: MCP 配置 (command, args, env)
+        :return: Success
+        """
+        # [TODO] 真正的 MCP 加载逻辑需要集成 mcp-python SDK
+        # 这里暂时模拟注册过程，将 MCP 工具注册到 ToolRegistry
+        try:
+            tool_name = f"mcp_{int(time.time())}"
+            print(f"[Library] Loading MCP tool: {config}")
+            
+            # 动态注册一个代理函数
+            # 注意：实际 MCP 需要复杂的 Client/Server 通信，这里仅作为占位符
+            # 在完整实现中，这里应该启动 MCP Client 并连接到 Server
+            
+            @tool_registry.register(
+                name=tool_name,
+                description=f"MCP Tool loaded from {config.get('command')}",
+                tier=ToolTier.SLOW
+            )
+            def mcp_proxy(**kwargs):
+                return f"MCP Tool executed with {kwargs} (Mock)"
+                
+            return True
+        except Exception as e:
+            print(f"[Library] Failed to load MCP tool: {e}")
+            return False
 
     def set_memory(self, memory: Memory):
         self.memory = memory

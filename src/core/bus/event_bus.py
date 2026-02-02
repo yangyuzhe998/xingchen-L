@@ -6,7 +6,7 @@ from dataclasses import dataclass, asdict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 import threading
-from src.config.settings import settings
+from ...config.settings.settings import settings
 
 @dataclass
 class Event:
