@@ -1,5 +1,6 @@
 from src.utils.llm_client import LLMClient
-from src.psyche.psyche_core import PsycheState
+from src.psyche.psyche_core import psyche_engine
+from src.psyche.mind_link import mind_link
 from src.memory.memory_core import Memory
 from src.core.bus import event_bus
 from src.config.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PROMPT
@@ -366,14 +367,15 @@ class Navigator:
                     parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
                     if len(parts) > 1:
                         suggestion = parts[1].strip()
+                        # [New] 将 S 脑的建议注入到 Mind-Link
+                        mind_link.inject_intuition(suggestion)
                         
                 elif lower_line.startswith("delta:"):
-                    try:
-                        vals_str = clean_line.split(':', 1)[1].strip().strip("[]")
-                        vals = [float(x.strip()) for x in vals_str.split(',')]
-                        if len(vals) == 4:
-                            delta = PsycheState(vals[0], vals[1], vals[2], vals[3])
-                    except: pass
+                    # 尝试解析 Delta: [curiosity, survival, laziness, fear]
+                    # 期望格式: "fear: 0.1, curiosity: -0.05" 或 "fear up, curiosity down"
+                    # 这里暂实现简单的关键词解析
+                    # TODO: 接入更精确的正则解析
+                    pass
                     
                 elif lower_line.startswith("memory:"):
                     parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)

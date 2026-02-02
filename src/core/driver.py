@@ -4,6 +4,8 @@ from src.utils.llm_client import LLMClient
 from src.memory.memory_core import Memory
 from src.core.bus import event_bus, Event
 from src.core.library_manager import library_manager
+from src.psyche.psyche_core import psyche_engine
+from src.psyche.mind_link import mind_link
 from src.config.prompts import DRIVER_SYSTEM_PROMPT
 from src.tools.registry import tool_registry
 
@@ -28,6 +30,14 @@ class Driver:
         """
         print(f"[{self.name}] 正在思考: {user_input}")
         
+        # 1. 尝试演化心智状态 (Input Stimulus)
+        # 简单假设：每次用户输入都微弱增加一点好奇，但如果输入太长可能增加懒惰 (这里暂不实现复杂逻辑，留给 S 脑)
+        # 这里只做读取
+        current_psyche = psyche_engine.get_state_summary()
+        
+        # 2. 读取 Mind-Link (潜意识直觉)
+        intuition = mind_link.read_intuition()
+        
         # 获取长期记忆上下文 (传入 user_input 以进行关键词检索)
         long_term_context = self.memory.get_relevant_long_term(query=user_input)
         
@@ -39,18 +49,13 @@ class Driver:
             for skill in relevant_skills:
                 skill_info += f"- {skill['name']} (ID: {skill['id']}): {skill['description']}\n"
             skill_info += "(如果需要使用，请调用 `read_skill` 获取详细指南，或直接尝试 `run_shell_command` 如果你知道怎么用)"
-        
-        # 构造 Psyche 描述
-        psyche_desc = ""
-        if psyche_state:
-            psyche_desc = f"好奇:{psyche_state.curiosity:.2f}, 利益:{psyche_state.interest:.2f}, 道德:{psyche_state.morality:.2f}, 恐惧:{psyche_state.fear:.2f}"
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         system_prompt = DRIVER_SYSTEM_PROMPT.format(
             current_time=current_time,
-            psyche_desc=psyche_desc,
-            suggestion=suggestion,
+            psyche_desc=current_psyche,
+            suggestion=intuition,
             long_term_context=long_term_context,
             skill_info=skill_info
         )
