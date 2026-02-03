@@ -23,7 +23,17 @@ class ChromaStorage:
                 name="skill_library",
                 metadata={"hnsw:space": "cosine"}
             )
-            print("[Memory] ChromaDB 向量数据库 (Memory & Skills) 初始化成功。")
+            
+            self.command_docs_collection = self.client.get_or_create_collection(
+                name="command_docs",
+                metadata={"hnsw:space": "cosine"}
+            )
+            
+            self.command_cases_collection = self.client.get_or_create_collection(
+                name="command_cases",
+                metadata={"hnsw:space": "cosine"}
+            )
+            print("[Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases) 初始化成功。")
         except Exception as e:
             print(f"[Memory] ChromaDB 初始化失败: {e}")
 
@@ -32,3 +42,9 @@ class ChromaStorage:
 
     def get_skill_collection(self):
         return self.skill_collection
+
+    def get_command_docs_collection(self):
+        return self.command_docs_collection
+
+    def get_command_cases_collection(self):
+        return self.command_cases_collection

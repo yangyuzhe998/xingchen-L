@@ -21,6 +21,7 @@ class Settings:
     MEMORY_STORAGE_PATH = os.path.join(MEMORY_DATA_DIR, "storage.json")
     VECTOR_DB_PATH = os.path.join(MEMORY_DATA_DIR, "chroma_db")
     DIARY_PATH = os.path.join(MEMORY_DATA_DIR, "diary.md")
+    SHORT_TERM_CACHE_PATH = os.path.join(MEMORY_DATA_DIR, "short_term_cache.json")
     
     SHORT_TERM_MAX_COUNT = 50
     SHORT_TERM_MAX_CHARS = 20000
@@ -32,7 +33,7 @@ class Settings:
     MAX_CODE_SCAN_SIZE = 50 * 1024 # 50KB
     CYCLE_TRIGGER_COUNT = 5 # 对话轮数阈值
     CYCLE_CHECK_INTERVAL = 0.5 # 监控轮询间隔 (秒)
-    CYCLE_IDLE_TIMEOUT = 60 # 空闲强制分析阈值 (秒)
+    CYCLE_IDLE_TIMEOUT = 300 # 空闲强制分析阈值 (秒)
 
     # Psyche Engine
     PSYCHE_DECAY_RATE = 0.05 # 状态自然衰减率
@@ -43,6 +44,10 @@ class Settings:
     DEFAULT_LLM_PROVIDER = "deepseek"
     DEFAULT_LLM_MODEL = "deepseek-chat"
     DEFAULT_LLM_TIMEOUT = 180
+    
+    # Brain Models
+    F_BRAIN_MODEL = "qwen-max"
+    S_BRAIN_MODEL = "deepseek-reasoner"
 
     # Sandbox
     SANDBOX_MEM_LIMIT = "128m"

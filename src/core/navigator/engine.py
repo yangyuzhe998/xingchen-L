@@ -26,7 +26,7 @@ class Navigator:
         # S脑使用 DeepSeek
         self.llm = LLMClient(provider="deepseek")
         # 强制切换为 deepseek-reasoner
-        self.llm.model = "deepseek-reasoner"
+        self.llm.model = settings.S_BRAIN_MODEL
         self.memory = memory if memory else Memory()
         self.suggestion_board = []
         self._lock = threading.Lock() # 初始化线程锁
@@ -44,7 +44,8 @@ class Navigator:
         """
         # 使用配置中定义的中文架构描述
         project_context = SYSTEM_ARCHITECTURE_CONTEXT
-        static_prompt = NAVIGATOR_SYSTEM_PROMPT.format(project_context=project_context)
+        # 使用 safe_format 或简单的 replace 以避免 Key Error (因为 JSON 格式包含花括号)
+        static_prompt = NAVIGATOR_SYSTEM_PROMPT.replace("{project_context}", project_context)
         return static_prompt
 
     def request_diary_generation(self):

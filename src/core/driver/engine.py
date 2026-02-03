@@ -6,6 +6,7 @@ from ..bus.event_bus import event_bus, Event
 from ..managers.library_manager import library_manager
 from ...psyche import psyche_engine, mind_link
 from ...config.prompts.prompts import DRIVER_SYSTEM_PROMPT
+from ...config.settings.settings import settings
 from ...tools.registry import tool_registry
 
 class Driver:
@@ -19,8 +20,9 @@ class Driver:
         self.name = name
         # F脑使用 Qwen
         self.llm = LLMClient(provider="qwen")
+        self.llm.model = settings.F_BRAIN_MODEL
         self.memory = memory if memory else Memory()
-        print(f"[{self.name}] 初始化完成。模型: Qwen。")
+        print(f"[{self.name}] 初始化完成。模型: {self.llm.model}。")
 
     def think(self, user_input, psyche_state=None, suggestion=""):
         """

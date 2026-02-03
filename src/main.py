@@ -6,7 +6,7 @@ import os
 
 from src.core.driver.engine import Driver
 from src.core.navigator.engine import Navigator
-from src.psyche import PsycheEngine
+from src.psyche import psyche_engine
 from src.memory.memory_core import Memory
 from src.core.managers.cycle_manager import CycleManager
 from src.core.bus.event_bus import event_bus, Event
@@ -15,14 +15,16 @@ from src.core.bus.event_bus import event_bus, Event
 def main():
     print("XingChen-V 系统启动中 (Async/R1 Mode)...")
     
-    # 0. 加载动态技能 (Hot-Swappable Skills)
-    # skill_loader.scan_and_load() # Deprecated: 使用 LibraryManager
-    from src.core.managers.library_manager import library_manager
-    library_manager.scan_and_index()
-    
     # 初始化组件
     memory = Memory()
-    psyche = PsycheEngine()
+    
+    # 0. 加载动态技能 (Hot-Swappable Skills)
+    # 必须在 Memory 初始化之后执行，因为 LibraryManager 需要依赖 Memory 的 VectorDB
+    from src.core.managers.library_manager import library_manager
+    library_manager.set_memory(memory) # 注入 Memory 实例
+    library_manager.scan_and_index()
+    
+    psyche = psyche_engine
     navigator = Navigator(memory=memory)
     
     # 关键：注入 Navigator 到 Memory，启用自动压缩
@@ -43,7 +45,9 @@ def main():
             user_input = input("User: ").strip()
             if user_input.lower() in ['exit', 'quit']:
                 cycle_manager.running = False
-                print("系统关闭。再见。")
+                print("系统关闭。正在缓存短期记忆...")
+                memory.save_short_term_cache() # 保存缓存文件
+                print("再见。")
                 break
             
             if not user_input:

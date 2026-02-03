@@ -1,6 +1,9 @@
+import json
+import os
 from datetime import datetime
 from typing import List, Dict
 from ..models.entry import ShortTermMemoryEntry, LongTermMemoryEntry
+from ...config.settings.settings import settings
 
 class MemoryService:
     """
@@ -12,7 +15,11 @@ class MemoryService:
         self.json_storage = json_storage
         self.diary_storage = diary_storage
         
-        self.short_term: List[ShortTermMemoryEntry] = []
+        # 优先加载缓存的未归档记忆，然后是空的列表
+        self.short_term: List[ShortTermMemoryEntry] = self._load_cache()
+        if self.short_term:
+            print(f"[Memory] 已恢复 {len(self.short_term)} 条未归档记忆。")
+
         # 加载时将 dict 转换为 LongTermMemoryEntry 对象 (如果需要)
         # 简单起见，这里假设 load 返回的是 dict 列表，我们暂时保持兼容，或者在 load 后转换
         raw_long_term = self.json_storage.load()
@@ -33,6 +40,12 @@ class MemoryService:
 
     def get_skill_collection(self):
         return self.vector_storage.get_skill_collection()
+
+    def get_command_docs_collection(self):
+        return self.vector_storage.get_command_docs_collection()
+
+    def get_command_cases_collection(self):
+        return self.vector_storage.get_command_cases_collection()
 
     def write_diary_entry(self, content):
         self.diary_storage.append(content)
@@ -100,9 +113,10 @@ class MemoryService:
         entry = LongTermMemoryEntry(content=content, category=category)
         self.long_term.append(entry)
         
-        # 保存时转为 dict
-        data_to_save = [e.to_dict() for e in self.long_term]
-        self.json_storage.save(data_to_save)
+        # 同时保存到 JSON 文件
+        # 注意：这里为了简化，每次都全量保存，生产环境应优化
+        all_data = [e.to_dict() for e in self.long_term]
+        self.json_storage.save(all_data)
         
         # 同时存入向量库
         collection = self.vector_storage.get_memory_collection()
@@ -115,3 +129,38 @@ class MemoryService:
                 )
             except Exception as e:
                 print(f"[Memory] 向量存储失败: {e}")
+
+    def _load_cache(self) -> List[ShortTermMemoryEntry]:
+        """加载短期记忆缓存"""
+        path = settings.SHORT_TERM_CACHE_PATH
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                # 转换回对象
+                # 注意：ShortTermMemoryEntry 的字段名必须与 dict key 匹配
+                return [ShortTermMemoryEntry(**item) for item in data]
+            except Exception as e:
+                print(f"[Memory] Failed to load cache: {e}")
+                return []
+        return []
+
+    def save_cache(self):
+        """保存短期记忆缓存"""
+        path = settings.SHORT_TERM_CACHE_PATH
+        data = [entry.to_dict() for entry in self.short_term]
+        if not data:
+            # 如果没有数据，删除缓存文件（如果存在）
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except:
+                    pass
+            return 
+            
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"[Memory] 短期记忆已缓存至: {path}")
+        except Exception as e:
+            print(f"[Memory] Failed to save cache: {e}")

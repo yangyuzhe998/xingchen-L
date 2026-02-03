@@ -33,6 +33,12 @@ class Memory:
     def write_diary_entry(self, content):
         self.service.write_diary_entry(content)
 
+    def get_command_cases_collection(self):
+        return self.service.get_command_cases_collection()
+
+    def get_command_docs_collection(self):
+        return self.service.get_command_docs_collection()
+        
     def get_skill_collection(self):
         return self.service.get_skill_collection()
 
@@ -57,3 +63,6 @@ class Memory:
     def add_long_term(self, content, category="fact"):
         self.service.add_long_term(content, category)
         self.long_term = self.service.long_term
+        
+    def save_short_term_cache(self):
+        self.service.save_cache()
