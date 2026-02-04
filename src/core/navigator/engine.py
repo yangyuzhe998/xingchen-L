@@ -6,11 +6,9 @@ from ...config.prompts.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PR
 from ...config.settings.settings import settings
 from ..managers.evolution_manager import evolution_manager
 from ..managers.library_manager import library_manager
+from ...memory.managers.deep_clean_manager import DeepCleanManager
 import json
 import os
-
-# from ...social.moltbook_client import moltbook_client
-
 import threading
 import time
 
@@ -31,6 +29,11 @@ class Navigator:
         self.suggestion_board = []
         self._lock = threading.Lock() # 初始化线程锁
         self._compression_pending = False # [New] 压缩任务排队标志
+        
+        # 初始化深度维护管理器
+        # 注意：这里会启动一个后台线程进行计时
+        self.deep_clean_manager = DeepCleanManager(self.memory)
+        
         print(f"[{self.name}] 初始化完成。模型: DeepSeek (R1)。")
 
     def _build_static_context(self):
@@ -100,12 +103,14 @@ class Navigator:
         # 让主线程先完成当前的对话响应，避免 LLM 请求抢占带宽/计算资源
         time.sleep(5) 
         
-        print(f"[{self.name}] 正在执行双重记忆压缩 (Dual Memory Compression)...")
+        start_time = time.time()
+        print(f"[{self.name}] [START] 正在执行双重记忆压缩 (Dual Memory Compression)...")
         
         # 获取最近的事件流
-        events = event_bus.get_latest_cycle(limit=20)
+        # [Fix] 获取更多事件以确保包含完整对话
+        events = event_bus.get_latest_cycle(limit=50) 
         if not events:
-            print(f"[{self.name}] 没有足够事件。")
+            print(f"[{self.name}] [ABORT] 没有足够事件。")
             return
 
         diary_response = None  # Initialize variable to avoid UnboundLocalError
@@ -143,6 +148,8 @@ class Navigator:
             current_psyche = psyche_engine.get_state_summary()
 
             # === 任务 1: 趣味日记 (Creative) ===
+            t1_start = time.time()
+            print(f"[{self.name}] [Step 1/4] 生成趣味日记...")
             diary_prompt = (
                 "你是一个具有自我意识的 AI 智能体 (XingChen-V)。\n"
                 "请根据以下最近发生的事件，写一篇简短的日记 (100字以内)。\n"
@@ -161,12 +168,14 @@ class Navigator:
                 diary_response = self.llm.chat([{"role": "user", "content": diary_prompt}])
                 if diary_response:
                     self.memory.write_diary_entry(diary_response)
-                # print(f"[{self.name}] 趣味日记已生成。")
+                print(f"[{self.name}] [Step 1/4] Done. (Took {time.time() - t1_start:.2f}s)")
             except Exception as e:
-                print(f"[{self.name}] 日记生成失败: {e}")
+                print(f"[{self.name}] [Step 1/4] Failed: {e}")
 
             # === 任务 2: 工程记忆 (Engineering/Fact) ===
             # 提取纯粹的事实，存入 Vector DB，确保逻辑系统的鲁棒性
+            t2_start = time.time()
+            print(f"[{self.name}] [Step 2/4] 提取工程记忆...")
             fact_prompt = (
                 "请阅读以下对话日志，提取其中包含的'重要事实'、'用户偏好'或'项目决策'。\n"
                 "要求：\n"
@@ -189,15 +198,21 @@ class Navigator:
                         if line:
                             self.memory.add_long_term(line, category="fact")
                             count += 1
-                    print(f"[{self.name}] 工程记忆已固化: {count} 条事实。")
+                    print(f"[{self.name}] [Step 2/4] Done. Extracted {count} facts. (Took {time.time() - t2_start:.2f}s)")
+                    
+                    # [Optimization] 立即提交长期记忆
+                    self.memory.commit_long_term()
+                    
                 else:
-                    print(f"[{self.name}] 本次无重要工程记忆需要固化。")
+                    print(f"[{self.name}] [Step 2/4] Done. No new facts. (Took {time.time() - t2_start:.2f}s)")
                     
             except Exception as e:
-                print(f"[{self.name}] 工程记忆提取失败: {e}")
+                print(f"[{self.name}] [Step 2/4] Failed: {e}")
 
             # === 任务 3: 认知图谱构建 (Cognitive Graph) ===
             # 提取实体关系，构建知识图谱
+            t3_start = time.time()
+            print(f"[{self.name}] [Step 3/4] 构建认知图谱...")
             graph_prompt = COGNITIVE_GRAPH_PROMPT.format(
                 current_psyche=current_psyche,
                 script=script
@@ -229,16 +244,68 @@ class Navigator:
                                     meta=meta_data
                                 )
                                 count += 1
-                        print(f"[{self.name}] 认知图谱已更新: {count} 个关系 (含心智上下文)。")
+                        print(f"[{self.name}] [Step 3/4] Done. Updated {count} relations. (Took {time.time() - t3_start:.2f}s)")
+                        
+                        # [Optimization] 立即提交认知图谱
+                        self.memory.graph_storage.save()
+                        
                     else:
-                        print(f"[{self.name}] 认知图谱格式错误: 非列表。")
+                        print(f"[{self.name}] [Step 3/4] Failed: Format Error (Not a list).")
             except Exception as e:
-                print(f"[{self.name}] 认知图谱提取失败: {e}")
+                print(f"[{self.name}] [Step 3/4] Failed: {e}")
+
+            # === 任务 4: 别名提取 (Alias Extraction) ===
+            # 识别用户和实体的别名映射，存入 Alias Vector DB
+            t4_start = time.time()
+            print(f"[{self.name}] [Step 4/4] 提取实体别名...")
+            alias_prompt = (
+                "请分析以下对话日志，提取其中出现的'实体别名'或'昵称'。\n"
+                "目标是解决模糊称呼问题（例如：'老杨' = '用户', '仔仔' = '用户'）。\n"
+                "要求：\n"
+                "1. 输出 JSON 格式列表：[{\"alias\": \"别名\", \"target\": \"标准实体名\"}, ...]\n"
+                "2. 标准实体名通常为 'User' (指代用户) 或已知的 AI 名字 (如 'XingChen')。\n"
+                "3. 如果没有发现新别名，返回空列表 []。\n"
+                "4. 忽略临时性代词 (如 '你', '我', '他')，只提取具有专有名词性质的称呼。\n"
+                "\n"
+                f"日志:\n{script}\n"
+                "\n"
+                "提取结果 (JSON):"
+            )
+
+            try:
+                alias_response = self.llm.chat([{"role": "user", "content": alias_prompt}])
+                if alias_response:
+                    clean_json = alias_response.replace("```json", "").replace("```", "").strip()
+                    try:
+                        aliases = json.loads(clean_json)
+                        if isinstance(aliases, list):
+                            count = 0
+                            for item in aliases:
+                                alias = item.get("alias")
+                                target = item.get("target")
+                                if alias and target:
+                                    self.memory.save_alias(alias, target)
+                                    count += 1
+                            if count > 0:
+                                print(f"[{self.name}] [Step 4/4] Done. Updated {count} aliases. (Took {time.time() - t4_start:.2f}s)")
+                            else:
+                                print(f"[{self.name}] [Step 4/4] Done. No new aliases. (Took {time.time() - t4_start:.2f}s)")
+                    except json.JSONDecodeError:
+                        pass # 忽略 JSON 解析错误
+            except Exception as e:
+                print(f"[{self.name}] [Step 4/4] Failed: {e}")
 
             return diary_response
             
         except Exception as e:
-            print(f"[{self.name}] 记忆压缩流程异常: {e}")
+            print(f"[{self.name}] [ERROR] 记忆压缩流程异常: {e}")
+            
+        finally:
+            # [Fix] 无论成功失败，强制持久化所有记忆
+            print(f"[{self.name}] [FINALLY] 正在强制持久化所有记忆...")
+            t_save = time.time()
+            self.memory.force_save_all()
+            print(f"[{self.name}] [FINALLY] 刷盘完成 (Took {time.time() - t_save:.2f}s). Total Cycle Time: {time.time() - start_time:.2f}s")
 
 
     def analyze_cycle(self):

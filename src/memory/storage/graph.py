@@ -12,6 +12,7 @@ class GraphMemory:
     def __init__(self, data_path: str):
         self.data_path = data_path
         self.graph = nx.MultiDiGraph() # 使用多重有向图，允许两个节点间存在多种关系
+        self._dirty = False # Dirty Check Flag
         self.load()
 
     def load(self):
@@ -28,9 +29,16 @@ class GraphMemory:
                 self.graph = nx.MultiDiGraph()
         else:
             print("[GraphMemory] No existing data. Initializing empty graph.")
+        self._dirty = False
 
-    def save(self):
-        """保存图谱到 JSON"""
+    def save(self, force=False):
+        """
+        保存图谱到 JSON
+        :param force: 是否强制保存 (忽略 dirty 标志)
+        """
+        if not self._dirty and not force:
+            return
+
         try:
             data = nx.node_link_data(self.graph)
             # Fix: os.path.dirname("file.json") returns empty string on Windows, causing makedirs to fail
@@ -40,6 +48,9 @@ class GraphMemory:
             
             with open(self.data_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            # Reset dirty flag
+            self._dirty = False
             # print(f"[GraphMemory] Saved to {self.data_path}")
         except Exception as e:
             print(f"[GraphMemory] Save failed: {e}")
@@ -49,6 +60,8 @@ class GraphMemory:
         添加三元组: Source --[relation]--> Target
         relation_type: 'social' (社交), 'causal' (因果), 'temporal' (时间), 'attribute' (属性), 'general' (通用)
         """
+        self._dirty = True # Mark as dirty
+        
         # 确保节点存在
         if not self.graph.has_node(source):
             self.graph.add_node(source, type="entity")
@@ -78,7 +91,8 @@ class GraphMemory:
             # 添加新关系
             self.graph.add_edge(source, target, relation=relation, relation_type=relation_type, weight=weight, timestamp=timestamp, meta=meta or {})
             
-        self.save()
+        # 移除自动 save，改为手动或 periodic save
+        # self.save()
 
     def get_cognitive_subgraph(self, entity: str, relation_type: str = None) -> List[Dict]:
         """

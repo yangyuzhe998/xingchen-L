@@ -45,6 +45,15 @@ class Memory:
     def get_skill_collection(self):
         return self.service.get_skill_collection()
 
+    def get_alias_collection(self):
+        return self.service.get_alias_collection()
+        
+    def save_alias(self, alias, target_entity):
+        self.service.save_alias(alias, target_entity)
+        
+    def search_alias(self, query, limit=1, threshold=0.4):
+        return self.service.search_alias(query, limit, threshold)
+
     def add_short_term(self, role, content):
         self.service.add_short_term(role, content)
         # 同步属性引用 (虽然 list 是引用类型，通常不需要，但为了保险)
@@ -69,3 +78,24 @@ class Memory:
         
     def save_short_term_cache(self):
         self.service.save_cache()
+
+    def commit_long_term(self):
+        self.service.commit_long_term()
+        
+    def commit_short_term(self):
+        self.service.commit_short_term()
+        
+    def force_save_all(self):
+        """
+        统一强制保存入口 (Smart Commit)
+        """
+        # 1. 保存 Graph (GraphMemory 内部有 dirty check)
+        if self.graph_storage:
+            try:
+                # save() 内部会检查 _dirty
+                self.graph_storage.save()
+            except Exception as e:
+                print(f"[Memory] 认知图谱保存失败: {e}")
+        
+        # 2. 调用 Service 的保存逻辑 (Json, Cache) - 内部也有 dirty check
+        self.service.force_save_all()

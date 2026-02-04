@@ -20,6 +20,10 @@ class MemoryService:
         if self.short_term:
             print(f"[Memory] 已恢复 {len(self.short_term)} 条未归档记忆。")
 
+        # Dirty Flags for Service-managed data
+        self._long_term_dirty = False
+        self._short_term_dirty = False
+
         # 加载时将 dict 转换为 LongTermMemoryEntry 对象 (如果需要)
         # 简单起见，这里假设 load 返回的是 dict 列表，我们暂时保持兼容，或者在 load 后转换
         raw_long_term = self.json_storage.load()
@@ -47,12 +51,83 @@ class MemoryService:
     def get_command_cases_collection(self):
         return self.vector_storage.get_command_cases_collection()
 
+    def get_alias_collection(self):
+        return self.vector_storage.get_alias_collection()
+
+    def save_alias(self, alias, target_entity):
+        """
+        保存别名映射 (JSON Implementation)
+        :param alias: 别名 (e.g. "仔仔")
+        :param target_entity: 目标实体 (e.g. "User")
+        """
+        try:
+            path = settings.ALIAS_MAP_PATH
+            data = {}
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    try:
+                        data = json.load(f)
+                    except json.JSONDecodeError:
+                        data = {}
+            
+            # Normalize alias (trim)
+            alias = alias.strip()
+            if not alias: return
+
+            # Update map: alias -> {target, timestamp}
+            data[alias] = {
+                "target": target_entity,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                
+            print(f"[Memory] 别名已更新 (JSON): {alias} -> {target_entity}")
+        except Exception as e:
+            print(f"[Memory] 别名存储失败: {e}")
+
+    def search_alias(self, query, limit=1, threshold=0.4):
+        """
+        检索别名 (Substring Match Implementation)
+        :param query: 用户输入的句子 (e.g. "仔仔饿了")
+        :return: (alias, target_entity, score) or None
+        """
+        try:
+            path = settings.ALIAS_MAP_PATH
+            if not os.path.exists(path):
+                return None
+                
+            with open(path, 'r', encoding='utf-8') as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    return None
+            
+            # 查找 query 中是否包含任何已知的 alias
+            # 优先匹配最长的 alias (防止 "小王" 匹配到 "小王子")
+            matches = []
+            for alias, info in data.items():
+                if alias in query:
+                    matches.append((alias, info['target'], len(alias)))
+            
+            if matches:
+                # Sort by length desc
+                matches.sort(key=lambda x: x[2], reverse=True)
+                best_match = matches[0]
+                return (best_match[0], best_match[1], 1.0) # Score 1.0 for exact substring match
+                
+        except Exception as e:
+            print(f"[Memory] 别名检索失败: {e}")
+        return None
+
     def write_diary_entry(self, content):
         self.diary_storage.append(content)
 
     def add_short_term(self, role, content):
         entry = ShortTermMemoryEntry(role=role, content=content)
         self.short_term.append(entry)
+        self._short_term_dirty = True # Mark dirty
         
         MAX_COUNT = 50
         if len(self.short_term) > MAX_COUNT:
@@ -112,11 +187,11 @@ class MemoryService:
     def add_long_term(self, content, category="fact"):
         entry = LongTermMemoryEntry(content=content, category=category)
         self.long_term.append(entry)
+        self._long_term_dirty = True # Mark dirty
         
         # 同时保存到 JSON 文件
-        # 注意：这里为了简化，每次都全量保存，生产环境应优化
-        all_data = [e.to_dict() for e in self.long_term]
-        self.json_storage.save(all_data)
+        # [Optimization] 移除每次 add 都全量保存的逻辑，改为由 dirty check 驱动的批量保存
+        # self.json_storage.save(all_data)
         
         # 同时存入向量库
         collection = self.vector_storage.get_memory_collection()
@@ -147,6 +222,9 @@ class MemoryService:
 
     def save_cache(self):
         """保存短期记忆缓存"""
+        if not self._short_term_dirty:
+            return
+
         path = settings.SHORT_TERM_CACHE_PATH
         data = [entry.to_dict() for entry in self.short_term]
         if not data:
@@ -156,11 +234,48 @@ class MemoryService:
                     os.remove(path)
                 except:
                     pass
+            self._short_term_dirty = False
             return 
             
         try:
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            print(f"[Memory] 短期记忆已缓存至: {path}")
+            # print(f"[Memory] 短期记忆已缓存至: {path}")
+            self._short_term_dirty = False
         except Exception as e:
             print(f"[Memory] Failed to save cache: {e}")
+
+    def commit_long_term(self):
+        """
+        提交长期记忆 (JSON)
+        """
+        if self._long_term_dirty:
+            try:
+                all_data = [e.to_dict() for e in self.long_term]
+                self.json_storage.save(all_data)
+                self._long_term_dirty = False
+                print("[Memory] 长期记忆 (JSON) 已提交。")
+            except Exception as e:
+                print(f"[Memory] 长期记忆提交失败: {e}")
+
+    def commit_short_term(self):
+        """
+        提交短期记忆缓存
+        """
+        self.save_cache()
+
+    def force_save_all(self):
+        """
+        强制持久化所有内存数据 (Intelligent Commit)
+        包括: Graph, JsonStorage (LongTerm), ShortTermCache, AliasMap
+        """
+        # 1. 保存图谱 (由 GraphMemory 自己的 dirty flag 控制)
+        # 需在 Memory Facade 中调用
+
+        # 2. 保存长期记忆
+        self.commit_long_term()
+
+        # 3. 保存短期缓存
+        self.commit_short_term()
+        
+        # 4. 别名映射是即时的

@@ -22,6 +22,9 @@ class Settings:
     VECTOR_DB_PATH = os.path.join(MEMORY_DATA_DIR, "chroma_db")
     DIARY_PATH = os.path.join(MEMORY_DATA_DIR, "diary.md")
     GRAPH_DB_PATH = os.path.join(MEMORY_DATA_DIR, "knowledge_graph.json")
+    ALIAS_MAP_PATH = os.path.join(MEMORY_DATA_DIR, "alias_map.json")
+    ARCHIVE_DB_PATH = os.path.join(MEMORY_DATA_DIR, "archive.db") # Cold Storage
+    DEEP_CLEAN_STATE_PATH = os.path.join(MEMORY_DATA_DIR, "deep_clean_state.json") # Maintenance State
     SHORT_TERM_CACHE_PATH = os.path.join(MEMORY_DATA_DIR, "short_term_cache.json")
     
     SHORT_TERM_MAX_COUNT = 50

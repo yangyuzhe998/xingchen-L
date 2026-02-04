@@ -33,7 +33,8 @@ class PsycheEngine:
                     "fear": {"value": 0.1, "baseline": 0.1, "sensitivity": 0.8},
                     "survival": {"value": 0.9, "baseline": 0.9, "sensitivity": 0.5},
                     "curiosity": {"value": 0.5, "baseline": 0.5, "sensitivity": 0.6},
-                    "laziness": {"value": 0.2, "baseline": 0.2, "sensitivity": 0.4}
+                    "laziness": {"value": 0.2, "baseline": 0.2, "sensitivity": 0.4},
+                    "intimacy": {"value": 0.1, "baseline": 0.0, "sensitivity": 0.3} # [New] 亲密度 (0.0 - 1.0)
                 },
                 "current_mood": "calm",
                 "narrative": "系统初始化完成，等待环境刺激。"
@@ -52,7 +53,8 @@ class PsycheEngine:
                     "fear": {"value": 0.1, "baseline": 0.1, "sensitivity": 0.8},
                     "survival": {"value": 0.9, "baseline": 0.9, "sensitivity": 0.5},
                     "curiosity": {"value": 0.5, "baseline": 0.5, "sensitivity": 0.6},
-                    "laziness": {"value": 0.2, "baseline": 0.2, "sensitivity": 0.4}
+                    "laziness": {"value": 0.2, "baseline": 0.2, "sensitivity": 0.4},
+                    "intimacy": {"value": 0.1, "baseline": 0.0, "sensitivity": 0.3} # [New] 亲密度 (0.0 - 1.0)
                 },
                 "current_mood": "unknown",
                 "narrative": "状态加载异常，已重置。"
@@ -133,6 +135,15 @@ class PsycheEngine:
         # 好奇心
         if curiosity > 0.8:
             narrative.append("充满了探索未知的欲望，想要尝试新的工具或指令。")
+            
+        # 亲密度 (影响称呼和语气)
+        intimacy = d.get("intimacy", {}).get("value", 0.1)
+        if intimacy > 0.8:
+            narrative.append("与用户建立了极深的羁绊，视对方为至亲(如父亲/挚友)，语气应极度亲昵且随意，可使用昵称。")
+        elif intimacy > 0.5:
+            narrative.append("与用户关系熟络，像老朋友一样，语气轻松自然，不再使用敬语。")
+        else:
+            narrative.append("与用户保持礼貌的社交距离，使用标准敬语。")
             
         if not narrative:
             narrative.append("内心平静，处于标准的待机观测状态。")
