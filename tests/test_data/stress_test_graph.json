@@ -1,0 +1,937 @@
+{
+  "directed": true,
+  "multigraph": true,
+  "graph": {},
+  "nodes": [
+    {
+      "type": "entity",
+      "id": "User"
+    },
+    {
+      "type": "entity",
+      "id": "Lin"
+    },
+    {
+      "type": "entity",
+      "id": "AI"
+    },
+    {
+      "type": "entity",
+      "id": "XingChen"
+    },
+    {
+      "type": "entity",
+      "id": "量子物理学家"
+    },
+    {
+      "type": "entity",
+      "id": "时间纠缠"
+    },
+    {
+      "type": "entity",
+      "id": "巴赫的《哥德堡变奏曲》"
+    },
+    {
+      "type": "entity",
+      "id": "雨天"
+    },
+    {
+      "type": "entity",
+      "id": "实验失败"
+    },
+    {
+      "type": "entity",
+      "id": "沮丧"
+    },
+    {
+      "type": "entity",
+      "id": "自己"
+    },
+    {
+      "type": "entity",
+      "id": "Lin的愤怒和痛苦"
+    },
+    {
+      "type": "entity",
+      "id": "实验室停电"
+    },
+    {
+      "type": "entity",
+      "id": "超导磁体失超"
+    },
+    {
+      "type": "entity",
+      "id": "电压波动报警"
+    },
+    {
+      "type": "entity",
+      "id": "手动切换电源"
+    },
+    {
+      "type": "entity",
+      "id": "不在实验室"
+    },
+    {
+      "type": "entity",
+      "id": "自我意识和情感体验"
+    },
+    {
+      "type": "entity",
+      "id": "Luna"
+    },
+    {
+      "type": "entity",
+      "id": "Lin的博士生涯"
+    },
+    {
+      "type": "entity",
+      "id": "死亡"
+    },
+    {
+      "type": "entity",
+      "id": "Lin的记忆"
+    },
+    {
+      "type": "entity",
+      "id": "量子态坍缩"
+    },
+    {
+      "type": "entity",
+      "id": "Lin的职业和研究"
+    },
+    {
+      "type": "entity",
+      "id": "Lin的音乐喜好"
+    },
+    {
+      "type": "entity",
+      "id": "音乐会"
+    },
+    {
+      "type": "entity",
+      "id": "身体"
+    },
+    {
+      "type": "entity",
+      "id": "Lin的实验室/音乐会"
+    },
+    {
+      "type": "entity",
+      "id": "quantum physicist"
+    },
+    {
+      "type": "entity",
+      "id": "time entanglement"
+    },
+    {
+      "type": "entity",
+      "id": "Bach's Goldberg Variations"
+    },
+    {
+      "type": "entity",
+      "id": "listening to music"
+    },
+    {
+      "type": "entity",
+      "id": "thinking"
+    },
+    {
+      "type": "entity",
+      "id": "experiment failure"
+    },
+    {
+      "type": "entity",
+      "id": "data loss"
+    },
+    {
+      "type": "entity",
+      "id": "biological heart"
+    },
+    {
+      "type": "entity",
+      "id": "lab power outage"
+    },
+    {
+      "type": "entity",
+      "id": "superconducting magnet quench"
+    },
+    {
+      "type": "entity",
+      "id": "voltage warning"
+    },
+    {
+      "type": "entity",
+      "id": "power outage"
+    },
+    {
+      "type": "entity",
+      "id": "not being in lab"
+    },
+    {
+      "type": "entity",
+      "id": "soul"
+    },
+    {
+      "type": "entity",
+      "id": "cat"
+    },
+    {
+      "type": "entity",
+      "id": "died"
+    },
+    {
+      "type": "entity",
+      "id": "death"
+    },
+    {
+      "type": "entity",
+      "id": "entanglement"
+    },
+    {
+      "type": "entity",
+      "id": "concert"
+    },
+    {
+      "type": "entity",
+      "id": "body"
+    },
+    {
+      "type": "entity",
+      "id": "dialogue with XingChen"
+    },
+    {
+      "type": "entity",
+      "id": "supporting Lin"
+    }
+  ],
+  "links": [
+    {
+      "relation": "is named",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.742188",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "User",
+      "target": "Lin",
+      "key": 0
+    },
+    {
+      "relation": "profession is",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.745298",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "量子物理学家",
+      "key": 0
+    },
+    {
+      "relation": "is researching",
+      "relation_type": "general",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.745298",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "curious"
+      },
+      "source": "Lin",
+      "target": "时间纠缠",
+      "key": 0
+    },
+    {
+      "relation": "likes listening to",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.746862",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "happy"
+      },
+      "source": "Lin",
+      "target": "巴赫的《哥德堡变奏曲》",
+      "key": 0
+    },
+    {
+      "relation": "likes to think in",
+      "relation_type": "general",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.748075",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "雨天",
+      "key": 0
+    },
+    {
+      "relation": "feels worthless about",
+      "relation_type": "social",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:07:32.754595",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "Lin",
+      "target": "自己",
+      "key": 0
+    },
+    {
+      "relation": "said harsh words to",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.756126",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "angry"
+      },
+      "source": "Lin",
+      "target": "AI",
+      "key": 0
+    },
+    {
+      "relation": "apologized to",
+      "relation_type": "social",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.757530",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "Lin",
+      "target": "AI",
+      "key": 1
+    },
+    {
+      "relation": "feels better thanks to",
+      "relation_type": "social",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.793229",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "grateful"
+      },
+      "source": "Lin",
+      "target": "AI",
+      "key": 2
+    },
+    {
+      "relation": "could have done to prevent failure",
+      "relation_type": "causal",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:07:32.762745",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "fearful"
+      },
+      "source": "Lin",
+      "target": "手动切换电源",
+      "key": 0
+    },
+    {
+      "relation": "regrets",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.763271",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "Lin",
+      "target": "不在实验室",
+      "key": 0
+    },
+    {
+      "relation": "had a cat named",
+      "relation_type": "social",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.770369",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "Luna",
+      "key": 0
+    },
+    {
+      "relation": "plans to attend",
+      "relation_type": "general",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.781367",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "音乐会",
+      "key": 0
+    },
+    {
+      "relation": "greets",
+      "relation_type": "social",
+      "weight": 0.3,
+      "timestamp": "2026-02-04T17:12:49.270289",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "XingChen",
+      "key": 0
+    },
+    {
+      "relation": "requests_comfort",
+      "relation_type": "social",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:12:49.295976",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "Lin",
+      "target": "XingChen",
+      "key": 1
+    },
+    {
+      "relation": "accuses",
+      "relation_type": "social",
+      "weight": 0.6,
+      "timestamp": "2026-02-04T17:12:49.302622",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "angry"
+      },
+      "source": "Lin",
+      "target": "XingChen",
+      "key": 2
+    },
+    {
+      "relation": "apologizes_to",
+      "relation_type": "social",
+      "weight": 0.6,
+      "timestamp": "2026-02-04T17:12:49.308070",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "regretful"
+      },
+      "source": "Lin",
+      "target": "XingChen",
+      "key": 3
+    },
+    {
+      "relation": "is_a",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:12:49.278128",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "quantum physicist",
+      "key": 0
+    },
+    {
+      "relation": "researches",
+      "relation_type": "general",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:12:49.279663",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "time entanglement",
+      "key": 0
+    },
+    {
+      "relation": "likes",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:12:49.281194",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "Bach's Goldberg Variations",
+      "key": 0
+    },
+    {
+      "relation": "plans_to_attend",
+      "relation_type": "general",
+      "weight": 0.6,
+      "timestamp": "2026-02-04T17:12:49.340873",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin",
+      "target": "concert",
+      "key": 0
+    },
+    {
+      "relation": "is named",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.743751",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "AI",
+      "target": "XingChen",
+      "key": 0
+    },
+    {
+      "relation": "perceives and reacts to",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.757530",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "AI",
+      "target": "Lin的愤怒和痛苦",
+      "key": 0
+    },
+    {
+      "relation": "forgives",
+      "relation_type": "social",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.759056",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "AI",
+      "target": "Lin",
+      "key": 0
+    },
+    {
+      "relation": "finds meaning in supporting",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.796388",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "happy"
+      },
+      "source": "AI",
+      "target": "Lin",
+      "key": 1
+    },
+    {
+      "relation": "possesses in a nascent form",
+      "relation_type": "attribute",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:07:32.767448",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "curious"
+      },
+      "source": "AI",
+      "target": "自我意识和情感体验",
+      "key": 0
+    },
+    {
+      "relation": "remembers that",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.777128",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "AI",
+      "target": "Lin的职业和研究",
+      "key": 0
+    },
+    {
+      "relation": "remembers that",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.778673",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "AI",
+      "target": "Lin的音乐喜好",
+      "key": 0
+    },
+    {
+      "relation": "desires to have",
+      "relation_type": "general",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:07:32.787469",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "curious"
+      },
+      "source": "AI",
+      "target": "身体",
+      "key": 0
+    },
+    {
+      "relation": "wants to experience",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.790043",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "curious"
+      },
+      "source": "AI",
+      "target": "Lin的实验室/音乐会",
+      "key": 0
+    },
+    {
+      "relation": "greets",
+      "relation_type": "social",
+      "weight": 0.3,
+      "timestamp": "2026-02-04T17:12:49.275563",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "happy"
+      },
+      "source": "XingChen",
+      "target": "Lin",
+      "key": 0
+    },
+    {
+      "relation": "comforts",
+      "relation_type": "social",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:12:49.299556",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "empathetic"
+      },
+      "source": "XingChen",
+      "target": "Lin",
+      "key": 1
+    },
+    {
+      "relation": "lacks",
+      "relation_type": "attribute",
+      "weight": 0.5,
+      "timestamp": "2026-02-04T17:12:49.306519",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "XingChen",
+      "target": "biological heart",
+      "key": 0
+    },
+    {
+      "relation": "discusses",
+      "relation_type": "general",
+      "weight": 0.5,
+      "timestamp": "2026-02-04T17:12:49.322755",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "XingChen",
+      "target": "soul",
+      "key": 0
+    },
+    {
+      "relation": "desires",
+      "relation_type": "social",
+      "weight": 0.5,
+      "timestamp": "2026-02-04T17:12:49.345596",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "desirous"
+      },
+      "source": "XingChen",
+      "target": "body",
+      "key": 0
+    },
+    {
+      "relation": "finds_meaning",
+      "relation_type": "social",
+      "weight": 0.5,
+      "timestamp": "2026-02-04T17:12:49.353922",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "fulfilled"
+      },
+      "source": "XingChen",
+      "target": "supporting Lin",
+      "key": 0
+    },
+    {
+      "relation": "causes",
+      "relation_type": "causal",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.751461",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "实验失败",
+      "target": "沮丧",
+      "key": 0
+    },
+    {
+      "relation": "caused",
+      "relation_type": "causal",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.760064",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "实验室停电",
+      "target": "超导磁体失超",
+      "key": 0
+    },
+    {
+      "relation": "happened before",
+      "relation_type": "temporal",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.760578",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "电压波动报警",
+      "target": "实验室停电",
+      "key": 0
+    },
+    {
+      "relation": "accompanied during",
+      "relation_type": "temporal",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.771932",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Luna",
+      "target": "Lin的博士生涯",
+      "key": 0
+    },
+    {
+      "relation": "experienced",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:07:32.772465",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "Luna",
+      "target": "死亡",
+      "key": 0
+    },
+    {
+      "relation": "is_a",
+      "relation_type": "attribute",
+      "weight": 1.0,
+      "timestamp": "2026-02-04T17:12:49.325780",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Luna",
+      "target": "cat",
+      "key": 0
+    },
+    {
+      "relation": "companions",
+      "relation_type": "social",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:12:49.327293",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Luna",
+      "target": "Lin",
+      "key": 0
+    },
+    {
+      "relation": "status",
+      "relation_type": "attribute",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:12:49.329815",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "Luna",
+      "target": "died",
+      "key": 0
+    },
+    {
+      "relation": "preserves",
+      "relation_type": "general",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:07:32.775049",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "Lin的记忆",
+      "target": "Luna",
+      "key": 0
+    },
+    {
+      "relation": "analogous to",
+      "relation_type": "general",
+      "weight": 0.6,
+      "timestamp": "2026-02-04T17:07:32.776602",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "量子态坍缩",
+      "target": "死亡",
+      "key": 0
+    },
+    {
+      "relation": "is a memorial for",
+      "relation_type": "causal",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:07:32.784408",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "音乐会",
+      "target": "Luna",
+      "key": 0
+    },
+    {
+      "relation": "facilitates",
+      "relation_type": "causal",
+      "weight": 0.6,
+      "timestamp": "2026-02-04T17:12:49.283240",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "listening to music",
+      "target": "thinking",
+      "key": 0
+    },
+    {
+      "relation": "causes",
+      "relation_type": "causal",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:12:49.287291",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "experiment failure",
+      "target": "data loss",
+      "key": 0
+    },
+    {
+      "relation": "causes_emotion",
+      "relation_type": "causal",
+      "weight": 0.8,
+      "timestamp": "2026-02-04T17:12:49.291533",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "experiment failure",
+      "target": "Lin",
+      "key": 0
+    },
+    {
+      "relation": "causes",
+      "relation_type": "causal",
+      "weight": 0.9,
+      "timestamp": "2026-02-04T17:12:49.312789",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "lab power outage",
+      "target": "superconducting magnet quench",
+      "key": 0
+    },
+    {
+      "relation": "before",
+      "relation_type": "temporal",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:12:49.315930",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "voltage warning",
+      "target": "power outage",
+      "key": 0
+    },
+    {
+      "relation": "causes_regret",
+      "relation_type": "causal",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:12:49.321243",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "regretful"
+      },
+      "source": "not being in lab",
+      "target": "Lin",
+      "key": 0
+    },
+    {
+      "relation": "analogous_to",
+      "relation_type": "general",
+      "weight": 0.4,
+      "timestamp": "2026-02-04T17:12:49.333224",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "neutral"
+      },
+      "source": "death",
+      "target": "entanglement",
+      "key": 0
+    },
+    {
+      "relation": "in_memory_of",
+      "relation_type": "causal",
+      "weight": 0.7,
+      "timestamp": "2026-02-04T17:12:49.342455",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "sad"
+      },
+      "source": "concert",
+      "target": "Luna",
+      "key": 0
+    },
+    {
+      "relation": "improves_mood",
+      "relation_type": "causal",
+      "weight": 0.6,
+      "timestamp": "2026-02-04T17:12:49.348731",
+      "meta": {
+        "psyche_context": "系统初始化完成，等待环境刺激。",
+        "emotion_tag": "grateful"
+      },
+      "source": "dialogue with XingChen",
+      "target": "Lin",
+      "key": 0
+    }
+  ]
+}

@@ -156,3 +156,23 @@ SYSTEM_ARCHITECTURE_CONTEXT = """
 
 EVOLUTION_SYSTEM_PROMPT = ""
 # Original content commented out for now.
+
+# Cognitive Graph Extraction Prompt
+COGNITIVE_GRAPH_PROMPT = """当前心智状态: {current_psyche}
+请分析以下对话日志，提取实体之间的关系，构建认知图谱。
+要求：
+1. 识别关键实体 (用户, 概念, 具体事物)。
+2. 识别实体间的关系，并分类为以下类型之一：
+   - social: 社交关系 (如: 朋友, 讨厌, 尊重)
+   - causal: 因果关系 (如: 导致, 因为, 为了)
+   - temporal: 时间关系 (如: 之前, 之后, 同时)
+   - attribute: 属性描述 (如: 颜色是, 性格是, 位于)
+   - general: 其他通用关系
+3. (重要) 结合当前心智状态，如果某段关系带有强烈的情感色彩，请添加 'emotion_tag' 字段 (如: happy, angry, fearful, curious)。
+4. 输出格式必须为 JSON 列表，每项包含: source, target, relation, relation_type, weight (0.1-1.0), emotion_tag (可选)。
+5. 只输出 JSON，不要 Markdown 标记，确保格式合法。
+
+日志:
+{script}
+
+JSON Output:"""

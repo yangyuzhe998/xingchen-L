@@ -2,7 +2,7 @@ from ...utils.llm_client import LLMClient
 from ...psyche import psyche_engine, mind_link
 from ...memory.memory_core import Memory
 from ..bus.event_bus import event_bus
-from ...config.prompts.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PROMPT, SYSTEM_ARCHITECTURE_CONTEXT
+from ...config.prompts.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PROMPT, SYSTEM_ARCHITECTURE_CONTEXT, COGNITIVE_GRAPH_PROMPT
 from ...config.settings.settings import settings
 from ..managers.evolution_manager import evolution_manager
 from ..managers.library_manager import library_manager
@@ -195,6 +195,45 @@ class Navigator:
                     
             except Exception as e:
                 print(f"[{self.name}] 工程记忆提取失败: {e}")
+
+            # === 任务 3: 认知图谱构建 (Cognitive Graph) ===
+            # 提取实体关系，构建知识图谱
+            graph_prompt = COGNITIVE_GRAPH_PROMPT.format(
+                current_psyche=current_psyche,
+                script=script
+            )
+            
+            try:
+                graph_response = self.llm.chat([{"role": "user", "content": graph_prompt}])
+                if graph_response:
+                    # 清理可能的 markdown
+                    clean_json = graph_response.replace("```json", "").replace("```", "").strip()
+                    triplets = json.loads(clean_json)
+                    
+                    if isinstance(triplets, list):
+                        count = 0
+                        for t in triplets:
+                            if all(k in t for k in ["source", "target", "relation"]):
+                                # 构建元数据，注入心智上下文
+                                meta_data = {
+                                    "psyche_context": current_psyche,
+                                    "emotion_tag": t.get("emotion_tag", "neutral")
+                                }
+                                
+                                self.memory.graph_storage.add_triplet(
+                                    source=t["source"],
+                                    relation=t["relation"],
+                                    target=t["target"],
+                                    weight=t.get("weight", 1.0),
+                                    relation_type=t.get("relation_type", "general"),
+                                    meta=meta_data
+                                )
+                                count += 1
+                        print(f"[{self.name}] 认知图谱已更新: {count} 个关系 (含心智上下文)。")
+                    else:
+                        print(f"[{self.name}] 认知图谱格式错误: 非列表。")
+            except Exception as e:
+                print(f"[{self.name}] 认知图谱提取失败: {e}")
 
             return diary_response
             

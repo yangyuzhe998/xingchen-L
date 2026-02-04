@@ -1,57 +1,68 @@
-# 核心模块详解 (Core Modules)
+# 核心模块 (Core Module) 文档
 
-## 1. Driver (F脑)
+## 1. 简介
+Core 模块是星辰-V 的中枢神经系统，负责协调双脑、管理生命周期、处理事件分发以及驱动自我进化。
 
-`src/core/driver.py`
+## 2. 目录结构
+```
+src/core/
+├── driver/          # F-Brain (快脑) 引擎
+├── navigator/       # S-Brain (慢脑) 引擎
+├── bus/             # 事件总线
+├── managers/        # 各类管理器
+│   ├── cycle_manager.py      # 生命周期与心跳
+│   ├── evolution_manager.py  # 进化与MCP管理
+│   ├── library_manager.py    # 技能库管理
+│   └── sandbox.py            # 安全沙箱 (Docker)
+```
 
-Driver 是系统的实时交互接口，类似于人类的“快思考”系统。
+## 3. 组件详解
 
-### 核心逻辑 (Logic)
+### 3.1 Driver (F-Brain)
+- **定位**: 显意识，执行层。
+- **职责**:
+  - 实时响应用户输入。
+  - 决定是否调用工具。
+  - 维护短期对话上下文。
+- **关键类**: `src.core.driver.engine.Driver`
+- **交互**: 直接调用 `LLMClient` (Qwen)，监听 `EventBus`。
 
-1.  **接收输入**: 监听用户消息。
-2.  **构建上下文**:
-    *   获取最近对话历史 (ShortTerm Memory)。
-    *   检索相关长期记忆 (LongTerm Memory)。
-    *   读取当前心智状态 (PsycheState)。
-    *   读取 S脑建议 (Suggestion)。
-3.  **生成回复**: 调用 Qwen/GLM 模型生成回复，同时输出 `inner_voice` (内心独白) 和 `emotion` (情绪识别)。
-4.  **发布事件**: 将交互结果发布到 EventBus。
+### 3.2 Navigator (S-Brain)
+- **定位**: 潜意识，规划层。
+- **职责**:
+  - 深度反思近期交互。
+  - 提炼长期记忆。
+  - 生成直觉 (Suggestion) 指导 F-Brain。
+- **关键类**: `src.core.navigator.engine.Navigator`
+- **交互**: 异步运行，调用 `LLMClient` (DeepSeek-R1)。
 
-### 关键方法
+### 3.3 Event Bus
+- **定位**: 神经传导。
+- **职责**: 解耦各个模块，提供异步通信能力。
+- **实现**: 基于 SQLite 的持久化队列，保证事件不丢失。
+- **关键类**: `src.core.bus.event_bus.EventBus`
 
-*   `think(user_input, psyche_state, suggestion)`: 核心思考循环。
-*   `act(action)`: 执行具体工具调用。
+### 3.4 Cycle Manager
+- **定位**: 心脏 (Pacemaker)。
+- **职责**:
+  - 监控系统状态。
+  - 触发 S-Brain 的思考周期（基于轮数/情绪/时间）。
+  - 维持系统“心跳”，防止进程僵死。
+- **关键类**: `src.core.managers.cycle_manager.CycleManager`
 
----
+### 3.5 Evolution Manager
+- **定位**: 免疫与进化系统。
+- **职责**:
+  - 动态发现并安装新的 MCP 工具。
+  - 管理 Python 脚本技能的生命周期。
+  - 确保新能力的安全性（通过 Sandbox）。
+- **关键类**: `src.core.managers.evolution_manager.EvolutionManager`
 
-## 2. Navigator (S脑)
-
-`src/core/navigator.py`
-
-Navigator 是系统的深度思考引擎，类似于人类的“慢思考”系统。
-
-### 核心逻辑 (Logic)
-
-1.  **Prefix Caching (前缀缓存)**:
-    *   `_build_static_context()`: 动态扫描 `src/` 下所有 Python 文件，构建静态代码库上下文。这部分内容在多次请求间保持不变，利用 DeepSeek 缓存机制降低成本。
-2.  **周期性分析 (Cycle Analysis)**:
-    *   `analyze_cycle()`: 从 EventBus 获取最近 N 条事件。
-    *   结合代码上下文和交互历史，进行 R1 深度推理。
-3.  **输出决策**:
-    *   **Suggestion**: 给 Driver 的自然语言建议。
-    *   **Delta**: 四维心智状态的修正值。
-    *   **Memory**: 需要固化的长期记忆事实。
-
----
-
-## 3. EventBus (事件总线)
-
-`src/core/bus.py`
-
-基于 SQLite 的持久化消息队列。
-
-### 特性
-
-*   **Thread-Safe**: 使用 `threading.Lock` 保证写入安全。
-*   **Indexing**: 对 timestamp 和 type 建索引，加速查询。
-*   **JSON Serialization**: 自动处理 payload 和 meta 的序列化/反序列化。
+## 4. 启动流程
+1. **初始化 Memory**: 加载向量库和结构化数据。
+2. **初始化 EventBus**: 连接 SQLite。
+3. **加载 Skills**: 扫描 `src/skills` 和 MCP 配置。
+4. **启动 Navigator**: 预热 S-Brain。
+5. **启动 Driver**: 预热 F-Brain。
+6. **启动 CycleManager**: 开始心跳循环。
+7. **进入 Main Loop**: 等待用户输入。

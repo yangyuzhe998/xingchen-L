@@ -21,6 +21,7 @@ class Settings:
     MEMORY_STORAGE_PATH = os.path.join(MEMORY_DATA_DIR, "storage.json")
     VECTOR_DB_PATH = os.path.join(MEMORY_DATA_DIR, "chroma_db")
     DIARY_PATH = os.path.join(MEMORY_DATA_DIR, "diary.md")
+    GRAPH_DB_PATH = os.path.join(MEMORY_DATA_DIR, "knowledge_graph.json")
     SHORT_TERM_CACHE_PATH = os.path.join(MEMORY_DATA_DIR, "short_term_cache.json")
     
     SHORT_TERM_MAX_COUNT = 50

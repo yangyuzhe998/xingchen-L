@@ -1,5 +1,5 @@
 from ..bus.event_bus import event_bus, Event
-from ..navigator.engine import Navigator
+# from ..navigator.engine import Navigator # Circular import fix
 from ...psyche import PsycheEngine
 from ...config.settings.settings import settings
 import threading
@@ -18,7 +18,7 @@ class CycleManager:
     2. 情绪剧烈波动 (Emotion Spike)
     3. 关键指令 (Key Instruction)
     """
-    def __init__(self, navigator: Navigator, psyche: PsycheEngine):
+    def __init__(self, navigator, psyche: PsycheEngine):
         self.navigator = navigator
         self.psyche = psyche
 

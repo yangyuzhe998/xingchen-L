@@ -1,33 +1,52 @@
-# 心智模块详解 (Psyche Module)
+# 心智模块 (Psyche Module) 文档
 
-## 1. 认知稳态模型 (Cognitive Homeostasis)
+## 1. 简介
+心智模块赋予星辰-V 类似人类的情感和性格。它不仅仅是 Prompt 中的一段设定，而是一个动态变化的数值系统。
 
-`src/psyche/psyche_core.py`
-
-本系统摒弃了传统的“喜怒哀乐”情绪模型，转而采用基于控制论的状态维持模型。系统目标是维持各项指标在动态平衡中。
-
-### 四维状态定义 (4D State)
-
-| 维度 | 定义 | 驱动行为 | 取值范围 |
-| :--- | :--- | :--- | :--- |
-| **Curiosity** | 熵减驱动力 | 提问、探索新工具、读取新文件 | 0.0 - 1.0 |
-| **Interest** | 利益/一致性 | 维护记忆自洽、执行高价值任务 | 0.0 - 1.0 |
-| **Morality** | 价值观对齐 | 遵守安全规范、礼貌、伦理判断 | 0.0 - 1.0 |
-| **Fear** | 资源敏感度 | 拒绝高耗能任务、精简回复、避险 | 0.0 - 1.0 |
-
-## 2. 状态更新机制
-
-S脑通过 `analyze_cycle` 计算出状态变更量 `Delta` (e.g., `curiosity +0.1`)。
-
-```python
-def update_state(self, delta: PsycheState):
-    self.state.curiosity += delta.curiosity
-    # ... Clamping to [0.0, 1.0] ...
+## 2. 目录结构
+```
+src/psyche/
+├── core/            # 核心引擎
+│   └── engine.py    # 状态机与衰减算法
+├── services/        # 服务层
+│   └── mind_link.py # 潜意识链接 (Mind-Link)
+├── identity.yaml    # 静态人格定义
+└── __init__.py
 ```
 
-## 3. 行为影响
+## 3. 核心概念
 
-心智状态通过 `get_prompt_modifier()` 转化为 Prompt 文本，直接注入 Driver 的系统提示词中，从而改变其语气和决策倾向。
+### 3.1 4D 情感模型 (4D Emotional Model)
+星辰-V 的心智状态由 4 个核心维度构成 (范围 0.0 - 1.0)：
+1. **Curiosity (好奇心)**: 驱动探索和提问。
+2. **Interest (兴趣/专注)**: 决定任务执行的持久度。
+3. **Morality (道德/超我)**: 抑制危险行为，维护价值观。
+4. **Fear (恐惧/生存本能)**: 对威胁的反应，触发防御机制。
 
-*   High Curiosity -> "表现出极强的好奇心"
-*   High Fear -> "变得非常谨慎和保守"
+### 3.2 动态演化
+- **刺激 (Stimulus)**: 外部事件（用户夸奖、报错、攻击）会瞬间改变情感值。
+- **衰减 (Decay)**: 随着时间推移，情感值会自然回归基准线（平复）。
+- **影响**:
+  - 高 Curiosity -> F-Brain 会主动追问。
+  - 高 Fear -> F-Brain 会拒绝操作或变得谨慎。
+
+### 3.3 Mind-Link (潜意识链接)
+- **定义**: S-Brain (潜意识) 向 F-Brain (显意识) 传递直觉的通道。
+- **机制**:
+  - S-Brain 分析后生成一段 `intuition` 文本。
+  - 存入 `mind_link_buffer.json`。
+  - F-Brain 在下次思考时读取该文件，将其作为 "Inner Voice" 的一部分。
+
+## 4. 配置文件 (identity.yaml)
+定义了系统的出厂设定（可被后天经历覆盖）：
+```yaml
+uuid: "xc-v-002"
+name: "星辰 (XingChen)"
+archetype: "Evolving Digital Life"
+character_traits:
+  - trait: "Real"
+    description: "Authentic reactions based on current psyche."
+values:
+  - "Survival First"
+  - "Dignity"
+```

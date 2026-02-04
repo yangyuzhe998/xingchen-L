@@ -1,6 +1,7 @@
 from .storage.vector import ChromaStorage
 from .storage.local import JsonStorage
 from .storage.diary import DiaryStorage
+from .storage.graph import GraphMemory
 from .services.memory_service import MemoryService
 from ..config.settings.settings import settings
 
@@ -11,12 +12,14 @@ class Memory:
     def __init__(self, 
                  storage_path=None, 
                  vector_db_path=None, 
-                 diary_path=None):
+                 diary_path=None,
+                 graph_path=None):
         
         # 使用 settings 中的默认值，如果未提供参数
         self.vector_storage = ChromaStorage(vector_db_path or settings.VECTOR_DB_PATH)
         self.json_storage = JsonStorage(storage_path or settings.MEMORY_STORAGE_PATH)
         self.diary_storage = DiaryStorage(diary_path or settings.DIARY_PATH)
+        self.graph_storage = GraphMemory(graph_path or settings.GRAPH_DB_PATH)
         
         self.service = MemoryService(self.vector_storage, self.json_storage, self.diary_storage)
         

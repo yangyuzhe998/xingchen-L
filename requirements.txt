@@ -7,3 +7,4 @@ chromadb
 docker
 mcp
 duckduckgo-search
+networkx
