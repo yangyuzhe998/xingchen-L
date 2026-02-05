@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Dict
 from ..models.entry import ShortTermMemoryEntry, LongTermMemoryEntry
 from ...config.settings.settings import settings
+from ...utils.logger import logger
 
 class MemoryService:
     """
@@ -83,9 +84,9 @@ class MemoryService:
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
                 
-            print(f"[Memory] 别名已更新 (JSON): {alias} -> {target_entity}")
+            logger.info(f"[Memory] 别名已更新 (JSON): {alias} -> {target_entity}")
         except Exception as e:
-            print(f"[Memory] 别名存储失败: {e}")
+            logger.error(f"[Memory] 别名存储失败: {e}", exc_info=True)
 
     def search_alias(self, query, limit=1, threshold=0.4):
         """
@@ -118,7 +119,7 @@ class MemoryService:
                 return (best_match[0], best_match[1], 1.0) # Score 1.0 for exact substring match
                 
         except Exception as e:
-            print(f"[Memory] 别名检索失败: {e}")
+            logger.warning(f"[Memory] 别名检索失败: {e}")
         return None
 
     def write_diary_entry(self, content):
@@ -129,8 +130,7 @@ class MemoryService:
         self.short_term.append(entry)
         self._short_term_dirty = True # Mark dirty
         
-        MAX_COUNT = 50
-        if len(self.short_term) > MAX_COUNT:
+        if len(self.short_term) > settings.SHORT_TERM_MAX_COUNT:
             # 触发压缩逻辑 (外部控制或在此触发事件)
             pass
 
@@ -167,7 +167,7 @@ class MemoryService:
                      if search_res and search_res['documents']:
                          vector_hits = search_res['documents'][0]
                  except Exception as e:
-                     print(f"[Memory] Vector search failed: {e}")
+                     logger.warning(f"[Memory] Vector search failed: {e}")
         
         # 合并逻辑
         if search_mode == "hybrid":
@@ -203,7 +203,7 @@ class MemoryService:
                     ids=[f"mem_{int(datetime.now().timestamp())}_{len(self.long_term)}"] # 增加索引防止极速写入冲突
                 )
             except Exception as e:
-                print(f"[Memory] 向量存储失败: {e}")
+                logger.error(f"[Memory] 向量存储失败: {e}", exc_info=True)
 
     def _load_cache(self) -> List[ShortTermMemoryEntry]:
         """加载短期记忆缓存"""
@@ -216,7 +216,7 @@ class MemoryService:
                 # 注意：ShortTermMemoryEntry 的字段名必须与 dict key 匹配
                 return [ShortTermMemoryEntry(**item) for item in data]
             except Exception as e:
-                print(f"[Memory] Failed to load cache: {e}")
+                logger.error(f"[Memory] Failed to load cache: {e}", exc_info=True)
                 return []
         return []
 
@@ -240,10 +240,10 @@ class MemoryService:
         try:
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            # print(f"[Memory] 短期记忆已缓存至: {path}")
+            # logger.debug(f"[Memory] 短期记忆已缓存至: {path}")
             self._short_term_dirty = False
         except Exception as e:
-            print(f"[Memory] Failed to save cache: {e}")
+            logger.error(f"[Memory] Failed to save cache: {e}", exc_info=True)
 
     def commit_long_term(self):
         """
@@ -254,9 +254,9 @@ class MemoryService:
                 all_data = [e.to_dict() for e in self.long_term]
                 self.json_storage.save(all_data)
                 self._long_term_dirty = False
-                print("[Memory] 长期记忆 (JSON) 已提交。")
+                logger.info("[Memory] 长期记忆 (JSON) 已提交。")
             except Exception as e:
-                print(f"[Memory] 长期记忆提交失败: {e}")
+                logger.error(f"[Memory] 长期记忆提交失败: {e}", exc_info=True)
 
     def commit_short_term(self):
         """

@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XingChen-V</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --user-msg-bg: #2d2d2d;
+            --ai-msg-bg: #252526;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 8px;
+            line-height: 1.5;
+            position: relative;
+        }
+        .message.user {
+            align-self: flex-end;
+            background-color: var(--user-msg-bg);
+            border-bottom-right-radius: 2px;
+        }
+        .message.assistant {
+            align-self: flex-start;
+            background-color: var(--ai-msg-bg);
+            border-bottom-left-radius: 2px;
+            border-left: 3px solid var(--accent-color);
+        }
+        .meta-info {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        #input-area {
+            padding: 20px;
+            background-color: #252526;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #3e3e42;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: inherit;
+        }
+        #send-btn {
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+        #send-btn:hover {
+            background-color: #0062a3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div class="message assistant">
+            XingChen-V Online. How can I help you?
+        </div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+        <button id="send-btn">Send</button>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const inputField = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // SSE Connection
+        const eventSource = new EventSource('/api/stream');
+        
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            appendMessage(data.role, data.content, data.meta);
+        };
+
+        function appendMessage(role, content, meta) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            
+            // Content
+            let htmlContent = content.replace(/\n/g, '<br>');
+            div.innerHTML = htmlContent;
+
+            // Meta (Inner Voice)
+            if (meta && meta.inner_voice) {
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'meta-info';
+                metaDiv.textContent = `(${meta.inner_voice})`;
+                div.appendChild(metaDiv);
+            }
+
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = inputField.value.trim();
+            if (!text) return;
+
+            // Optimistic UI update
+            appendMessage('user', text);
+            inputField.value = '';
+
+            try {
+                await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: text })
+                });
+            } catch (error) {
+                console.error('Send failed:', error);
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>

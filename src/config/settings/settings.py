@@ -10,6 +10,11 @@ class Settings:
     # So PROJECT_ROOT is ../../../..
     PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     
+    # Logging
+    LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
+    LOG_FILE = os.path.join(LOG_DIR, "xingchen.log")
+    LOG_LEVEL = "INFO"
+    
     # Moltbook (Deprecated)
     # MOLTBOOK_API_KEY = os.getenv("MOLTBOOK_API_KEY")
     # MOLTBOOK_AGENT_NAME = os.getenv("MOLTBOOK_AGENT_NAME", "XingChen-V")
@@ -27,7 +32,7 @@ class Settings:
     DEEP_CLEAN_STATE_PATH = os.path.join(MEMORY_DATA_DIR, "deep_clean_state.json") # Maintenance State
     SHORT_TERM_CACHE_PATH = os.path.join(MEMORY_DATA_DIR, "short_term_cache.json")
     
-    SHORT_TERM_MAX_COUNT = 50
+    SHORT_TERM_MAX_COUNT = 30
     SHORT_TERM_MAX_CHARS = 20000
     
     # EventBus
@@ -38,6 +43,8 @@ class Settings:
     CYCLE_TRIGGER_COUNT = 5 # 对话轮数阈值
     CYCLE_CHECK_INTERVAL = 0.5 # 监控轮询间隔 (秒)
     CYCLE_IDLE_TIMEOUT = 300 # 空闲强制分析阈值 (秒)
+    NAVIGATOR_DELAY_SECONDS = 5 # 记忆压缩延迟时间 (秒)
+    NAVIGATOR_EVENT_LIMIT = 50 # 记忆压缩时获取的事件数量上限
 
     # Psyche Engine
     PSYCHE_DECAY_RATE = 0.05 # 状态自然衰减率

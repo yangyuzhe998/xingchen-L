@@ -2,11 +2,13 @@ import json
 import threading
 from datetime import datetime
 from ...utils.llm_client import LLMClient
+from ...utils.logger import logger
+from ...utils.json_parser import extract_json
 from ...memory.memory_core import Memory
 from ..bus.event_bus import event_bus, Event
 from ..managers.library_manager import library_manager
 from ...psyche import psyche_engine, mind_link
-from ...config.prompts.prompts import DRIVER_SYSTEM_PROMPT
+from ...config.prompts.prompts import DRIVER_SYSTEM_PROMPT, PROACTIVE_DRIVER_PROMPT
 from ...config.settings.settings import settings
 from ...tools.registry import tool_registry
 
@@ -23,13 +25,97 @@ class Driver:
         self.llm = LLMClient(provider="qwen")
         self.llm.model = settings.F_BRAIN_MODEL
         self.memory = memory if memory else Memory()
-        print(f"[{self.name}] 初始化完成。模型: {self.llm.model}。")
+        
+        # 订阅事件总线
+        event_bus.subscribe(self._on_event)
+        self._thinking_lock = threading.Lock() # 防止思考冲突
+        
+        logger.info(f"[{self.name}] 初始化完成。模型: {self.llm.model}。")
+
+    def _on_event(self, event):
+        """事件监听"""
+        if event.type == "proactive_instruction":
+            instruction = event.payload.get("content")
+            if instruction:
+                # 在新线程中执行，避免阻塞事件总线分发
+                threading.Thread(target=self.proactive_speak, args=(instruction,), daemon=True).start()
+
+    def proactive_speak(self, instruction):
+        """
+        [New] 主动发起对话 (基于 S脑 指令)
+        """
+        # 如果正在思考（处理用户输入），则忽略这次主动尝试
+        if not self._thinking_lock.acquire(blocking=False):
+            logger.info(f"[{self.name}] 正在忙于回复用户，忽略主动干预指令: {instruction}")
+            return
+
+        try:
+            print(f"\n[{self.name}] ⚡ 收到潜意识冲动: {instruction}")
+            
+            # [Fix] 确保 instruction 是字符串，如果是字典则转为 JSON 字符串
+            instruction_str = json.dumps(instruction, ensure_ascii=False) if isinstance(instruction, (dict, list)) else str(instruction)
+            
+            current_psyche = psyche_engine.get_state_summary()
+            # 使用转换后的字符串进行检索
+            long_term_context = self.memory.get_relevant_long_term(query=instruction_str, limit=5)
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            system_prompt = PROACTIVE_DRIVER_PROMPT.format(
+                current_time=current_time,
+                psyche_desc=current_psyche,
+                instruction=instruction_str, # 使用字符串格式
+                long_term_context=long_term_context
+            )
+
+            # 调用 LLM 生成主动话语
+            # 注意：这里不需要 tools，因为只是单纯的开启话题
+            response = self.llm.chat([{"role": "system", "content": system_prompt}])
+            
+            if response:
+                try:
+                    parsed = extract_json(response)
+                    reply = parsed.get("reply", response) if parsed else response
+                    inner_voice = parsed.get("inner_voice", "我想说话...") if parsed else ""
+                    emotion = parsed.get("emotion", "curious") if parsed else "neutral"
+                except:
+                    reply = response
+                    inner_voice = ""
+                    emotion = "neutral"
+
+                # 输出结果
+                # 注意：在 CLI 模式下，这可能会打断用户的输入行，这是已知限制
+                print(f"\n[{self.name}] (主动): {reply}")
+                
+                # 存入短期记忆
+                self.memory.add_short_term("assistant", reply)
+                
+                # 发布事件
+                event_bus.publish(Event(
+                    type="driver_response",
+                    source="driver",
+                    payload={"content": reply},
+                    meta={
+                        "inner_voice": inner_voice,
+                        "user_emotion_detect": emotion,
+                        "proactive": True
+                    }
+                ))
+        except Exception as e:
+            logger.error(f"[{self.name}] 主动发言失败: {e}", exc_info=True)
+        finally:
+            self._thinking_lock.release()
 
     def think(self, user_input, psyche_state=None, suggestion=""):
         """
         处理用户输入，做出即时反应。
         支持 Function Calling (工具调用)。
         """
+        # 获取锁，标志正在思考
+        # 注意：这会阻塞直到获得锁，确保不会与 proactive_speak 冲突
+        with self._thinking_lock:
+            return self._think_internal(user_input, psyche_state, suggestion)
+
+    def _think_internal(self, user_input, psyche_state=None, suggestion=""):
         print(f"[{self.name}] 正在思考: {user_input}")
         
         # 1. 尝试演化心智状态 (Input Stimulus)
@@ -46,7 +132,7 @@ class Driver:
         # [Fix] 增加重试/等待机制？暂时保持直接读取，但增加 Log
         intuition = mind_link.read_intuition()
         if intuition:
-             print(f"[{self.name}] 🧠 感知到潜意识直觉: {intuition[:30]}...")
+             logger.info(f"[{self.name}] 🧠 感知到潜意识直觉: {intuition[:30]}...")
         
         # 获取长期记忆上下文 (传入 user_input 以进行关键词检索)
         long_term_context = self.memory.get_relevant_long_term(query=user_input)
@@ -84,7 +170,7 @@ class Driver:
                     profile_str += "\n"
                 long_term_context += profile_str
         except Exception as e:
-            print(f"[{self.name}] 图谱画像检索失败: {e}")
+            logger.warning(f"[{self.name}] 图谱画像检索失败: {e}")
             
         # 搜索相关技能
         relevant_skills = library_manager.search_skills(user_input, top_k=2)
@@ -182,9 +268,9 @@ class Driver:
                 raw_response = response.content
                 break
         
-        # [Manual Trigger] 检查是否是深度维护指令
-        if user_input.strip() == "/deep_clean" or user_input.strip() == "进行深度维护":
-            print(f"[{self.name}] 收到深度维护指令，正在转发给 S 脑...")
+        # [New] 手动触发深度维护 (Deep Clean)
+        if "深度维护" in user_input or "/deep_clean" in user_input:
+            logger.info(f"[{self.name}] 收到深度维护指令，正在转发给 S 脑...")
             if hasattr(self.memory, 'navigator') and self.memory.navigator:
                  # 异步触发，不阻塞当前对话
                  threading.Thread(target=self.memory.navigator.deep_clean_manager.perform_deep_clean, args=("manual",), daemon=True).start()
@@ -206,17 +292,21 @@ class Driver:
         else:
             # 解析 JSON 输出
             try:
-                # 尝试清理可能存在的 markdown 代码块标记
-                clean_response = raw_response.replace("```json", "").replace("```", "").strip()
-                parsed_response = json.loads(clean_response)
-                reply = parsed_response.get("reply", raw_response)
-                inner_voice = parsed_response.get("inner_voice", "")
-                emotion = parsed_response.get("emotion", "neutral")
+                # 使用增强的 JSON 提取器
+                parsed_response = extract_json(raw_response)
+                
+                if parsed_response:
+                    reply = parsed_response.get("reply", raw_response)
+                    inner_voice = parsed_response.get("inner_voice", "")
+                    emotion = parsed_response.get("emotion", "neutral")
+                else:
+                    raise ValueError("No valid JSON found")
+                    
             except Exception as e:
                 # 如果解析失败，可能 LLM 并没有返回 JSON，而是直接返回了文本
                 # 这在工具调用后尤其常见，虽然 Prompt 要求 JSON，但 LLM 可能“忘”了
                 # 我们做个兼容：直接把 raw_response 当作 reply
-                print(f"[{self.name}] JSON解析失败 (这可能正常): {e}")
+                logger.warning(f"[{self.name}] JSON解析失败 (使用原始文本): {e}")
                 reply = raw_response
                 inner_voice = "直接输出"
                 emotion = "neutral"

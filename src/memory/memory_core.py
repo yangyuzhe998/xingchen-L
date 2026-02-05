@@ -4,6 +4,7 @@ from .storage.diary import DiaryStorage
 from .storage.graph import GraphMemory
 from .services.memory_service import MemoryService
 from ..config.settings.settings import settings
+from ..utils.logger import logger
 
 class Memory:
     """
@@ -60,10 +61,9 @@ class Memory:
         self.short_term = self.service.short_term
         
         # 检查是否需要压缩 (逻辑复刻)
-        MAX_COUNT = 50
-        if len(self.short_term) > MAX_COUNT:
+        if len(self.short_term) > settings.SHORT_TERM_MAX_COUNT:
             if self.navigator:
-                print("[Memory] 短期记忆已满，请求 S脑 压缩...")
+                logger.info(f"[Memory] 短期记忆已达阈值({settings.SHORT_TERM_MAX_COUNT})，请求 S脑 压缩...")
                 self.navigator.request_diary_generation()
 
     def get_recent_history(self, limit=10):
@@ -95,7 +95,7 @@ class Memory:
                 # save() 内部会检查 _dirty
                 self.graph_storage.save()
             except Exception as e:
-                print(f"[Memory] 认知图谱保存失败: {e}")
+                logger.error(f"[Memory] 认知图谱保存失败: {e}", exc_info=True)
         
         # 2. 调用 Service 的保存逻辑 (Json, Cache) - 内部也有 dirty check
         self.service.force_save_all()

@@ -6,6 +6,7 @@ import time
 from datetime import datetime, timedelta
 from src.config.settings.settings import settings
 from src.utils.llm_client import LLMClient
+from src.config.prompts.prompts import MEMORY_SUMMARY_PROMPT
 
 class DeepCleanManager:
     """
@@ -94,7 +95,7 @@ class DeepCleanManager:
                     if 3 <= now.hour < 4:
                         should_run = True
                     # 或者如果上次维护时间太久远(超过48小时)，立即补做，不等待凌晨
-                    elif (now - self.last_clean_time) > timedelta(hours=48):
+                    elif self.last_clean_time and (now - self.last_clean_time) > timedelta(hours=48):
                         print("[DeepClean] 检测到维护任务严重滞后，准备立即执行补救维护...")
                         should_run = True
                 
@@ -166,17 +167,7 @@ class DeepCleanManager:
         # 将所有 memory content 拼接
         context = "\n".join([f"- {m.get('content')}" for m in memories])
         
-        summary_prompt = (
-            "请对以下分散的记忆片段进行'深度整合'。\n"
-            "目标：将琐碎的事实合并为核心画像，丢弃重复和过期的信息。\n"
-            "输出要求：\n"
-            "1. 输出 5-10 条核心事实，每条一行。\n"
-            "2. 不要丢失关键信息（如用户喜好、重要关系）。\n"
-            "\n"
-            f"原始记忆:\n{context}\n"
-            "\n"
-            "整合后的核心记忆:"
-        )
+        summary_prompt = MEMORY_SUMMARY_PROMPT.format(context=context)
         
         summary_response = self.llm.chat([{"role": "user", "content": summary_prompt}])
         

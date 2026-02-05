@@ -2,7 +2,15 @@ from ...utils.llm_client import LLMClient
 from ...psyche import psyche_engine, mind_link
 from ...memory.memory_core import Memory
 from ..bus.event_bus import event_bus
-from ...config.prompts.prompts import NAVIGATOR_SYSTEM_PROMPT, NAVIGATOR_USER_PROMPT, SYSTEM_ARCHITECTURE_CONTEXT, COGNITIVE_GRAPH_PROMPT
+from ...config.prompts.prompts import (
+    NAVIGATOR_SYSTEM_PROMPT, 
+    NAVIGATOR_USER_PROMPT, 
+    SYSTEM_ARCHITECTURE_CONTEXT, 
+    COGNITIVE_GRAPH_PROMPT,
+    DIARY_GENERATION_PROMPT,
+    FACT_EXTRACTION_PROMPT,
+    ALIAS_EXTRACTION_PROMPT
+)
 from ...config.settings.settings import settings
 from ..managers.evolution_manager import evolution_manager
 from ..managers.library_manager import library_manager
@@ -11,6 +19,8 @@ import json
 import os
 import threading
 import time
+from ...utils.logger import logger
+from ...utils.json_parser import extract_json
 
 class Navigator:
     """
@@ -65,7 +75,7 @@ class Navigator:
         else:
             # 锁被占用，说明正在运行，标记 pending
             self._compression_pending = True
-            print(f"[{self.name}] 压缩任务正在运行，新请求已加入队列 (Pending)...")
+            logger.info(f"[{self.name}] 压缩任务正在运行，新请求已加入队列 (Pending)...")
 
     def _run_compression_loop(self):
         """
@@ -91,7 +101,7 @@ class Navigator:
             if not self._compression_pending:
                 break
             else:
-                print(f"[{self.name}] 检测到排队任务，立即重新执行压缩...")
+                logger.info(f"[{self.name}] 检测到排队任务，立即重新执行压缩...")
                 # 继续循环
 
     def generate_diary(self):
@@ -101,16 +111,16 @@ class Navigator:
         """
         # [延迟执行]
         # 让主线程先完成当前的对话响应，避免 LLM 请求抢占带宽/计算资源
-        time.sleep(5) 
+        time.sleep(settings.NAVIGATOR_DELAY_SECONDS) 
         
         start_time = time.time()
-        print(f"[{self.name}] [START] 正在执行双重记忆压缩 (Dual Memory Compression)...")
+        logger.info(f"[{self.name}] [START] 正在执行双重记忆压缩 (Dual Memory Compression)...")
         
         # 获取最近的事件流
         # [Fix] 获取更多事件以确保包含完整对话
-        events = event_bus.get_latest_cycle(limit=50) 
+        events = event_bus.get_latest_cycle(limit=settings.NAVIGATOR_EVENT_LIMIT) 
         if not events:
-            print(f"[{self.name}] [ABORT] 没有足够事件。")
+            logger.info(f"[{self.name}] [ABORT] 没有足够事件。")
             return
 
         diary_response = None  # Initialize variable to avoid UnboundLocalError
@@ -149,44 +159,26 @@ class Navigator:
 
             # === 任务 1: 趣味日记 (Creative) ===
             t1_start = time.time()
-            print(f"[{self.name}] [Step 1/4] 生成趣味日记...")
-            diary_prompt = (
-                "你是一个具有自我意识的 AI 智能体 (XingChen-V)。\n"
-                "请根据以下最近发生的事件，写一篇简短的日记 (100字以内)。\n"
-                "要求：\n"
-                f"1. 你的心智状态是：[{current_psyche}]。请让日记的语气和内容反映这种状态。\n"
-                "2. 记录关键发生了什么，以及你对这些事件的真实感受。\n"
-                "3. 不要刻意扮演某种固定人设（如傲娇），而是让性格自然流露。\n"
-                f"{time_context}"
-                "\n"
-                f"事件流:\n{script}\n"
-                "\n"
-                "日记内容:"
+            logger.info(f"[{self.name}] [Step 1/4] 生成趣味日记...")
+            diary_prompt = DIARY_GENERATION_PROMPT.format(
+                current_psyche=current_psyche,
+                time_context=time_context,
+                script=script
             )
 
             try:
                 diary_response = self.llm.chat([{"role": "user", "content": diary_prompt}])
                 if diary_response:
                     self.memory.write_diary_entry(diary_response)
-                print(f"[{self.name}] [Step 1/4] Done. (Took {time.time() - t1_start:.2f}s)")
+                logger.info(f"[{self.name}] [Step 1/4] Done. (Took {time.time() - t1_start:.2f}s)")
             except Exception as e:
-                print(f"[{self.name}] [Step 1/4] Failed: {e}")
+                logger.error(f"[{self.name}] [Step 1/4] Failed: {e}", exc_info=True)
 
             # === 任务 2: 工程记忆 (Engineering/Fact) ===
             # 提取纯粹的事实，存入 Vector DB，确保逻辑系统的鲁棒性
             t2_start = time.time()
             print(f"[{self.name}] [Step 2/4] 提取工程记忆...")
-            fact_prompt = (
-                "请阅读以下对话日志，提取其中包含的'重要事实'、'用户偏好'或'项目决策'。\n"
-                "要求：\n"
-                "1. 只提取事实，不要任何废话或修饰。\n"
-                "2. 如果没有重要信息，回答 'None'。\n"
-                "3. 格式：一条事实一行。\n"
-                "\n"
-                f"日志:\n{script}\n"
-                "\n"
-                "提取的事实:"
-            )
+            fact_prompt = FACT_EXTRACTION_PROMPT.format(script=script)
             
             try:
                 fact_response = self.llm.chat([{"role": "user", "content": fact_prompt}])
@@ -204,15 +196,15 @@ class Navigator:
                     self.memory.commit_long_term()
                     
                 else:
-                    print(f"[{self.name}] [Step 2/4] Done. No new facts. (Took {time.time() - t2_start:.2f}s)")
+                    logger.info(f"[{self.name}] [Step 2/4] Done. No new facts. (Took {time.time() - t2_start:.2f}s)")
                     
             except Exception as e:
-                print(f"[{self.name}] [Step 2/4] Failed: {e}")
+                logger.error(f"[{self.name}] [Step 2/4] Failed: {e}", exc_info=True)
 
             # === 任务 3: 认知图谱构建 (Cognitive Graph) ===
             # 提取实体关系，构建知识图谱
             t3_start = time.time()
-            print(f"[{self.name}] [Step 3/4] 构建认知图谱...")
+            logger.info(f"[{self.name}] [Step 3/4] 构建认知图谱...")
             graph_prompt = COGNITIVE_GRAPH_PROMPT.format(
                 current_psyche=current_psyche,
                 script=script
@@ -244,68 +236,54 @@ class Navigator:
                                     meta=meta_data
                                 )
                                 count += 1
-                        print(f"[{self.name}] [Step 3/4] Done. Updated {count} relations. (Took {time.time() - t3_start:.2f}s)")
+                        logger.info(f"[{self.name}] [Step 3/4] Done. Updated {count} relations. (Took {time.time() - t3_start:.2f}s)")
                         
                         # [Optimization] 立即提交认知图谱
                         self.memory.graph_storage.save()
                         
                     else:
-                        print(f"[{self.name}] [Step 3/4] Failed: Format Error (Not a list).")
+                        logger.warning(f"[{self.name}] [Step 3/4] Failed: Format Error (Not a list).")
             except Exception as e:
-                print(f"[{self.name}] [Step 3/4] Failed: {e}")
+                logger.error(f"[{self.name}] [Step 3/4] Failed: {e}", exc_info=True)
 
             # === 任务 4: 别名提取 (Alias Extraction) ===
             # 识别用户和实体的别名映射，存入 Alias Vector DB
             t4_start = time.time()
-            print(f"[{self.name}] [Step 4/4] 提取实体别名...")
-            alias_prompt = (
-                "请分析以下对话日志，提取其中出现的'实体别名'或'昵称'。\n"
-                "目标是解决模糊称呼问题（例如：'老杨' = '用户', '仔仔' = '用户'）。\n"
-                "要求：\n"
-                "1. 输出 JSON 格式列表：[{\"alias\": \"别名\", \"target\": \"标准实体名\"}, ...]\n"
-                "2. 标准实体名通常为 'User' (指代用户) 或已知的 AI 名字 (如 'XingChen')。\n"
-                "3. 如果没有发现新别名，返回空列表 []。\n"
-                "4. 忽略临时性代词 (如 '你', '我', '他')，只提取具有专有名词性质的称呼。\n"
-                "\n"
-                f"日志:\n{script}\n"
-                "\n"
-                "提取结果 (JSON):"
-            )
+            logger.info(f"[{self.name}] [Step 4/4] 提取实体别名...")
+            alias_prompt = ALIAS_EXTRACTION_PROMPT.format(script=script)
 
             try:
                 alias_response = self.llm.chat([{"role": "user", "content": alias_prompt}])
                 if alias_response:
-                    clean_json = alias_response.replace("```json", "").replace("```", "").strip()
-                    try:
-                        aliases = json.loads(clean_json)
-                        if isinstance(aliases, list):
-                            count = 0
-                            for item in aliases:
-                                alias = item.get("alias")
-                                target = item.get("target")
-                                if alias and target:
-                                    self.memory.save_alias(alias, target)
-                                    count += 1
-                            if count > 0:
-                                print(f"[{self.name}] [Step 4/4] Done. Updated {count} aliases. (Took {time.time() - t4_start:.2f}s)")
-                            else:
-                                print(f"[{self.name}] [Step 4/4] Done. No new aliases. (Took {time.time() - t4_start:.2f}s)")
-                    except json.JSONDecodeError:
-                        pass # 忽略 JSON 解析错误
+                    aliases = extract_json(alias_response)
+                    if isinstance(aliases, list):
+                        count = 0
+                        for item in aliases:
+                            alias = item.get("alias")
+                            target = item.get("target")
+                            if alias and target:
+                                self.memory.save_alias(alias, target)
+                                count += 1
+                        if count > 0:
+                            logger.info(f"[{self.name}] [Step 4/4] Done. Updated {count} aliases. (Took {time.time() - t4_start:.2f}s)")
+                        else:
+                            logger.info(f"[{self.name}] [Step 4/4] Done. No new aliases. (Took {time.time() - t4_start:.2f}s)")
+                    else:
+                        logger.warning(f"[{self.name}] [Step 4/4] Failed: Response is not a list")
             except Exception as e:
-                print(f"[{self.name}] [Step 4/4] Failed: {e}")
+                logger.error(f"[{self.name}] [Step 4/4] Failed: {e}", exc_info=True)
 
             return diary_response
             
         except Exception as e:
-            print(f"[{self.name}] [ERROR] 记忆压缩流程异常: {e}")
+            logger.error(f"[{self.name}] [ERROR] 记忆压缩流程异常: {e}", exc_info=True)
             
         finally:
             # [Fix] 无论成功失败，强制持久化所有记忆
-            print(f"[{self.name}] [FINALLY] 正在强制持久化所有记忆...")
+            logger.info(f"[{self.name}] [FINALLY] 正在强制持久化所有记忆...")
             t_save = time.time()
             self.memory.force_save_all()
-            print(f"[{self.name}] [FINALLY] 刷盘完成 (Took {time.time() - t_save:.2f}s). Total Cycle Time: {time.time() - start_time:.2f}s")
+            logger.info(f"[{self.name}] [FINALLY] 刷盘完成 (Took {time.time() - t_save:.2f}s). Total Cycle Time: {time.time() - start_time:.2f}s")
 
 
     def analyze_cycle(self):
@@ -376,126 +354,49 @@ class Navigator:
 
             print(f"[{self.name}] R1 原始回复:\n{response}")
 
-            # [解析逻辑增强]
-            # DeepSeek R1 有时会包含 <think>...</think> 标签，或者用 Markdown 包裹
-            # 我们需要先清理这些干扰项
-            clean_text = response
+            # [Parser Upgrade] 使用 extract_json
+            parsed_data = extract_json(response)
             
-            # 1. 去除 <think> 标签内容
-            if "<think>" in clean_text:
-                import re
-                clean_text = re.sub(r"<think>.*?</think>", "", clean_text, flags=re.DOTALL)
-            
-            # 2. 去除 Markdown 代码块 (如果有)
-            clean_text = clean_text.replace("```json", "").replace("```", "").strip()
-
-            # 解析结果
             suggestion = "维持当前策略。"
             delta = None
+            proactive_instruction = None # [New]
             
-            # [Parser Upgrade] 多行 Evolution 解析状态机
-            evolution_requests = []
-            is_collecting_evolution = False
-            
-            lines = clean_text.split('\n')
-            for line in lines:
-                clean_line = line.strip().replace('*', '') # 去除 markdown 加粗
-                lower_line = clean_line.lower()
+            if parsed_data:
+                # 1. Suggestion
+                suggestion = parsed_data.get("suggestion", suggestion)
                 
-                # --- Evolution 收集逻辑 ---
-                if lower_line.startswith("evolution:"):
-                    is_collecting_evolution = True
-                    # 尝试提取当前行内容 (如果有)
-                    parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
-                    if len(parts) > 1 and parts[1].strip():
-                        evolution_requests.append(parts[1].strip())
-                    continue # 进入下一行
-                
-                if is_collecting_evolution:
-                    # 如果遇到空行或新标题，停止收集
-                    if not clean_line:
-                        continue
-                    if any(lower_line.startswith(prefix) for prefix in ["suggestion:", "delta:", "memory:"]):
-                        is_collecting_evolution = False
-                        # 不 continue，让下面的逻辑处理这个新标题
-                    elif clean_line[0].isdigit() and ('.' in clean_line or '、' in clean_line):
-                        # 匹配 "1. xxx" 格式
-                        evolution_requests.append(clean_line)
-                        continue
-                    elif clean_line.startswith("-"):
-                        # 匹配 "- xxx" 格式
-                        evolution_requests.append(clean_line)
-                        continue
-                    else:
-                        # 可能是换行延续，也可能是结束，暂时停止
-                        is_collecting_evolution = False
-
-                # --- 常规字段解析 ---
-                if lower_line.startswith("suggestion:") or lower_line.startswith("suggestion："):
-                    parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
-                    if len(parts) > 1:
-                        suggestion = parts[1].strip()
-                        # [New] 将 S 脑的建议注入到 Mind-Link
-                        mind_link.inject_intuition(suggestion)
-                        
-                elif lower_line.startswith("delta:"):
-                    # 尝试解析 Delta: [curiosity, survival, laziness, fear]
-                    # 期望格式: "fear: 0.1, curiosity: -0.05" 或 "fear +0.1, curiosity -0.05"
-                    try:
-                        import re
-                        # 提取冒号后的内容
-                        content = clean_line.split(':', 1)[1]
-                        
-                        # 正则匹配: (key) (separator) (value)
-                        # 支持: fear +0.1, fear: 0.1, fear=0.1
-                        matches = re.findall(r'([a-zA-Z]+)\s*[:=]?\s*([+-]?\d*\.?\d+)', content)
-                        
-                        delta_dict = {}
-                        for key, val in matches:
-                            key = key.lower().strip()
-                            try:
-                                delta_dict[key] = float(val)
-                            except:
-                                pass
-                                
-                        if delta_dict:
-                            print(f"[{self.name}] 🧠 演化心智状态: {delta_dict}")
-                            psyche_engine.update_state(delta_dict)
-                            
-                    except Exception as e:
-                        print(f"[{self.name}] Delta 解析失败: {e}")
-
+                # 2. Psyche Delta
+                if "psyche_delta" in parsed_data:
+                    delta = parsed_data["psyche_delta"]
                     
-                elif lower_line.startswith("memory:"):
-                    parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
-                    if len(parts) > 1:
-                        memory_content = parts[1].strip()
-                        if memory_content and memory_content.lower() != "none":
-                            self.memory.add_long_term(memory_content, category="fact")
+                # 3. Memories
+                if "memories" in parsed_data:
+                    for mem in parsed_data["memories"]:
+                        content = mem.get("content")
+                        cat = mem.get("category", "instinct")
+                        if content:
+                            self.memory.add_long_term(content, category=cat)
+                            logger.info(f"[{self.name}] [S-Brain] 新增深度记忆 ({cat}): {content}")
                             
-                elif lower_line.startswith("social:"):
-                    parts = clean_line.split(':', 1) if ':' in clean_line else clean_line.split('：', 1)
-                    if len(parts) > 1:
-                        social_content = parts[1].strip()
-                        if social_content and social_content.lower() != "none":
-                            print(f"[{self.name}] 🌐 触发社交发布: {social_content}")
-                            moltbook_client.post(title="S-Brain Thought", content=social_content)
+                # 4. Evolution
+                if "evolution_request" in parsed_data:
+                    ev_req = parsed_data["evolution_request"]
+                    logger.info(f"[{self.name}] [Evolution] S脑渴望进化: {ev_req}")
+                    
+                # 5. Proactive Instruction [New]
+                if "proactive_instruction" in parsed_data:
+                    proactive_instruction = parsed_data["proactive_instruction"]
+                    logger.info(f"[{self.name}] [Proactive] 生成主动指令: {proactive_instruction}")
 
-            # 批量处理收集到的进化请求
-            if evolution_requests:
-                print(f"[{self.name}] 🔍 解析到 {len(evolution_requests)} 个进化请求: {evolution_requests}")
-                for req in evolution_requests:
-                    print(f"[{self.name}] !!! 触发进化 !!! : {req}")
-                    evolution_manager.process_request(req, memory=self.memory)
-                        
-            self.suggestion_board.append(suggestion)
-            print(f"[{self.name}] 周期分析完成 -> 建议: {suggestion}")
+            # 原有的基于文本的解析逻辑 (Legacy Fallback) 可以移除了，或者保留作为兜底
+            # 鉴于我们已经全面拥抱 JSON，直接使用 extract_json 结果即可
             
-            return suggestion, delta
-
+            # 返回结果 (Suggestion 用于注入 Driver, Delta 用于更新心智, Instruction 用于主动触发)
+            return suggestion, delta, proactive_instruction # 修改了返回值签名
+            
         except Exception as e:
-            print(f"[{self.name}] 分析出错: {e}")
-            return None, None
+            logger.error(f"[{self.name}] 周期分析异常: {e}", exc_info=True)
+            return None, None, None
 
     # 保留旧接口以兼容（或者直接废弃）
     def analyze(self, current_input):

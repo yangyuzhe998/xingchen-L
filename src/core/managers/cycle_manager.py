@@ -114,7 +114,7 @@ class CycleManager:
         # 2. 调用 S脑 (R1 模式)
         # 注意：这里我们不再传具体的 input，而是让 S脑自己去 Bus 里捞最近的一个周期
         # 这里的实现需要 Navigator 支持“无参分析”或“基于 Bus 分析”
-        suggestion, delta = self.navigator.analyze_cycle()
+        suggestion, delta, proactive_instruction = self.navigator.analyze_cycle()
         
         # 3. 更新 Psyche
         if delta:
@@ -129,3 +129,13 @@ class CycleManager:
                 meta={"trigger": "cycle_end"}
             ))
             print(f"[CycleManager] S脑建议已发布: {suggestion}")
+
+        # 5. 处理主动干预指令
+        if proactive_instruction:
+            print(f"[CycleManager] 收到主动干预指令: {proactive_instruction}")
+            event_bus.publish(Event(
+                type="proactive_instruction",
+                source="navigator",
+                payload={"content": proactive_instruction},
+                meta={"trigger": "cycle_end"}
+            ))

@@ -7,6 +7,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 import threading
 from ...config.settings.settings import settings
+from ...utils.logger import logger
 
 @dataclass
 class Event:
@@ -85,7 +86,7 @@ class SQLiteEventBus:
                 # 通知所有订阅者 (异步执行，避免阻塞发布者)
                 self._notify_subscribers(event)
                 
-                # print(f"[Bus] Event Published: [{event.type}] from {event.source} (ID: {event_id})")
+                # logger.debug(f"[Bus] Event Published: [{event.type}] from {event.source} (ID: {event_id})")
                 return event_id
 
     def _notify_subscribers(self, event):
