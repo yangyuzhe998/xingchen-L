@@ -8,24 +8,7 @@ from datetime import datetime
 import threading
 from ...config.settings.settings import settings
 from ...utils.logger import logger
-
-@dataclass
-class Event:
-    type: str  # e.g., "user_input", "driver_response", "navigator_suggestion"
-    source: str # e.g., "user", "driver", "navigator"
-    payload: Dict[str, Any] # 主要内容
-    # [TODO] [TypeSafety]: payload 目前为弱类型 Dict。
-    # 未来建议引入 Pydantic 模型或 TypedDict，为不同 type 的事件定义严格的 Schema 约束。
-    meta: Dict[str, Any] # "暗物质"信息：trace_id, internal_thoughts, emotion, psyche_state
-    trace_id: str = ""
-    timestamp: float = 0.0
-    id: Optional[int] = None
-
-    def __post_init__(self):
-        if not self.trace_id:
-            self.trace_id = str(uuid.uuid4())
-        if not self.timestamp:
-            self.timestamp = time.time()
+from ...schemas.events import BaseEvent as Event # 引入 Pydantic Event
 
 class SQLiteEventBus:
     def __init__(self, db_path=None):

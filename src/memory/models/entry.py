@@ -1,33 +1,23 @@
-from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, Dict, Any
 
-@dataclass
-class ShortTermMemoryEntry:
+class ShortTermMemoryEntry(BaseModel):
     """短期对话记忆条目"""
     role: str # user | assistant | system
     content: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "role": self.role,
-            "content": self.content,
-            "timestamp": self.timestamp
-        }
+        return self.model_dump()
 
-@dataclass
-class LongTermMemoryEntry:
+class LongTermMemoryEntry(BaseModel):
     """长期事实记忆条目"""
     content: str
     category: str = "fact" # fact | rule | preference
-    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "content": self.content,
-            "category": self.category,
-            "created_at": self.created_at,
-            "metadata": self.metadata
-        }
+        # 注意: Pydantic v2 使用 model_dump()
+        return self.model_dump()

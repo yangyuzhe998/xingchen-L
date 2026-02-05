@@ -43,8 +43,8 @@ def start_cli():
         cycle_manager.running = False
         print("System Shutdown.")
 
-def start_web():
-    """Start Web Server Mode"""
+def create_app():
+    """Factory for Uvicorn"""
     from src.core.driver.engine import Driver
     from src.core.navigator.engine import Navigator
     from src.psyche import psyche_engine
@@ -70,12 +70,25 @@ def start_web():
 
     web_ui.set_input_handler(handler)
     
+    return web_ui.app
+
+# Expose app for Uvicorn
+if os.environ.get("LAUNCH_MODE") == "web":
+    app = create_app()
+
+def start_web():
+    """Start Web Server Mode (Sync Entry)"""
+    os.environ["LAUNCH_MODE"] = "web"
+    # Re-import to trigger app creation
+    import importlib
+    import src.main
+    importlib.reload(src.main)
+    
     logger.info("Starting Uvicorn Server...")
     print("\n🌐 Web UI available at: http://127.0.0.1:8000\n")
     
-    # Start Uvicorn
-    # Note: reload=False for production stability
-    uvicorn.run(web_ui.app, host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run("src.main:app", host="127.0.0.1", port=8000, log_level="info", reload=False)
+
 
 def main():
     parser = argparse.ArgumentParser(description="XingChen-V Launcher")

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
 ![Python](https://img.shields.io/badge/python-3.9+-yellow.svg)
 ![Architecture](https://img.shields.io/badge/architecture-dual--brain-purple.svg)
@@ -72,6 +72,12 @@ DEEPSEEK_API_KEY=your_deepseek_key
 python -m src.main
 ```
 
+## 📚 文档 (Documentation)
+
+- **[架构设计 (Architecture)](docs/ARCHITECTURE.md)**: 深入了解双脑协同、EventBus 与数据流向。
+- **[已知问题 (Known Issues)](docs/KNOWN_ISSUES.md)**: 查看当前版本的 Bug、风险与局限性。
+- **[开发者指南 (Developer Guide)](docs/DEVELOPER_GUIDE.md)**: 快速上手、环境配置与调试手册。
+
 ## 📂 目录结构 (Structure)
 
 ```
@@ -93,7 +99,8 @@ src/
 
 ## 📅 版本历史 (History)
 
-- **v2.0.0 (Current)**: 架构全面重构。拆分 Core/Memory/Psyche，引入混合检索，移除冗余社交模块。
+- **v3.0.0 (Current)**: 完善文档体系，优化主动对话与称呼逻辑，系统趋于稳定。
+- **v2.0.0**: 架构全面重构。拆分 Core/Memory/Psyche，引入混合检索，移除冗余社交模块。
 - **v1.0.0**: 初始双脑原型验证。
 
 ---

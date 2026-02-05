@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 from datetime import datetime
 from ...utils.llm_client import LLMClient
 from ...utils.logger import logger
@@ -29,6 +30,7 @@ class Driver:
         # 订阅事件总线
         event_bus.subscribe(self._on_event)
         self._thinking_lock = threading.Lock() # 防止思考冲突
+        self.last_interaction_time = 0 # 上次互动时间 (Unix Timestamp)
         
         logger.info(f"[{self.name}] 初始化完成。模型: {self.llm.model}。")
 
@@ -44,6 +46,11 @@ class Driver:
         """
         [New] 主动发起对话 (基于 S脑 指令)
         """
+        # 1. 冷却检查
+        if time.time() - self.last_interaction_time < settings.PROACTIVE_COOLDOWN:
+            logger.info(f"[{self.name}] 处于冷却期，跳过主动发言指令: {instruction[:20]}...")
+            return
+
         # 如果正在思考（处理用户输入），则忽略这次主动尝试
         if not self._thinking_lock.acquire(blocking=False):
             logger.info(f"[{self.name}] 正在忙于回复用户，忽略主动干预指令: {instruction}")
@@ -113,7 +120,12 @@ class Driver:
         # 获取锁，标志正在思考
         # 注意：这会阻塞直到获得锁，确保不会与 proactive_speak 冲突
         with self._thinking_lock:
-            return self._think_internal(user_input, psyche_state, suggestion)
+            response = self._think_internal(user_input, psyche_state, suggestion)
+            
+            # 更新最后互动时间
+            self.last_interaction_time = time.time()
+            
+            return response
 
     def _think_internal(self, user_input, psyche_state=None, suggestion=""):
         print(f"[{self.name}] 正在思考: {user_input}")

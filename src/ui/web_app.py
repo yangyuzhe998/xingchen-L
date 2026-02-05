@@ -98,12 +98,23 @@ class WebApp(UserInterface):
 
     def _on_bus_event(self, event: Event):
         """Handle EventBus events and push to frontend"""
-        if event.type == "driver_response":
+        from src.schemas.events import EventType # Import enum
+        
+        # 使用 Enum 进行判断，或者兼容字符串
+        # 注意: Pydantic 的 Event.type 是 EventType 枚举，但在 sqlite 里可能被存为字符串
+        # EventBus 读取出来的是 Pydantic 对象，所以 type 是枚举成员
+        
+        event_type = event.type
+        # 如果 event.type 是枚举，获取其 value
+        if hasattr(event_type, "value"):
+            event_type = event_type.value
+            
+        if event_type == EventType.DRIVER_RESPONSE.value:
             content = event.payload.get("content", "")
             meta = event.meta
             self.display_message("assistant", content, meta)
         
-        elif event.type == "navigator_suggestion":
+        elif event_type == EventType.NAVIGATOR_SUGGESTION.value:
             suggestion = event.payload.get("content", "")
             # Optional: push system notification
             pass

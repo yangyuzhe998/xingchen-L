@@ -45,6 +45,10 @@ class Settings:
     CYCLE_IDLE_TIMEOUT = 300 # 空闲强制分析阈值 (秒)
     NAVIGATOR_DELAY_SECONDS = 5 # 记忆压缩延迟时间 (秒)
     NAVIGATOR_EVENT_LIMIT = 50 # 记忆压缩时获取的事件数量上限
+    
+    # Proactive Interaction
+    PROACTIVE_COOLDOWN = 60 # 主动发言冷却时间 (秒)
+    PROACTIVE_HISTORY_WINDOW = 10 # 检查重复话题的历史窗口大小
 
     # Psyche Engine
     PSYCHE_DECAY_RATE = 0.05 # 状态自然衰减率

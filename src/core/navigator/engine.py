@@ -273,6 +273,20 @@ class Navigator:
             except Exception as e:
                 logger.error(f"[{self.name}] [Step 4/4] Failed: {e}", exc_info=True)
 
+            # [Optimization] 压缩完成后，清空短期记忆
+            # 保留最近的 5 条作为上下文，避免断片
+            try:
+                # 获取最近 5 条
+                recent = self.memory.service.short_term[-5:]
+                # 清空
+                self.memory.service.clear_short_term()
+                # 加回最近 5 条
+                for entry in recent:
+                    self.memory.service.add_short_term(entry.role, entry.content)
+                logger.info(f"[{self.name}] 短期记忆已清理 (保留 {len(recent)} 条上下文)。")
+            except Exception as e:
+                logger.error(f"[{self.name}] 短期记忆清理失败: {e}", exc_info=True)
+
             return diary_response
             
         except Exception as e:

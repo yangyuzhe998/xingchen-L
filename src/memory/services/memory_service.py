@@ -36,7 +36,12 @@ class MemoryService:
                 category = item.get("category", "fact")
                 created_at = item.get("created_at", datetime.now().isoformat())
                 meta = item.get("metadata", {})
-                self.long_term.append(LongTermMemoryEntry(content, category, created_at, meta))
+                self.long_term.append(LongTermMemoryEntry(
+                    content=content,
+                    category=category,
+                    created_at=created_at,
+                    metadata=meta
+                ))
             elif isinstance(item, str):
                 # 旧格式纯字符串
                 self.long_term.append(LongTermMemoryEntry(content=item))
@@ -133,6 +138,12 @@ class MemoryService:
         if len(self.short_term) > settings.SHORT_TERM_MAX_COUNT:
             # 触发压缩逻辑 (外部控制或在此触发事件)
             pass
+    
+    def clear_short_term(self):
+        """清空短期记忆缓存 (通常在压缩后调用)"""
+        self.short_term = []
+        self._short_term_dirty = True
+        self.save_cache()
 
     def get_recent_history(self, limit=10):
         # 返回 dict 列表以兼容 LLM 接口
