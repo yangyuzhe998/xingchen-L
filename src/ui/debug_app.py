@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from src.core.driver.engine import Driver
-from src.core.navigator.engine import Navigator
+from src.core.navigator.core import Navigator
 from src.psyche import psyche_engine
 from src.memory.memory_core import Memory
 from src.core.managers.cycle_manager import CycleManager
@@ -65,8 +65,9 @@ class DebugCLI(UserInterface):
             log_line = f"\n{timestamp} {prefix} Source: {event.source}"
             print(log_line)
             
-            # 打印 Payload (如果是 JSON 字符串则解析)
-            payload = event.payload
+            # 打印 Payload (使用统一属性)
+            payload = event.payload_data
+            # 如果 payload 仍然是字符串 (例如某些极端情况)，尝试解析
             if isinstance(payload, str):
                 try:
                     payload = json.loads(payload)

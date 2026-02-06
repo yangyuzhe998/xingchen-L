@@ -66,7 +66,7 @@ class PsycheEngine:
             with open(self.state_file_path, 'w', encoding='utf-8') as f:
                 json.dump(state, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"[PsycheEngine] Save state failed: {e}")
+            logger.error(f"[PsycheEngine] Save state failed: {e}", exc_info=True)
 
     def update_state(self, delta: Dict[str, float]):
         """

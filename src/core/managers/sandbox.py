@@ -65,7 +65,7 @@ class Sandbox:
         if timeout is None:
             timeout = settings.SANDBOX_TIMEOUT
 
-        print(f"[Sandbox] Running {command} in {image_tag}...")
+        logger.info(f"[Sandbox] Running {command} in {image_tag}...")
         try:
             container = self.client.containers.run(
                 image_tag,

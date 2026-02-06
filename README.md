@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
 ![Python](https://img.shields.io/badge/python-3.9+-yellow.svg)
 ![Architecture](https://img.shields.io/badge/architecture-dual--brain-purple.svg)
@@ -12,6 +12,20 @@
 [English README](README_EN.md) (WIP)
 
 </div>
+
+## 🆕 v4.0 更新日志 (Changelog)
+
+- **架构重构 (Architecture Refactoring)**: 
+  - `Navigator` (S脑) 彻底解耦，拆分为 `Reasoner` (深度推理), `Compressor` (记忆压缩), `ContextManager` (上下文构建) 三大子组件。
+  - `CycleManager` 职责更清晰，支持多维度触发 S 脑分析。
+- **类型安全 (Type Safety)**: 
+  - 全面强化 EventBus，Payload 统一采用 Pydantic 模型，消除 `Dict` 与 `Object` 混用的类型隐患。
+  - 新增 `payload_data` 与 `get_content()` 统一接口，提升代码健壮性。
+- **记忆系统 (Memory System)**: 
+  - Memory Facade 封装升级，提供更安全的属性访问 (`@property`) 与方法封装，杜绝外部直接穿透访问 Service 层。
+  - 优化 WAL (Write-Ahead Log) 恢复策略，避免重复数据恢复。
+- **主动交互 (Proactive Interaction)**: 
+  - 完善 S 脑到 F 脑的主动指令链条 (`ProactiveInstruction`)，支持 S 脑根据深度思考结果驱动 F 脑发起对话。
 
 ## 📖 项目简介 (Introduction)
 
@@ -40,6 +54,7 @@
 - **LLM**: Qwen (Driver), DeepSeek-R1 (Navigator)
 - **Database**: ChromaDB (Vector), SQLite (Bus), JSON (State)
 - **Framework**: Native Python (No LangChain dependencies for core logic)
+- **Observability**: Standardized Logging (Rotating File + Console, TraceID support)
 
 ## 🚀 快速开始 (Quick Start)
 
@@ -57,7 +72,7 @@ venv\Scripts\activate
 source venv/bin/activate
 
 # 安装依赖
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 2. 配置
@@ -96,12 +111,3 @@ src/
 ## 🤝 贡献 (Contributing)
 
 欢迎提交 Issue 和 Pull Request！本项目遵循 MIT 协议。
-
-## 📅 版本历史 (History)
-
-- **v3.0.0 (Current)**: 完善文档体系，优化主动对话与称呼逻辑，系统趋于稳定。
-- **v2.0.0**: 架构全面重构。拆分 Core/Memory/Psyche，引入混合检索，移除冗余社交模块。
-- **v1.0.0**: 初始双脑原型验证。
-
----
-*Created by [Your Name] with ❤️ & 🤖*

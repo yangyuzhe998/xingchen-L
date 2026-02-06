@@ -4,6 +4,7 @@ from src.tools.definitions import ToolDefinition, ToolTier
 import inspect
 import json
 import os
+from src.utils.logger import logger
 
 class ToolRegistry:
     """
@@ -35,7 +36,7 @@ class ToolRegistry:
                 schema=tool_schema
             )
             cls._tools[name] = tool_def
-            print(f"[ToolRegistry] Registered tool: {name} ({tier.value})")
+            logger.info(f"[ToolRegistry] Registered tool: {name} ({tier.value})")
             return func
         return decorator
 
@@ -74,10 +75,10 @@ class ToolRegistry:
             raise ValueError(f"Tool '{name}' not found.")
         
         try:
-            # print(f"[ToolRegistry] Executing {name} with args: {kwargs}")
+            # logger.debug(f"[ToolRegistry] Executing {name} with args: {kwargs}")
             return tool.func(**kwargs)
         except Exception as e:
-            print(f"[ToolRegistry] Execution failed for {name}: {e}")
+            logger.error(f"[ToolRegistry] Execution failed for {name}: {e}", exc_info=True)
             return f"Error: {str(e)}"
 
     @staticmethod

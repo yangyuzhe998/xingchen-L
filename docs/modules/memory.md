@@ -11,7 +11,8 @@ src/memory/
 ├── storage/         # 存储后端实现
 │   ├── vector.py    # 向量数据库 (ChromaDB)
 │   ├── local.py     # 本地文件存储 (JSON)
-│   └── diary.py     # Markdown 日记管理
+│   ├── diary.py     # Markdown 日记管理
+│   └── write_ahead_log.py # Write-Ahead Log (WAL)
 ├── memory_core.py   # 统一入口 (Facade)
 └── __init__.py
 ```
@@ -54,3 +55,18 @@ src/memory/
 2. 提取输入中的关键词和语义向量。
 3. 在 ChromaDB 中检索 Top-K 相关条目。
 4. 将检索结果注入到 System Prompt 的 `long_term_context` 区域。
+
+## 5. 数据一致性与安全 (Data Safety)
+
+为了防止系统异常退出导致数据丢失，记忆模块引入了双重保障机制：
+
+### 5.1 原子写入 (Atomic Write)
+- `JsonStorage` (local.py) 实现了原子写入策略。
+- 数据首先写入 `*.tmp` 临时文件，写入成功后通过 `os.replace` 原子上替换目标文件。
+- 这确保了即使在写入过程中断电，原始数据文件也不会损坏。
+
+### 5.2 预写日志 (Write-Ahead Log, WAL)
+- 所有修改操作（如 `add_short_term`, `add_long_term`）在执行前都会先追加写入 `wal.log`。
+- **Crash Recovery**: 系统启动时会自动重放 WAL，恢复未提交到持久化存储的操作。
+- **Smart Commit**: 当 `force_save_all` 成功执行后，WAL 会被清空。
+- **Idempotency**: 重放逻辑具有幂等性，会跳过已经存在于 Cache 中的数据。

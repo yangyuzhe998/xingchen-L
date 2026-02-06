@@ -1,5 +1,7 @@
 import json
 import os
+from typing import List, Dict, Any
+from src.utils.logger import logger
 
 class JsonStorage:
     """
@@ -14,18 +16,33 @@ class JsonStorage:
         if os.path.dirname(self.file_path):
             os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
 
-    def load(self):
+    def load(self) -> List[Dict[str, Any]]:
+        """
+        加载 JSON 数据
+        
+        Returns:
+            List[Dict[str, Any]]: 始终返回列表，即使文件不存在或损坏
+        """
         self._dirty = False
         if not os.path.exists(self.file_path):
             return []
         try:
             with open(self.file_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+                # 确保返回列表类型
+                if isinstance(data, list):
+                    return data
+                elif isinstance(data, dict):
+                    # 如果是字典，包装成列表（向后兼容）
+                    return [data]
+                else:
+                    logger.warning(f"[Memory] 意外的数据类型: {type(data)}，返回空列表")
+                    return []
         except Exception as e:
-            print(f"[Memory] JSON 加载失败: {e}")
+            logger.error(f"[Memory] JSON 加载失败: {e}", exc_info=True)
             return []
 
-    def save(self, data, force=False):
+    def save(self, data: List[Dict[str, Any]], force: bool = False) -> None:
         # 注意: data 是外部传入的，JsonStorage 本身不持有 state (或者说 state 由调用者管理)
         # 这是一个设计上的妥协。为了支持 Dirty Check，我们假设只有当调用 save 时才意味着数据变了。
         # 但这并不严谨，因为 data 是一直在外部变的。
@@ -39,8 +56,24 @@ class JsonStorage:
         # 修正：JsonStorage 只是一个 Storage Provider，它不持有业务对象。
         # 所以 dirty check 应该在 MemoryService (持有 long_term list) 中做。
         # 这里只负责写文件。
+        
+        # [Atomic Write] 使用原子写入防止数据损坏
+        # 1. 写入临时文件
+        # 2. 原子重命名
+        temp_path = f"{self.file_path}.tmp"
         try:
-            with open(self.file_path, 'w', encoding='utf-8') as f:
+            with open(temp_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            # Windows 下 os.replace 是原子的 (Python 3.3+)
+            # 如果目标文件存在，它会被覆盖
+            os.replace(temp_path, self.file_path)
+            
         except Exception as e:
-            print(f"[Memory] JSON 保存失败: {e}")
+            logger.error(f"[Memory] JSON 保存失败: {e}", exc_info=True)
+            # 清理临时文件
+            if os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except:
+                    pass

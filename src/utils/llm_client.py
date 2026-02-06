@@ -4,6 +4,7 @@ from openai import OpenAI
 import sys
 import uuid
 from src.config.settings import settings
+from src.utils.logger import logger
 
 # 立即加载环境变量
 load_dotenv(override=True)
@@ -17,7 +18,7 @@ class LLMClient:
         self._configure()
         
         if not self.api_key:
-            print(f"警告: 未找到提供商 {self.provider} 的 API Key")
+            logger.warning(f"警告: 未找到提供商 {self.provider} 的 API Key")
         
         self.client = OpenAI(
             api_key=self.api_key,
@@ -62,7 +63,7 @@ class LLMClient:
         try:
             msg_len = sum(len(m.get('content', '') or '') for m in messages)
             tool_info = f", Tools: {len(tools)}" if tools else ""
-            print(f"[{self.provider}] [TraceID: {trace_id}] Sending to {self.model}... (Msg: {len(messages)}, Chars: {msg_len}{tool_info})")
+            logger.info(f"[{self.provider}] [TraceID: {trace_id}] Sending to {self.model}... (Msg: {len(messages)}, Chars: {msg_len}{tool_info})")
             
             kwargs = {
                 "model": self.model,
@@ -81,14 +82,14 @@ class LLMClient:
             
             # 如果使用了 Tools，返回完整的 message 对象以便处理 tool_calls
             if tools:
-                print(f"[{self.provider}] [TraceID: {trace_id}] Received response (Tool Calls: {len(message.tool_calls) if message.tool_calls else 0}).")
+                logger.info(f"[{self.provider}] [TraceID: {trace_id}] Received response (Tool Calls: {len(message.tool_calls) if message.tool_calls else 0}).")
                 return message
             
             content = message.content
-            print(f"[{self.provider}] [TraceID: {trace_id}] Received response ({len(content) if content else 0} chars).")
+            logger.info(f"[{self.provider}] [TraceID: {trace_id}] Received response ({len(content) if content else 0} chars).")
             return content
         except Exception as e:
-            print(f"[{self.provider}] [TraceID: {trace_id}] Error: {e}")
+            logger.error(f"[{self.provider}] [TraceID: {trace_id}] Error: {e}", exc_info=True)
             # 不再返回错误字符串，而是返回 None 或抛出异常
             # 为了保持兼容性，这里返回 None，让调用者处理
             return None

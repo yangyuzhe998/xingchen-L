@@ -3,6 +3,7 @@ import os
 import networkx as nx
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from src.utils.logger import logger
 
 class GraphMemory:
     """
@@ -23,12 +24,12 @@ class GraphMemory:
                     data = json.load(f)
                     # 使用 node_link_graph 还原
                     self.graph = nx.node_link_graph(data, directed=True, multigraph=True)
-                    print(f"[GraphMemory] Loaded {self.graph.number_of_nodes()} nodes, {self.graph.number_of_edges()} edges.")
+                    logger.info(f"[GraphMemory] Loaded {self.graph.number_of_nodes()} nodes, {self.graph.number_of_edges()} edges.")
             except Exception as e:
-                print(f"[GraphMemory] Load failed: {e}. Initializing empty graph.")
+                logger.error(f"[GraphMemory] Load failed: {e}. Initializing empty graph.", exc_info=True)
                 self.graph = nx.MultiDiGraph()
         else:
-            print("[GraphMemory] No existing data. Initializing empty graph.")
+            logger.info("[GraphMemory] No existing data. Initializing empty graph.")
         self._dirty = False
 
     def save(self, force=False):
@@ -53,7 +54,7 @@ class GraphMemory:
             self._dirty = False
             # print(f"[GraphMemory] Saved to {self.data_path}")
         except Exception as e:
-            print(f"[GraphMemory] Save failed: {e}")
+            logger.error(f"[GraphMemory] Save failed: {e}", exc_info=True)
 
     def add_triplet(self, source: str, relation: str, target: str, weight: float = 1.0, meta: Dict = None, relation_type: str = "general"):
         """

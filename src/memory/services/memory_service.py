@@ -19,7 +19,7 @@ class MemoryService:
         # 优先加载缓存的未归档记忆，然后是空的列表
         self.short_term: List[ShortTermMemoryEntry] = self._load_cache()
         if self.short_term:
-            print(f"[Memory] 已恢复 {len(self.short_term)} 条未归档记忆。")
+            logger.info(f"[Memory] 已恢复 {len(self.short_term)} 条未归档记忆。")
 
         # Dirty Flags for Service-managed data
         self._long_term_dirty = False
@@ -93,12 +93,15 @@ class MemoryService:
         except Exception as e:
             logger.error(f"[Memory] 别名存储失败: {e}", exc_info=True)
 
-    def search_alias(self, query, limit=1, threshold=0.4):
+    def search_alias(self, query, limit=None, threshold=None):
         """
         检索别名 (Substring Match Implementation)
         :param query: 用户输入的句子 (e.g. "仔仔饿了")
         :return: (alias, target_entity, score) or None
         """
+        if limit is None: limit = settings.DEFAULT_ALIAS_LIMIT
+        if threshold is None: threshold = settings.DEFAULT_ALIAS_THRESHOLD
+
         try:
             path = settings.ALIAS_MAP_PATH
             if not os.path.exists(path):
@@ -129,6 +132,8 @@ class MemoryService:
 
     def write_diary_entry(self, content):
         self.diary_storage.append(content)
+        # [Fix] 更新上次日记时间，使时间感知逻辑生效
+        self.last_diary_time = datetime.now()
 
     def add_short_term(self, role, content):
         entry = ShortTermMemoryEntry(role=role, content=content)
@@ -136,8 +141,7 @@ class MemoryService:
         self._short_term_dirty = True # Mark dirty
         
         if len(self.short_term) > settings.SHORT_TERM_MAX_COUNT:
-            # 触发压缩逻辑 (外部控制或在此触发事件)
-            pass
+            self.short_term.pop(0)
     
     def clear_short_term(self):
         """清空短期记忆缓存 (通常在压缩后调用)"""
@@ -145,17 +149,19 @@ class MemoryService:
         self._short_term_dirty = True
         self.save_cache()
 
-    def get_recent_history(self, limit=10):
+    def get_recent_history(self, limit=None):
+        if limit is None: limit = settings.DEFAULT_SHORT_TERM_LIMIT
         # 返回 dict 列表以兼容 LLM 接口
         return [entry.to_dict() for entry in self.short_term[-limit:]]
 
-    def get_relevant_long_term(self, query=None, limit=5, search_mode="keyword"):
+    def get_relevant_long_term(self, query=None, limit=None, search_mode="keyword"):
         """
         检索长期记忆
         :param query: 检索关键词
         :param limit: 返回条数
         :param search_mode: "keyword" (精准) | "hybrid" (混合/S脑用)
         """
+        if limit is None: limit = settings.DEFAULT_LONG_TERM_LIMIT
         results = []
         
         # 1. 关键词匹配 (基础)
@@ -178,9 +184,9 @@ class MemoryService:
                      if search_res and search_res['documents']:
                          vector_hits = search_res['documents'][0]
                  except Exception as e:
-                     logger.warning(f"[Memory] Vector search failed: {e}")
-        
-        # 合并逻辑
+                    logger.warning(f"[Memory] Vector search failed: {e}")
+       
+       # 合并逻辑
         if search_mode == "hybrid":
              # 混合模式：优先关键词，补充向量联想，去重
              all_hits = list(dict.fromkeys(keyword_hits + vector_hits)) # 保持顺序去重

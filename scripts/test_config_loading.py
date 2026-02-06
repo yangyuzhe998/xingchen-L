@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.config.settings.settings import settings
 from src.memory.memory_core import Memory
-from src.core.navigator.engine import Navigator
+from src.core.navigator.core import Navigator
 
 def test_config_loading():
     print("Testing Configuration Loading...")

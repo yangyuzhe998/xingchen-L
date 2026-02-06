@@ -42,11 +42,17 @@ class SQLiteEventBus:
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_timestamp ON events (timestamp)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_type ON events (type)')
             conn.commit()
-        print(f"[EventBus] 总线已连接: {self.db_path}")
+        logger.info(f"[EventBus] 总线已连接: {self.db_path}")
 
     def publish(self, event: Event) -> int:
         """发布事件"""
+        # 使用 Context Manager 模式自动处理连接和事务
+        # 如果发生异常，外层调用者应该知道（或者在这里降级处理，但不应静默吞掉关键错误）
+        # 鉴于 EventBus 是核心组件，我们保持 fail-fast 或显式报错的风格
+        
         with self._lock:
+            # 直接执行数据库操作，如果出错，让异常向上传播
+            # 调用者需要处理 sqlite3.Error
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute('''
@@ -57,7 +63,7 @@ class SQLiteEventBus:
                     event.timestamp,
                     event.type,
                     event.source,
-                    json.dumps(event.payload, ensure_ascii=False),
+                    json.dumps(event.payload if isinstance(event.payload, dict) else event.payload.model_dump(), ensure_ascii=False),
                     json.dumps(event.meta, ensure_ascii=False)
                 ))
                 event_id = cursor.lastrowid
@@ -65,12 +71,12 @@ class SQLiteEventBus:
                 
                 # 为新插入的事件设置 ID
                 event.id = event_id
-                
-                # 通知所有订阅者 (异步执行，避免阻塞发布者)
-                self._notify_subscribers(event)
-                
-                # logger.debug(f"[Bus] Event Published: [{event.type}] from {event.source} (ID: {event_id})")
-                return event_id
+
+        # 通知订阅者 (放在锁外或锁内？放在锁内保证顺序，放在锁外减少锁持有时间)
+        # 这里选择放在锁内以简化逻辑，且 notify 是异步的 (start thread) 只有微小开销
+        self._notify_subscribers(event)
+        
+        return event_id
 
     def _notify_subscribers(self, event):
         """通知订阅者"""
@@ -81,7 +87,7 @@ class SQLiteEventBus:
                 # 目前保持简单，暂不引入线程池。
                 threading.Thread(target=callback, args=(event,), daemon=True).start()
             except Exception as e:
-                print(f"[Bus] Subscriber Notification Failed: {e}")
+                logger.error(f"[Bus] Subscriber Notification Failed: {e}", exc_info=True)
 
     def get_events(self, limit=20, offset=0, event_type=None, start_time=None) -> List[Event]:
         """查询事件历史"""

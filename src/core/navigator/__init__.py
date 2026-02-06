@@ -1,1 +1,1 @@
-from .engine import Navigator
+from .core import Navigator

@@ -1,4 +1,3 @@
-
 import sys
 import os
 import argparse
@@ -6,32 +5,32 @@ import uvicorn
 import asyncio
 from src.utils.logger import logger
 
-# Add project root to sys.path
-# We need to go up one level from src/ to the project root
+# 添加项目根目录到 sys.path
+# 我们需要从 src/ 上跳一级到项目根目录
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def start_cli():
-    """Start Debug CLI Mode"""
+    """启动调试 CLI 模式"""
     from src.core.driver.engine import Driver
-    from src.core.navigator.engine import Navigator
+    from src.core.navigator.core import Navigator
     from src.psyche import psyche_engine
     from src.memory.memory_core import Memory
     from src.core.managers.cycle_manager import CycleManager
     from src.ui.debug_app import DebugCLI
 
-    logger.info("Initializing components for CLI mode...")
+    logger.info("正在初始化 CLI 模式组件...")
     
     memory = Memory()
     psyche = psyche_engine
     navigator = Navigator(memory=memory)
-    memory.set_navigator(navigator)
+    # memory.set_navigator(navigator) # 已解耦
     driver = Driver(memory=memory)
     cycle_manager = CycleManager(navigator, psyche)
     
     app = DebugCLI()
     
     def handler(content):
-        # Sync bridge to driver
+        # 同步桥接到 Driver
         psyche_state = psyche.state
         driver.think(content, psyche_state=psyche_state)
 
@@ -41,58 +40,58 @@ def start_cli():
         app.run()
     finally:
         cycle_manager.running = False
-        print("System Shutdown.")
+        logger.info("系统关闭。")
 
 def create_app():
-    """Factory for Uvicorn"""
+    """Uvicorn 工厂函数"""
     from src.core.driver.engine import Driver
-    from src.core.navigator.engine import Navigator
+    from src.core.navigator.core import Navigator
     from src.psyche import psyche_engine
     from src.memory.memory_core import Memory
     from src.core.managers.cycle_manager import CycleManager
     from src.ui.web_app import web_ui
     
-    logger.info("Initializing components for Web mode...")
+    logger.info("正在初始化 Web 模式组件...")
     
-    # Initialize Core Components
+    # 初始化核心组件
     memory = Memory()
     psyche = psyche_engine
     navigator = Navigator(memory=memory)
-    memory.set_navigator(navigator)
+    # memory.set_navigator(navigator) # 已通过 EventBus 解耦
     driver = Driver(memory=memory)
     cycle_manager = CycleManager(navigator, psyche)
     
-    # Bind Web UI handler
+    # 绑定 Web UI 处理器
     async def handler(content):
         psyche_state = psyche.state
-        # Run in thread pool to avoid blocking async loop
+        # 在线程池中运行以避免阻塞异步循环
         await asyncio.to_thread(driver.think, content, psyche_state=psyche_state)
 
     web_ui.set_input_handler(handler)
     
     return web_ui.app
 
-# Expose app for Uvicorn
+# 为 Uvicorn 暴露 app 对象
 if os.environ.get("LAUNCH_MODE") == "web":
     app = create_app()
 
 def start_web():
-    """Start Web Server Mode (Sync Entry)"""
+    """启动 Web Server 模式 (同步入口)"""
     os.environ["LAUNCH_MODE"] = "web"
-    # Re-import to trigger app creation
+    # 重新导入以触发 app 创建
     import importlib
     import src.main
     importlib.reload(src.main)
     
-    logger.info("Starting Uvicorn Server...")
-    print("\n🌐 Web UI available at: http://127.0.0.1:8000\n")
+    logger.info("正在启动 Uvicorn 服务器...")
+    logger.info("\n🌐 Web UI 访问地址: http://127.0.0.1:8000\n")
     
     uvicorn.run("src.main:app", host="127.0.0.1", port=8000, log_level="info", reload=False)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="XingChen-V Launcher")
-    parser.add_argument("mode", nargs="?", choices=["cli", "web"], default="cli", help="Launch mode (cli or web)")
+    parser = argparse.ArgumentParser(description="星辰-V 启动器")
+    parser.add_argument("mode", nargs="?", choices=["cli", "web"], default="cli", help="启动模式 (cli 或 web)")
     
     args = parser.parse_args()
     

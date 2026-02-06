@@ -7,6 +7,7 @@ from ...utils.llm_client import LLMClient
 from ...config.prompts.prompts import EVOLUTION_SYSTEM_PROMPT
 from .library_manager import library_manager
 from ...tools.registry import tool_registry
+from ...utils.logger import logger
 
 class EvolutionManager:
     """
@@ -37,31 +38,31 @@ class EvolutionManager:
         :param request: e.g. "weather_tool - 获取天气信息"
         :param memory: Memory 实例，用于注入通知
         """
-        print(f"[EvolutionManager] 🚀 Processing Evolution Request: {request}")
+        logger.info(f"[EvolutionManager] 🚀 Processing Evolution Request: {request}")
         
         # === Step 1: MCP First Strategy ===
-        print(f"[EvolutionManager] 🔍 Attempting to find existing MCP solution first...")
+        logger.info(f"[EvolutionManager] 🔍 Attempting to find existing MCP solution first...")
         if self._search_mcp_solution(request):
-            print(f"[EvolutionManager] ✅ MCP solution found and loaded. Skipping code generation.")
+            logger.info(f"[EvolutionManager] ✅ MCP solution found and loaded. Skipping code generation.")
             # Notify System
             msg = f"[System] 自我进化成功 (MCP Mode): 已加载外部 MCP 工具 ({request})。"
             self._notify_system(msg, memory)
             return
 
-        print(f"[EvolutionManager] ⚠️ No suitable MCP found. Fallback to Code Generation.")
+        logger.warning(f"[EvolutionManager] ⚠️ No suitable MCP found. Fallback to Code Generation.")
         
         # [Security Restriction] 用户要求暂时禁用代码生成能力
-        print(f"[EvolutionManager] ⛔ Code Generation is currently DISABLED by user request.")
+        logger.warning(f"[EvolutionManager] ⛔ Code Generation is currently DISABLED by user request.")
         msg = f"[System] 自我进化失败: 未找到合适的 MCP 工具，且代码生成能力已被暂时禁用。"
         self._notify_system(msg, memory)
         return
 
         # === Step 2: Code Generation Strategy ===
         # 1. Generate Code
-        # print(f"[EvolutionManager] Generating code for: {request}...")
+        # logger.info(f"[EvolutionManager] Generating code for: {request}...")
         # code = self._generate_skill_code(request)
         # if not code:
-        #     print("[EvolutionManager] ❌ Failed to generate code.")
+        #     logger.error("[EvolutionManager] ❌ Failed to generate code.")
         #     return
 
         # 2. Extract Code/Structure
@@ -70,7 +71,7 @@ class EvolutionManager:
         
         # 简单的启发式判断：如果包含 Dockerfile 字样，视为包模式
         if "Dockerfile" in code:
-            print("[EvolutionManager] 📦 Detected Docker Package mode.")
+            logger.info("[EvolutionManager] 📦 Detected Docker Package mode.")
             self._deploy_docker_package(request, code)
             filename = "package_mode" # 占位符
         else:
@@ -85,13 +86,13 @@ class EvolutionManager:
             try:
                 with open(filepath, "w", encoding="utf-8") as f:
                     f.write(clean_code)
-                print(f"[EvolutionManager] ✅ Skill saved to {filepath}")
+                logger.info(f"[EvolutionManager] ✅ Skill saved to {filepath}")
             except Exception as e:
-                print(f"[EvolutionManager] ❌ Failed to write file: {e}")
+                logger.error(f"[EvolutionManager] ❌ Failed to write file: {e}", exc_info=True)
                 return
 
         # 5. Hot Reload
-        print(f"[EvolutionManager] Reloading skills...")
+        logger.info(f"[EvolutionManager] Reloading skills...")
         library_manager.scan_and_index()
         
         # 6. Notify System (Memory Injection)

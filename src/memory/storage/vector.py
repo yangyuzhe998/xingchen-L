@@ -1,6 +1,7 @@
 import os
 import chromadb
 from chromadb.utils import embedding_functions
+from src.utils.logger import logger
 
 class ChromaStorage:
     """
@@ -38,9 +39,9 @@ class ChromaStorage:
                 name="entity_aliases",
                 metadata={"hnsw:space": "cosine"}
             )
-            print("[Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。")
+            logger.info("[Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。")
         except Exception as e:
-            print(f"[Memory] ChromaDB 初始化失败: {e}")
+            logger.error(f"[Memory] ChromaDB 初始化失败: {e}", exc_info=True)
 
     def get_memory_collection(self):
         return self.collection

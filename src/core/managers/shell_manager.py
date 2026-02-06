@@ -4,6 +4,7 @@ import time
 from typing import List, Dict, Optional
 from ...memory.memory_core import Memory
 from ...config.settings.settings import settings
+from ...utils.logger import logger
 
 class ShellManager:
     """
@@ -39,10 +40,10 @@ class ShellManager:
     def scan_and_index(self):
         """扫描 src/skills_library/command_docs 下所有的 .md 并入库"""
         if not self.docs_collection:
-            print("[ShellManager] ❌ Collection not initialized.")
+            logger.error("[ShellManager] ❌ Collection not initialized.")
             return
 
-        print("[ShellManager] 🔍 Scanning command docs...")
+        logger.info("[ShellManager] 🔍 Scanning command docs...")
         
         if not os.path.exists(self.docs_root_dir):
             os.makedirs(self.docs_root_dir)
@@ -93,7 +94,7 @@ class ShellManager:
         :param trust_score: 初始信任值 (0.0 - 1.0)
         """
         if not self.cases_collection: 
-            print("[ShellManager] ❌ Collection not initialized.")
+            logger.error("[ShellManager] ❌ Collection not initialized.")
             return False
         
         case_id = f"case_{uuid.uuid4().hex[:8]}"

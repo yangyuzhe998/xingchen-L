@@ -1,4 +1,5 @@
-from ..bus.event_bus import event_bus, Event
+from ..bus.event_bus import event_bus
+from ...schemas.events import BaseEvent as Event, SystemHeartbeatPayload
 # from ..navigator.engine import Navigator # Circular import fix
 from ...psyche import PsycheEngine
 from ...config.settings.settings import settings
@@ -6,6 +7,7 @@ import threading
 import time
 import sys
 import os
+from ...utils.logger import logger
 
 # from ...social.moltbook_client import moltbook_client
 
@@ -37,20 +39,20 @@ class CycleManager:
         self.idle_monitor_thread = threading.Thread(target=self._idle_monitor_loop, daemon=True)
         self.idle_monitor_thread.start()
         
-        print("[CycleManager] 动态周期监控(Observer) 已启动。")
+        logger.info("[CycleManager] 动态周期监控(Observer) 已启动。")
 
     def _idle_monitor_loop(self):
         """空闲监控循环：如果太久没有分析，强制触发一次 (避免 S脑 饿死)"""
         IDLE_TIMEOUT = settings.CYCLE_IDLE_TIMEOUT
         while self.running:
-            time.sleep(10)
+            time.sleep(settings.IDLE_MONITOR_INTERVAL)
             if time.time() - self.last_analysis_time > IDLE_TIMEOUT:
-                print(f"[CycleManager] 系统空闲超时 ({IDLE_TIMEOUT}s)，强制触发 S脑分析...")
+                logger.info(f"[CycleManager] 系统空闲超时 ({IDLE_TIMEOUT}s)，强制触发 S脑分析...")
                 # 注入心跳事件，确保 S脑 有米下锅
                 event_bus.publish(Event(
                     type="system_heartbeat",
                     source="cycle_manager",
-                    payload={"content": "系统已空闲一段时间。S脑需自发思考当前状态或决定是否进行社交活动。"},
+                    payload=SystemHeartbeatPayload(content="系统已空闲一段时间。S脑需自发思考当前状态或决定是否进行社交活动。"),
                     meta={}
                 ))
                 self._trigger_s_brain()
@@ -63,6 +65,12 @@ class CycleManager:
         if event.type == "driver_response":
             self.message_count += 1
             self._check_triggers(event)
+            
+        elif event.type == "system_notification":
+            payload = event.payload_data
+            if payload.get("type") == "memory_full":
+                logger.info("[CycleManager] 收到 Memory Full 信号，触发 S 脑压缩...")
+                self.navigator.request_diary_generation()
 
     # def _heartbeat_loop(self):
     #     """Moltbook 心跳循环 (已移除)"""
@@ -82,7 +90,7 @@ class CycleManager:
     def stop(self):
         """优雅停止所有守护线程"""
         self.running = False
-        print("[CycleManager] 正在停止监控线程...")
+        logger.info("[CycleManager] 正在停止监控线程...")
         # 等待线程结束（可选，这里简单设置标志位）
 
 
@@ -102,7 +110,7 @@ class CycleManager:
                 trigger_reason = f"Negative Emotion Detected: {emotion}"
         
         if trigger_reason:
-            print(f"\n[CycleManager] 触发 S脑分析! 原因: {trigger_reason}")
+            logger.info(f"[CycleManager] 触发 S脑分析! 原因: {trigger_reason}")
             self._trigger_s_brain()
 
     def _trigger_s_brain(self):
@@ -132,7 +140,7 @@ class CycleManager:
 
         # 5. 处理主动干预指令
         if proactive_instruction:
-            print(f"[CycleManager] 收到主动干预指令: {proactive_instruction}")
+            logger.info(f"[CycleManager] 收到主动干预指令: {proactive_instruction}")
             event_bus.publish(Event(
                 type="proactive_instruction",
                 source="navigator",

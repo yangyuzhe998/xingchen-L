@@ -3,6 +3,7 @@ import yaml
 import time
 from typing import List, Dict, Optional
 from ...memory.memory_core import Memory
+from ...utils.logger import logger
 
 from ...tools.registry import tool_registry, ToolTier
 
@@ -59,7 +60,7 @@ class LibraryManager:
                 
             return True
         except Exception as e:
-            print(f"[Library] Failed to load MCP tool: {e}")
+            logger.error(f"[Library] Failed to load MCP tool: {e}", exc_info=True)
             return False
 
     def set_memory(self, memory: Memory):
@@ -82,7 +83,7 @@ class LibraryManager:
             if db_data and 'ids' in db_data:
                 existing_ids = set(db_data['ids'])
         except Exception as e:
-            print(f"[Library] Failed to fetch existing IDs: {e}")
+            logger.error(f"[Library] Failed to fetch existing IDs: {e}", exc_info=True)
 
         found_skills = []
         

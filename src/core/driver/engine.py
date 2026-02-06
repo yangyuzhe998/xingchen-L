@@ -2,11 +2,14 @@ import json
 import threading
 import time
 from datetime import datetime
+from typing import Optional, Dict, Any, List
+
 from ...utils.llm_client import LLMClient
 from ...utils.logger import logger
 from ...utils.json_parser import extract_json
 from ...memory.memory_core import Memory
-from ..bus.event_bus import event_bus, Event
+from ..bus.event_bus import event_bus
+from ...schemas.events import BaseEvent as Event, DriverResponsePayload, UserInputPayload
 from ..managers.library_manager import library_manager
 from ...psyche import psyche_engine, mind_link
 from ...config.prompts.prompts import DRIVER_SYSTEM_PROMPT, PROACTIVE_DRIVER_PROMPT
@@ -37,7 +40,8 @@ class Driver:
     def _on_event(self, event):
         """事件监听"""
         if event.type == "proactive_instruction":
-            instruction = event.payload.get("content")
+            # 使用统一接口获取 content
+            instruction = event.get_content()
             if instruction:
                 # 在新线程中执行，避免阻塞事件总线分发
                 threading.Thread(target=self.proactive_speak, args=(instruction,), daemon=True).start()
@@ -55,16 +59,16 @@ class Driver:
         if not self._thinking_lock.acquire(blocking=False):
             logger.info(f"[{self.name}] 正在忙于回复用户，忽略主动干预指令: {instruction}")
             return
-
+            
         try:
-            print(f"\n[{self.name}] ⚡ 收到潜意识冲动: {instruction}")
+            logger.info(f"[{self.name}] ⚡ 收到潜意识冲动: {instruction}")
             
             # [Fix] 确保 instruction 是字符串，如果是字典则转为 JSON 字符串
             instruction_str = json.dumps(instruction, ensure_ascii=False) if isinstance(instruction, (dict, list)) else str(instruction)
             
             current_psyche = psyche_engine.get_state_summary()
             # 使用转换后的字符串进行检索
-            long_term_context = self.memory.get_relevant_long_term(query=instruction_str, limit=5)
+            long_term_context = self.memory.get_relevant_long_term(query=instruction_str, limit=settings.DEFAULT_LONG_TERM_LIMIT)
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             system_prompt = PROACTIVE_DRIVER_PROMPT.format(
@@ -78,49 +82,67 @@ class Driver:
             # 注意：这里不需要 tools，因为只是单纯的开启话题
             response = self.llm.chat([{"role": "system", "content": system_prompt}])
             
-            if response:
-                try:
-                    parsed = extract_json(response)
-                    reply = parsed.get("reply", response) if parsed else response
-                    inner_voice = parsed.get("inner_voice", "我想说话...") if parsed else ""
-                    emotion = parsed.get("emotion", "curious") if parsed else "neutral"
-                except:
-                    reply = response
-                    inner_voice = ""
-                    emotion = "neutral"
+            if not response:
+                return
 
+            # 解析回复
+            reply, inner_voice, emotion = self._parse_proactive_response(response)
+
+            if reply:
                 # 输出结果
                 # 注意：在 CLI 模式下，这可能会打断用户的输入行，这是已知限制
-                print(f"\n[{self.name}] (主动): {reply}")
+                logger.info(f"[{self.name}] (主动): {reply}")
+                print(f"\n[{self.name}] (主动): {reply}") # 保留 print 用于 CLI 显示，但同时也记录 Log
                 
                 # 存入短期记忆
                 self.memory.add_short_term("assistant", reply)
                 
                 # 发布事件
-                event_bus.publish(Event(
-                    type="driver_response",
-                    source="driver",
-                    payload={"content": reply},
-                    meta={
-                        "inner_voice": inner_voice,
-                        "user_emotion_detect": emotion,
-                        "proactive": True
-                    }
-                ))
+            event_bus.publish(Event(
+                type="driver_response",
+                source="driver",
+                payload=DriverResponsePayload(content=reply),
+                meta={
+                    "inner_voice": inner_voice,
+                    "user_emotion_detect": emotion,
+                    "proactive": True
+                }
+            ))
         except Exception as e:
             logger.error(f"[{self.name}] 主动发言失败: {e}", exc_info=True)
         finally:
             self._thinking_lock.release()
 
-    def think(self, user_input, psyche_state=None, suggestion=""):
+    def _parse_proactive_response(self, response: str):
+        """解析主动发言的 LLM 响应"""
+        try:
+            parsed = extract_json(response)
+            if parsed:
+                return (
+                    parsed.get("reply", response),
+                    parsed.get("inner_voice", "我想说话..."),
+                    parsed.get("emotion", "curious")
+                )
+        except json.JSONDecodeError as e:
+            logger.warning(f"[{self.name}] JSON Parsing Failed: {e}. Raw: {response}")
+        
+        # 降级处理
+        return response, "", "neutral"
+
+    def think(self, user_input: str, psyche_state: Optional[Dict[str, Any]] = None) -> str:
         """
-        处理用户输入，做出即时反应。
-        支持 Function Calling (工具调用)。
+        主思考入口
+        :param user_input: 用户输入
+        :param psyche_state: (可选) 外部传入的心智状态快照
+        :return: 回复内容
         """
+        if not user_input:
+            return ""
+
         # 获取锁，标志正在思考
         # 注意：这会阻塞直到获得锁，确保不会与 proactive_speak 冲突
         with self._thinking_lock:
-            response = self._think_internal(user_input, psyche_state, suggestion)
+            response = self._think_internal(user_input, psyche_state)
             
             # 更新最后互动时间
             self.last_interaction_time = time.time()
@@ -215,7 +237,7 @@ class Driver:
         event_bus.publish(Event(
             type="user_input",
             source="user",
-            payload={"content": user_input},
+            payload=UserInputPayload(content=user_input),
             meta={}
         ))
 

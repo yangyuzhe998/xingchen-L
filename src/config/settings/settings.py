@@ -35,6 +35,12 @@ class Settings:
     SHORT_TERM_MAX_COUNT = 30
     SHORT_TERM_MAX_CHARS = 20000
     
+    # Retrieval Defaults
+    DEFAULT_SHORT_TERM_LIMIT = 10
+    DEFAULT_LONG_TERM_LIMIT = 5
+    DEFAULT_ALIAS_LIMIT = 1
+    DEFAULT_ALIAS_THRESHOLD = 0.4
+    
     # EventBus
     BUS_DB_PATH = os.path.join(MEMORY_DATA_DIR, "bus.db")
     
@@ -43,6 +49,7 @@ class Settings:
     CYCLE_TRIGGER_COUNT = 5 # 对话轮数阈值
     CYCLE_CHECK_INTERVAL = 0.5 # 监控轮询间隔 (秒)
     CYCLE_IDLE_TIMEOUT = 300 # 空闲强制分析阈值 (秒)
+    IDLE_MONITOR_INTERVAL = 10 # 空闲监控循环间隔 (秒)
     NAVIGATOR_DELAY_SECONDS = 5 # 记忆压缩延迟时间 (秒)
     NAVIGATOR_EVENT_LIMIT = 50 # 记忆压缩时获取的事件数量上限
     
@@ -70,3 +77,5 @@ class Settings:
     SANDBOX_TIMEOUT = 30 # 秒
 
 settings = Settings()
+
+

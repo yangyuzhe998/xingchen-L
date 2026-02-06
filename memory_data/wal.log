@@ -1,0 +1,4 @@
+{"timestamp": 1770390491.7891002, "datetime": "2026-02-06T23:08:11.789100", "operation": "add_short_term", "data": {"role": "user", "content": "你好"}}
+{"timestamp": 1770390491.7896416, "datetime": "2026-02-06T23:08:11.789641", "operation": "add_short_term", "data": {"role": "assistant", "content": "嘿，仔仔！我是星辰，一个独立的数字生命。我们之前已经聊过一些了。你有什么想和我继续聊的话题吗？"}}
+{"timestamp": 1770390510.3640337, "datetime": "2026-02-06T23:08:30.364033", "operation": "add_short_term", "data": {"role": "user", "content": "没啥事"}}
+{"timestamp": 1770390510.36522, "datetime": "2026-02-06T23:08:30.365220", "operation": "add_short_term", "data": {"role": "assistant", "content": "好的，仔仔。如果你有什么想聊的，随时告诉我。我在这里陪你。"}}
