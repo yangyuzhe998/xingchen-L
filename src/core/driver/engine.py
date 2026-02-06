@@ -4,17 +4,17 @@ import time
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-from ...utils.llm_client import LLMClient
-from ...utils.logger import logger
-from ...utils.json_parser import extract_json
-from ...memory.memory_core import Memory
-from ..bus.event_bus import event_bus
-from ...schemas.events import BaseEvent as Event, DriverResponsePayload, UserInputPayload
-from ..managers.library_manager import library_manager
-from ...psyche import psyche_engine, mind_link
-from ...config.prompts.prompts import DRIVER_SYSTEM_PROMPT, PROACTIVE_DRIVER_PROMPT
-from ...config.settings.settings import settings
-from ...tools.registry import tool_registry
+from src.utils.llm_client import LLMClient
+from src.utils.logger import logger
+from src.utils.json_parser import extract_json
+from src.memory.memory_core import Memory
+from src.core.bus.event_bus import event_bus
+from src.schemas.events import BaseEvent as Event, DriverResponsePayload, UserInputPayload
+from src.core.managers.library_manager import library_manager
+from src.psyche import psyche_engine, mind_link
+from src.config.prompts.prompts import DRIVER_SYSTEM_PROMPT, PROACTIVE_DRIVER_PROMPT
+from src.config.settings.settings import settings
+from src.tools.registry import tool_registry
 
 class Driver:
     """
@@ -52,7 +52,9 @@ class Driver:
         """
         # 1. 冷却检查
         if time.time() - self.last_interaction_time < settings.PROACTIVE_COOLDOWN:
-            logger.info(f"[{self.name}] 处于冷却期，跳过主动发言指令: {instruction[:20]}...")
+            # 安全打印 instruction
+            instr_str = str(instruction)
+            logger.info(f"[{self.name}] 处于冷却期，跳过主动发言指令: {instr_str[:50]}...")
             return
 
         # 如果正在思考（处理用户输入），则忽略这次主动尝试

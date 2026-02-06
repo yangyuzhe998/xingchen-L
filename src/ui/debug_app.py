@@ -9,7 +9,7 @@ from src.core.driver.engine import Driver
 from src.core.navigator.core import Navigator
 from src.psyche import psyche_engine
 from src.memory.memory_core import Memory
-from src.core.managers.cycle_manager import CycleManager
+from src.core.managers import CycleManager
 from src.core.bus.event_bus import event_bus, Event
 from src.utils.logger import logger
 from src.interfaces.ui_interface import UserInterface

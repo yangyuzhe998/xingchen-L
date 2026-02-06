@@ -15,7 +15,7 @@ def start_cli():
     from src.core.navigator.core import Navigator
     from src.psyche import psyche_engine
     from src.memory.memory_core import Memory
-    from src.core.managers.cycle_manager import CycleManager
+    from src.core.managers import CycleManager
     from src.ui.debug_app import DebugCLI
 
     logger.info("正在初始化 CLI 模式组件...")
@@ -48,7 +48,7 @@ def create_app():
     from src.core.navigator.core import Navigator
     from src.psyche import psyche_engine
     from src.memory.memory_core import Memory
-    from src.core.managers.cycle_manager import CycleManager
+    from src.core.managers import CycleManager
     from src.ui.web_app import web_ui
     
     logger.info("正在初始化 Web 模式组件...")

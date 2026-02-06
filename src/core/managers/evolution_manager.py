@@ -3,11 +3,11 @@ import re
 import time
 import json
 from typing import Optional
-from ...utils.llm_client import LLMClient
-from ...config.prompts.prompts import EVOLUTION_SYSTEM_PROMPT
+from src.utils.llm_client import LLMClient
+from src.config.prompts.prompts import EVOLUTION_SYSTEM_PROMPT
 from .library_manager import library_manager
-from ...tools.registry import tool_registry
-from ...utils.logger import logger
+from src.tools.registry import tool_registry
+from src.utils.logger import logger
 
 class EvolutionManager:
     """

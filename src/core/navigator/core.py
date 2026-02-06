@@ -1,12 +1,12 @@
 from typing import Optional, Dict, Any, List
-from ...utils.llm_client import LLMClient
-from ...memory.memory_core import Memory
-from ..bus.event_bus import event_bus
-from ...config.settings.settings import settings
-from ...memory.managers.deep_clean_manager import DeepCleanManager
+from src.utils.llm_client import LLMClient
+from src.memory.memory_core import Memory
+from src.core.bus.event_bus import event_bus
+from src.config.settings.settings import settings
+from src.memory.managers.deep_clean_manager import DeepCleanManager
 import threading
 import time
-from ...utils.logger import logger
+from src.utils.logger import logger
 
 # 引入新组件
 from .components.compressor import Compressor
@@ -109,18 +109,8 @@ class Navigator:
             # 1. 准备上下文 (委托给 ContextManager)
             script, time_context, current_psyche = self.context_manager.prepare_compression_context(events)
 
-            # 2. 执行原子任务 (委托给 Compressor)
-            # === 任务 1: 趣味日记 (Creative) ===
-            diary_response = self.compressor.generate_creative_diary(current_psyche, time_context, script)
-
-            # === 任务 2: 工程记忆 (Engineering/Fact) ===
-            self.compressor.extract_facts(script)
-
-            # === 任务 3: 认知图谱构建 (Cognitive Graph) ===
-            self.compressor.build_cognitive_graph(current_psyche, script)
-
-            # === 任务 4: 别名提取 (Alias Extraction) ===
-            self.compressor.extract_aliases(script)
+            # 2. 执行原子任务 (委托给 Compressor，并行执行)
+            diary_response = self.compressor.run_compression_tasks_parallel(current_psyche, time_context, script)
 
             # 3. 清理短期记忆 (委托给 Compressor)
             self.compressor.clean_short_term_memory()

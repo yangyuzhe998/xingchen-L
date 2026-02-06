@@ -2,13 +2,14 @@ import sqlite3
 import json
 import uuid
 import time
+import os
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 import threading
-from ...config.settings.settings import settings
-from ...utils.logger import logger
-from ...schemas.events import BaseEvent as Event # 引入 Pydantic Event
+from src.config.settings.settings import settings
+from src.utils.logger import logger
+from src.schemas.events import BaseEvent as Event # 引入 Pydantic Event
 
 class SQLiteEventBus:
     def __init__(self, db_path=None):
@@ -23,6 +24,9 @@ class SQLiteEventBus:
 
     def _init_db(self):
         """初始化数据库表结构"""
+        # 确保父目录存在
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             # 创建 events 表

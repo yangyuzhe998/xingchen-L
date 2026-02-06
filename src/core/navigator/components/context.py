@@ -1,8 +1,8 @@
-from ....config.prompts.prompts import (
+from src.config.prompts.prompts import (
     NAVIGATOR_SYSTEM_PROMPT, 
     SYSTEM_ARCHITECTURE_CONTEXT
 )
-from ....psyche import psyche_engine
+from src.psyche import psyche_engine
 from datetime import datetime
 
 class ContextManager:

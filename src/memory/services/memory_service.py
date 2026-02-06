@@ -2,9 +2,9 @@ import json
 import os
 from datetime import datetime
 from typing import List, Dict
-from ..models.entry import ShortTermMemoryEntry, LongTermMemoryEntry
-from ...config.settings.settings import settings
-from ...utils.logger import logger
+from src.memory.models.entry import ShortTermMemoryEntry, LongTermMemoryEntry
+from src.config.settings.settings import settings
+from src.utils.logger import logger
 
 class MemoryService:
     """

@@ -1,11 +1,11 @@
-from ....config.settings.settings import settings
-from ....utils.logger import logger
-from ....utils.json_parser import extract_json
-from ....config.prompts.prompts import (
+from src.config.settings.settings import settings
+from src.utils.logger import logger
+from src.utils.json_parser import extract_json
+from src.config.prompts.prompts import (
     NAVIGATOR_USER_PROMPT
 )
-from ...managers.library_manager import library_manager
-from ....core.bus.event_bus import event_bus
+from src.core.managers.library_manager import library_manager
+from src.core.bus.event_bus import event_bus
 
 class Reasoner:
     """

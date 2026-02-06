@@ -31,6 +31,7 @@ class Settings:
     ARCHIVE_DB_PATH = os.path.join(MEMORY_DATA_DIR, "archive.db") # Cold Storage
     DEEP_CLEAN_STATE_PATH = os.path.join(MEMORY_DATA_DIR, "deep_clean_state.json") # Maintenance State
     SHORT_TERM_CACHE_PATH = os.path.join(MEMORY_DATA_DIR, "short_term_cache.json")
+    WAL_PATH = os.path.join(MEMORY_DATA_DIR, "wal.log")
     
     SHORT_TERM_MAX_COUNT = 30
     SHORT_TERM_MAX_CHARS = 20000

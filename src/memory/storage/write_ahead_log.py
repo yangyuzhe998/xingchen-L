@@ -9,6 +9,7 @@ import time
 from typing import Dict, Any, List
 from datetime import datetime
 from src.utils.logger import logger
+from src.config.settings.settings import settings
 
 
 class WriteAheadLog:
@@ -21,10 +22,10 @@ class WriteAheadLog:
     3. 成功 checkpoint 后清空 WAL
     """
     
-    def __init__(self, log_path: str = "memory_data/wal.log"):
-        self.log_path = log_path
+    def __init__(self, log_path: str = None):
+        self.log_path = log_path if log_path else settings.WAL_PATH
         self._ensure_log_exists()
-        logger.info(f"[WAL] 初始化完成，日志路径: {log_path}")
+        logger.info(f"[WAL] 初始化完成，日志路径: {self.log_path}")
     
     def _ensure_log_exists(self):
         """确保日志文件和目录存在"""

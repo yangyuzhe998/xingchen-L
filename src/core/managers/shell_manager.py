@@ -2,9 +2,9 @@ import os
 import uuid
 import time
 from typing import List, Dict, Optional
-from ...memory.memory_core import Memory
-from ...config.settings.settings import settings
-from ...utils.logger import logger
+from src.memory.memory_core import Memory
+from src.config.settings.settings import settings
+from src.utils.logger import logger
 
 class ShellManager:
     """

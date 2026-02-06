@@ -1,104 +1,81 @@
-# 星辰-V (XingChen-V) 接口协议文档
+# 接口协议文档 (API Protocols)
 
-## 1. 概述
-本文档定义了星辰-V 系统内部各组件之间的通信协议，以及与外部（用户、MCP工具）的交互规范。
+## 1. 概述 (Overview)
 
-## 2. Event Bus (事件总线) 协议
-核心通信机制，基于 SQLite 实现的持久化队列。
+本文档定义了星辰-V (XingChen-V) 系统内部组件交互的数据格式，以及前后端（UI 与 Core）通信的标准接口。
 
-### 2.1 事件结构 (Schema)
-所有事件必须遵循以下 JSON 结构：
+所有的事件和数据交互均基于 **Pydantic V2** 模型进行强类型验证。
+
+---
+
+## 2. 事件总线协议 (Event Bus Protocol)
+
+所有通过 `EventBus` 流转的消息必须继承自 `BaseEvent`。
+
+### 2.1 基础事件结构 (`BaseEvent`)
+
 ```json
 {
-  "trace_id": "uuid-v4",       // 追踪ID，用于全链路追踪
-  "type": "event_type",        // 事件类型（见下文）
-  "source": "component_name",  // 来源组件 (driver, navigator, user, system)
-  "payload": {},               // 核心数据载荷
-  "meta": {                    // 元数据
-    "timestamp": 1700000000,
-    "psyche_state": {...}      // 当时的心智状态快照
-  }
+  "id": 1,
+  "trace_id": "uuid-v4-string",
+  "timestamp": 1700000000.0,
+  "type": "event_type_enum",
+  "source": "component_name",
+  "payload": { ... },
+  "meta": { ... }
 }
 ```
+
+*   **type**: 事件类型 (`EventType` 枚举)。
+*   **payload**: 核心数据负载，根据 type 不同而变化。
+*   **meta**: 附加元数据（如耗时、Token 消耗、情绪标签）。
 
 ### 2.2 核心事件类型
-| 事件类型 (type) | 来源 (source) | 说明 | Payload 示例 |
-|---|---|---|---|
-| `user_input` | user | 用户输入 | `{"content": "你好"}` |
-| `driver_response` | driver | F脑回复 | `{"content": "你好呀", "inner_voice": "..."}` |
-| `navigator_suggestion` | navigator | S脑建议 | `{"suggestion": "用户似乎很疲惫...", "intent": "comfort"}` |
-| `psyche_update` | psyche | 心智状态变更 | `{"delta": {"joy": 0.1}, "reason": "user_praise"}` |
-| `system_notification` | system | 系统通知 | `{"level": "info", "message": "记忆归档完成"}` |
 
-## 3. 双脑交互协议
+| 事件类型 (`type`) | 触发源 (`source`) | Payload 结构 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `user_input` | UI / User | `{"content": "用户说的话"}` | 用户发送消息时触发 |
+| `driver_response` | Driver | `{"content": "AI的回复"}` | F脑生成回复后触发 |
+| `navigator_suggestion` | Navigator | `{"content": "建议内容"}` | S脑产生指导意见时触发 |
+| `system_notification` | Memory / System | `{"type": "memory_full", "count": 20}` | 系统级通知（如内存满） |
+| `proactive_instruction` | Psyche / Navigator | `{"content": "主动发言指令"}` | 触发 F脑 主动行为 |
 
-### 3.1 F-Brain (Driver) -> User
-F脑负责直接与用户交互。
-- **输入**: `user_input` + `navigator_suggestion` (Optional)
-- **输出**: JSON 格式
-```json
-{
-  "reply": "用户可见的回复文本",
-  "inner_voice": "F脑的内心独白（不可见）",
-  "emotion": "neutral" // 当前情绪标签
-}
+---
+
+## 3. UI 交互接口 (UI Interface)
+
+前端界面必须实现 `src.interfaces.ui_interface.UserInterface` 定义的抽象方法。
+
+### 3.1 协议定义
+
+```python
+class UserInterface:
+    def display_message(self, role: str, content: str, meta: Dict = None):
+        """显示消息"""
+        pass
+
+    def set_input_handler(self, handler: Callable[[str], None]):
+        """注册输入回调"""
+        pass
+
+    def update_status(self, status: str, details: Dict = None):
+        """更新状态栏"""
+        pass
 ```
 
-### 3.2 S-Brain (Navigator) -> System
-S脑不直接回复用户，而是生成“潜意识流”。
-- **触发机制**: CycleManager (基于轮数/情绪/空闲)
-- **输出**:
-```json
-{
-  "suggestion": "对F脑的战术指导",
-  "psyche_delta": {"curiosity": 0.1}, // 情绪修正
-  "memory_archival": true, // 是否触发记忆归档
-  "evolution_request": "need_python_tool" // 是否触发进化
-}
-```
+### 3.2 角色定义 (`role`)
+*   `user`: 用户。
+*   `assistant`: 星辰-V (通常指 Driver 的输出)。
+*   `system`: 系统提示或内心独白 (Thought Chain)。
 
-## 4. MCP (Model Context Protocol) 接口
-星辰-V 使用 MCP 协议来扩展工具能力。
+---
 
-### 4.1 配置文件
-位置: `src/config/mcp_config.json`
-```json
-{
-  "mcpServers": {
-    "puppeteer": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
-    }
-  }
-}
-```
+## 4. 关键代码索引
 
-### 4.2 工具调用 (Tool Use)
-F脑通过 OpenAI Function Calling 格式调用 MCP 工具。
-- **Request**:
-```json
-{
-  "name": "puppeteer_navigate",
-  "arguments": {"url": "https://github.com"}
-}
-```
-- **Response**: 标准 MCP 响应格式（Text/Image）。
+*   **Event Schemas**: [`src.schemas.events`](../src/schemas/events.py)
+*   **UI Interface**: [`src.interfaces.ui_interface`](../src/interfaces/ui_interface.py)
 
-## 5. 记忆存储协议
+---
 
-### 5.1 向量数据库 (ChromaDB)
-- **Collection**: `long_term_memory`
-- **Metadata**:
-  - `type`: "fact" | "episode" | "skill"
-  - `timestamp`: Unix timestamp
-  - `tags`: ["python", "coding"]
-
-### 5.2 结构化存储 (JSON)
-- **File**: `src/memory_data/storage.json`
-- **Schema**:
-```json
-{
-  "user_profile": {"name": "...", "preferences": {...}},
-  "system_state": {"version": "1.0", "boot_count": 42}
-}
-```
+> 文档生成时间: 2026-02-07
+> 生成者: XingChen-V (Self-Reflection)
