@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
 ![Python](https://img.shields.io/badge/python-3.9+-yellow.svg)
 ![Architecture](https://img.shields.io/badge/architecture-dual--brain-purple.svg)
@@ -13,19 +13,22 @@
 
 </div>
 
-## 🆕 v4.0 更新日志 (Changelog)
+## 🆕 v2.0 更新日志 (2026-02-07)
 
-- **架构重构 (Architecture Refactoring)**: 
-  - `Navigator` (S脑) 彻底解耦，拆分为 `Reasoner` (深度推理), `Compressor` (记忆压缩), `ContextManager` (上下文构建) 三大子组件。
-  - `CycleManager` 职责更清晰，支持多维度触发 S 脑分析。
-- **类型安全 (Type Safety)**: 
-  - 全面强化 EventBus，Payload 统一采用 Pydantic 模型，消除 `Dict` 与 `Object` 混用的类型隐患。
-  - 新增 `payload_data` 与 `get_content()` 统一接口，提升代码健壮性。
-- **记忆系统 (Memory System)**: 
-  - Memory Facade 封装升级，提供更安全的属性访问 (`@property`) 与方法封装，杜绝外部直接穿透访问 Service 层。
-  - 优化 WAL (Write-Ahead Log) 恢复策略，避免重复数据恢复。
-- **主动交互 (Proactive Interaction)**: 
-  - 完善 S 脑到 F 脑的主动指令链条 (`ProactiveInstruction`)，支持 S 脑根据深度思考结果驱动 F 脑发起对话。
+- **层级记忆架构 (Hierarchical Memory)**:
+  - 新增 `KnowledgeDB` (SQLite): 结构化知识存储，支持实体别名解析
+  - 新增 `TopicManager` (ChromaDB): Topic→Task→Fragment 三层记忆结构
+  - 新增 `AutoClassifier`: S脑驱动的自动话题分类
+- **时间感知 (Time Awareness)**:
+  - 新增 `time_utils.py`: 相对时间解析 ("昨天", "上周")
+- **知识内化增强**:
+  - `KnowledgeIntegrator` 同时写入 SQLite 和 ChromaDB
+- **代码质量**:
+  - 修复 `compressor.py` 私有属性访问
+  - 全面增强 DEBUG 日志
+  - 测试覆盖: 152 tests passed
+
+---
 
 ## 📖 项目简介 (Introduction)
 
@@ -46,7 +49,10 @@
   - 长期事实记忆 (JSON Storage)
   - 向量联想记忆 (ChromaDB RAG)
   - 叙事日记 (Narrative Diary)
-- **自我进化 (Self-Evolution)**: S脑能够根据交互历史提出进化建议 (Coming Soon)。
+  - 🆕 **知识库** (SQLite, 结构化查询)
+  - 🆕 **层级记忆** (Topic→Task→Fragment)
+- **自主学习 (Autonomous Learning)**: S脑能够自主搜索、内化知识到长期记忆。
+- **自动分类 (Auto Classification)**: 对话自动归类到话题层级。
 
 ## 🛠️ 技术栈 (Tech Stack)
 

@@ -330,3 +330,29 @@ MEMORY_SUMMARY_PROMPT = """请对以下分散的记忆片段进行'深度整合'
 
 整合后的核心记忆:"""
 
+# Memory Auto-Classify Prompt (deepseek-R1)
+MEMORY_CLASSIFY_PROMPT = """你是一个记忆分类专家。请分析以下对话内容，判断它属于哪个话题类别。
+
+## 现有话题列表
+{existing_topics}
+
+## 待分类内容
+{content}
+
+## 任务
+1. 判断这段内容属于哪个话题
+2. 如果没有合适的现有话题，建议创建新话题
+3. 同时判断具体的子任务（如果有）
+
+## 输出格式 (JSON)
+{{
+    "topic_name": "话题名称",
+    "topic_description": "话题描述（如果是新话题）",
+    "is_new_topic": true/false,
+    "task_name": "子任务名称（可选）",
+    "task_description": "子任务描述（可选）",
+    "confidence": 0.0-1.0,
+    "reason": "分类理由"
+}}
+
+请直接输出 JSON，不要有其他内容。"""

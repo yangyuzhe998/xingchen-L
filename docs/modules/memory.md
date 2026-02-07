@@ -116,5 +116,95 @@
 
 ---
 
+## 6. 层级记忆扩展 (Hierarchical Memory Extension) 🆕
+
+> 新增于 v2.0-自主学习版 (2026-02-07)
+
+### 6.1 知识库 (Knowledge Database)
+
+基于 SQLite 的结构化知识存储，支持精确查询。
+
+*   **文件**: [`src.memory.storage.knowledge_db.KnowledgeDB`](../src/memory/storage/knowledge_db.py)
+*   **数据库**: `memory_data/knowledge.db`
+
+**表结构**:
+
+| 表名 | 用途 |
+|------|------|
+| `knowledge` | 存储验证过的事实 (content, category, source, confidence) |
+| `entities` | 存储实体及别名 (name, aliases, entity_type) |
+
+**使用示例**:
+```python
+from src.memory.storage.knowledge_db import knowledge_db
+
+# 添加知识
+knowledge_db.add_knowledge("DeepSeek R1于2025年发布", category="fact", source="s_brain")
+
+# 搜索知识
+results = knowledge_db.search_knowledge("DeepSeek")
+
+# 实体别名解析
+knowledge_db.add_entity("User", aliases=["老杨", "仔仔"])
+knowledge_db.resolve_alias("仔仔")  # → "User"
+```
+
+### 6.2 话题管理器 (Topic Manager)
+
+基于 ChromaDB 的层级记忆结构：Topic → Task → Fragment。
+
+*   **文件**: [`src.memory.storage.topic_manager.TopicManager`](../src/memory/storage/topic_manager.py)
+*   **数据库**: `memory_data/topic_db/`
+
+**层级结构**:
+```
+Topic (话题，如"Python学习")
+  └── Task (任务，如"异步编程")
+        └── Fragment (片段，具体记忆内容)
+```
+
+**使用示例**:
+```python
+from src.memory.storage.topic_manager import topic_manager
+
+# 创建层级
+topic_id = topic_manager.create_topic("技术学习")
+task_id = topic_manager.create_task(topic_id, "Python进阶")
+
+# 添加片段
+topic_manager.add_fragment("async/await用法", topic_id=topic_id, task_id=task_id)
+
+# 按话题搜索
+results = topic_manager.search_fragments("异步", topic_id=topic_id)
+```
+
+### 6.3 自动分类器 (Auto Classifier)
+
+使用 S脑 (DeepSeek) 自动将对话归类到话题。
+
+*   **文件**: [`src.memory.services.auto_classifier.AutoClassifier`](../src/memory/services/auto_classifier.py)
+
+**使用示例**:
+```python
+from src.memory.services.auto_classifier import auto_classifier
+
+# 分类并存储
+fragment_id = auto_classifier.classify_and_store("用户想学习Python异步编程")
+```
+
+---
+
+## 7. 时间工具 (Time Utilities) 🆕
+
+*   **文件**: [`src.utils.time_utils`](../src/utils/time_utils.py)
+
+**功能**:
+- `parse_relative_time("昨天")` → datetime
+- `format_time_ago(datetime)` → "2小时前"
+- `get_time_context()` → 生成时间上下文字符串
+
+---
+
 > 文档生成时间: 2026-02-07
 > 生成者: XingChen-V (Self-Reflection)
+

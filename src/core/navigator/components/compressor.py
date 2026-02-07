@@ -11,6 +11,7 @@ from src.config.prompts.prompts import (
 import time
 import concurrent.futures
 from src.tools.registry import tool_registry # [New] 用于直接调用工具
+from src.memory.services.memory_orchestrator import memory_orchestrator  # [New] 层级分类
 
 class Compressor:
     """
@@ -23,25 +24,27 @@ class Compressor:
 
     def run_compression_tasks_parallel(self, current_psyche, time_context, script):
         """并行执行所有压缩任务"""
-        logger.info(f"[Compressor] 🚀 启动并行记忆压缩 (5路并发)...")
+        logger.info(f"[Compressor] 🚀 启动并行记忆压缩 (6路并发)...")
         start_time = time.time()
         
         diary_response = None
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
             # 提交任务
             future_diary = executor.submit(self.generate_creative_diary, current_psyche, time_context, script)
             future_facts = executor.submit(self.extract_facts, script)
             future_graph = executor.submit(self.build_cognitive_graph, current_psyche, script)
             future_alias = executor.submit(self.extract_aliases, script)
-            future_learning = executor.submit(self.trigger_autonomous_learning, script) # [New] 自主学习任务
+            future_learning = executor.submit(self.trigger_autonomous_learning, script)
+            future_classify = executor.submit(self._classify_to_hierarchy, script)  # [New] 层级分类
             
             futures = {
                 future_diary: "Creative Diary",
                 future_facts: "Fact Extraction",
                 future_graph: "Cognitive Graph",
                 future_alias: "Alias Extraction",
-                future_learning: "Autonomous Learning Trigger"
+                future_learning: "Autonomous Learning Trigger",
+                future_classify: "Hierarchical Classification"  # [New]
             }
             
             for future in concurrent.futures.as_completed(futures):
@@ -56,6 +59,19 @@ class Compressor:
                     
         logger.info(f"[Compressor] 并行压缩完成，耗时: {time.time() - start_time:.2f}s")
         return diary_response
+    
+    def _classify_to_hierarchy(self, script: str):
+        """
+        任务 6: 层级记忆分类 (Hierarchical Classification)
+        将对话归类到话题层级结构
+        """
+        try:
+            result = memory_orchestrator.classify_compressed_memory(script)
+            logger.info(f"[Compressor] 层级分类结果: {result}")
+            return result
+        except Exception as e:
+            logger.warning(f"[Compressor] 层级分类失败: {e}")
+            return None
 
     # ... (generate_creative_diary, extract_facts, build_cognitive_graph, extract_aliases 保持不变) ...
 
@@ -91,14 +107,12 @@ class Compressor:
                 # 如果需要深度学习，可以调用 web_crawl
                 
                 # 检查工具是否可用
-                # TODO: 更好的方式是检查 tool_registry.get_tool("web_search")
+                # [Fix] 使用公开的 get_tool() 方法代替访问私有 _tools
                 
                 try:
                     logger.info(f"[Compressor] 🚀 S脑正在自主搜索: {query} ...")
-                    # 直接调用工具函数
-                    # 注意：execute 方法需要参数匹配
-                    # [Fix] 确保 web_search 已经注册
-                    if "web_search" not in tool_registry._tools:
+                    # 确保 web_search 工具已注册
+                    if tool_registry.get_tool("web_search") is None:
                          # 尝试动态加载（如果尚未加载）
                          from src.tools.builtin import web_tools
                     

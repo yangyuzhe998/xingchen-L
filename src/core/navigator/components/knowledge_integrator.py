@@ -5,11 +5,16 @@ from src.utils.logger import logger
 from src.utils.json_parser import extract_json
 from src.config.settings.settings import settings
 from src.config.prompts.prompts import KNOWLEDGE_INTERNALIZATION_PROMPT
+from src.memory.storage.knowledge_db import knowledge_db
 
 class KnowledgeIntegrator:
     """
     知识内化器 (Knowledge Integrator)
     职责：扫描 Staging 区，读取文档，提炼知识与经验，存入长期记忆。
+    
+    存储策略:
+    - 知识 → knowledge_db (SQLite, 精确查询) + memory.long_term (ChromaDB, 语义搜索)
+    - 经验 → memory.long_term (ChromaDB)
     """
     def __init__(self, llm, memory):
         self.llm = llm
@@ -70,11 +75,21 @@ class KnowledgeIntegrator:
                 experience_items = parsed_data.get("experience", [])
                 
                 # 存入 Knowledge (Facts)
+                # [集成] 同时存入 SQLite (精确查询) 和 ChromaDB (语义搜索)
                 for item in knowledge_items:
+                    # SQLite: 结构化存储，支持精确查询
+                    knowledge_db.add_knowledge(
+                        content=item,
+                        category="fact",
+                        source=f"s_brain:{filename}",
+                        confidence=0.8  # 初始置信度，后续可通过验证调整
+                    )
+                    # ChromaDB: 向量存储，支持语义搜索
                     self.memory.add_long_term(item, category="knowledge")
                     
                 # 存入 Experience (Rules)
                 for item in experience_items:
+                    # 经验主要用于语义搜索，只存 ChromaDB
                     self.memory.add_long_term(item, category="experience")
                 
                 logger.info(f"[Integrator] ✅ 内化完成: {len(knowledge_items)} 知识, {len(experience_items)} 经验。")
@@ -91,3 +106,4 @@ class KnowledgeIntegrator:
         if results:
             return f"知识内化报告: 已消化 {len(results)} 篇文档。\n" + "\n".join(results)
         return None
+
