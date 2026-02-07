@@ -38,3 +38,5 @@ class BaseTrigger(ABC):
             self.manager.trigger_reasoning(reason)
         elif task_type == "compression":
             self.manager.trigger_compression(reason)
+        elif task_type == "internalization":
+            self.manager.trigger_internalization(reason)

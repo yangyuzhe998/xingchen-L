@@ -5,6 +5,8 @@ from src.config.prompts.prompts import (
     NAVIGATOR_USER_PROMPT
 )
 from src.core.managers.library_manager import library_manager
+from src.tools.registry import tool_registry
+from src.tools.definitions import ToolTier
 from src.core.bus.event_bus import event_bus
 
 class Reasoner:
@@ -64,9 +66,15 @@ class Reasoner:
         if last_user_msg:
              skills = library_manager.search_skills(last_user_msg, top_k=3)
              if skills:
-                 skill_info = "【相关技能推荐 (Skill Library)】\n"
+                 skill_info += "【相关技能推荐 (Skill Library)】\n"
                  for s in skills:
                      skill_info += f"- {s['name']}: {s['description']}\n"
+        
+        # [New] 强制注入 SLOW 级别的工具 (如 web_crawl)
+        # 确保 S脑 总是知道它有能力调用这些深度工具
+        slow_tools_context = self.context_manager.get_slow_tools_context()
+        if slow_tools_context:
+            skill_info += slow_tools_context
         
         static_system_prompt = self.context_manager.build_static_context()
         

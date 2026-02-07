@@ -4,6 +4,7 @@ from src.config.prompts.prompts import (
 )
 from src.psyche import psyche_engine
 from datetime import datetime
+from src.tools.registry import tool_registry, ToolTier
 
 class ContextManager:
     """
@@ -22,6 +23,20 @@ class ContextManager:
         # 使用 safe_format 或简单的 replace 以避免 Key Error (因为 JSON 格式包含花括号)
         static_prompt = NAVIGATOR_SYSTEM_PROMPT.replace("{project_context}", project_context)
         return static_prompt
+
+    def get_slow_tools_context(self) -> str:
+        """
+        [New] 获取 S-Brain 可用的深度工具列表
+        """
+        slow_tools = tool_registry.get_tools(tier=ToolTier.SLOW)
+        if not slow_tools:
+            return ""
+            
+        tool_info = "\n【可用深度工具 (Available Tools)】\n"
+        tool_info += "(S-Brain 可建议 Driver 调用以下工具)\n"
+        for t in slow_tools:
+            tool_info += f"- {t.name}: {t.description}\n"
+        return tool_info
 
     def prepare_compression_context(self, events):
         """准备记忆压缩的动态上下文"""

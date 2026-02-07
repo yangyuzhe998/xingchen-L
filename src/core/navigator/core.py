@@ -12,6 +12,7 @@ from src.utils.logger import logger
 from .components.compressor import Compressor
 from .components.reasoner import Reasoner
 from .components.context import ContextManager
+from .components.knowledge_integrator import KnowledgeIntegrator
 
 class Navigator:
     """
@@ -29,12 +30,14 @@ class Navigator:
         self.memory = memory if memory else Memory()
         self.suggestion_board = []
         self._lock = threading.Lock() # 初始化线程锁
-        self._compression_pending = False # [New] 压缩任务排队标志
+        self._compression_pending = False # 压缩任务排队标志
+        self._internalization_lock = threading.Lock() # [New] 知识内化锁
         
         # 初始化组件
         self.context_manager = ContextManager(self.memory)
         self.compressor = Compressor(self.llm, self.memory)
         self.reasoner = Reasoner(self.llm, self.memory, self.context_manager)
+        self.knowledge_integrator = KnowledgeIntegrator(self.llm, self.memory)
         
         # 初始化深度维护管理器
         # 注意：这里会启动一个后台线程进行计时
@@ -57,6 +60,33 @@ class Navigator:
             # 锁被占用，说明正在运行，标记 pending
             self._compression_pending = True
             logger.info(f"[{self.name}] 压缩任务正在运行，新请求已加入队列 (Pending)...")
+
+    def request_knowledge_internalization(self):
+        """
+        [New] 请求执行知识内化
+        触发 KnowledgeIntegrator 扫描 Staging 区并内化知识
+        """
+        # 简单起见，使用非阻塞锁，如果正在运行则跳过本次请求（反正下次还会触发）
+        if self._internalization_lock.acquire(blocking=False):
+            self._internalization_lock.release()
+            threading.Thread(target=self._run_internalization_task, daemon=True).start()
+        else:
+            logger.info(f"[{self.name}] 知识内化任务正在运行，跳过本次请求。")
+
+    def _run_internalization_task(self):
+        """知识内化任务逻辑"""
+        with self._internalization_lock:
+            # 延迟一点，避免跟日记压缩抢占太多 IO/LLM 资源
+            time.sleep(settings.NAVIGATOR_DELAY_SECONDS + 2) 
+            logger.info(f"[{self.name}] 开始知识内化扫描...")
+            try:
+                # 每次最多处理 3 个文件
+                report = self.knowledge_integrator.scan_and_process(limit=3)
+                if report:
+                    logger.info(f"[{self.name}] 知识内化完成:\n{report}")
+                    # 可以选择是否将报告发布到总线
+            except Exception as e:
+                logger.error(f"[{self.name}] 知识内化任务出错: {e}", exc_info=True)
 
     def _run_compression_loop(self):
         """
@@ -96,6 +126,12 @@ class Navigator:
         
         start_time = time.time()
         logger.info(f"[{self.name}] 开始双重记忆压缩任务...")
+
+        # [New] 执行知识内化 (处理 Staging 中的抓取文档)
+        # 这在日记生成之前执行，确保新知识能被日记引用
+        integration_report = self.knowledge_integrator.scan_and_process(limit=2)
+        if integration_report:
+            logger.info(f"[{self.name}] 知识内化报告:\n{integration_report}")
         
         # 获取最近的事件流
         events = event_bus.get_latest_cycle(limit=settings.NAVIGATOR_EVENT_LIMIT) 

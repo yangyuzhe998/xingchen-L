@@ -8,3 +8,8 @@ docker
 mcp
 duckduckgo-search
 networkx
+PyYAML
+pytest
+pytest-asyncio
+crawl4ai
+playwright

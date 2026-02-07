@@ -4,6 +4,7 @@ from .triggers.count import MessageCountTrigger
 from .triggers.emotion import EmotionTrigger
 from .triggers.idle import IdleTrigger
 from .triggers.memory import MemoryFullTrigger
+from .triggers.knowledge import KnowledgeTrigger
 
 class CycleManager:
     """
@@ -20,7 +21,8 @@ class CycleManager:
             MessageCountTrigger(self),
             EmotionTrigger(self),
             IdleTrigger(self),
-            MemoryFullTrigger(self)
+            MemoryFullTrigger(self),
+            KnowledgeTrigger(self)
         ]
         
         # 订阅总线
@@ -92,3 +94,10 @@ class CycleManager:
         """
         logger.info(f"[CycleManager] 📦 触发记忆压缩! 原因: {reason}")
         self.navigator.request_diary_generation()
+
+    def trigger_internalization(self, reason):
+        """
+        [Action] 触发 S 脑知识内化 (Knowledge Internalization)
+        """
+        logger.info(f"[CycleManager] 📚 触发知识内化! 原因: {reason}")
+        self.navigator.request_knowledge_internalization()
