@@ -63,12 +63,12 @@ class ShellManager:
                         self.add_command_doc(command_name, content, source="file")
                         
                     except Exception as e:
-                        print(f"[ShellManager] Failed to index {file}: {e}")
+                        logger.error(f"[ShellManager] Failed to index {file}: {e}", exc_info=True)
 
     def add_command_doc(self, command_name: str, content: str, source: str = "manual"):
         """添加静态命令文档"""
         if not self.docs_collection: 
-            print("[ShellManager] ❌ Collection not initialized.")
+            logger.error("[ShellManager] ❌ Collection not initialized.")
             return False
         
         # 生成唯一ID，允许同一命令有多个文档片段
@@ -79,10 +79,10 @@ class ShellManager:
                 documents=[content],
                 metadatas=[{"command": command_name, "source": source, "type": "doc"}]
             )
-            print(f"[ShellManager] ✅ Added command doc: {command_name}")
+            logger.info(f"[ShellManager] ✅ Added command doc: {command_name}")
             return True
         except Exception as e:
-            print(f"[ShellManager] ❌ Failed to add doc: {e}")
+            logger.error(f"[ShellManager] ❌ Failed to add doc: {e}", exc_info=True)
             return False
 
     def add_command_case(self, command: str, scenario: str, outcome: str, trust_score: float = 0.5):
@@ -113,10 +113,10 @@ class ShellManager:
                     "type": "case"
                 }]
             )
-            print(f"[ShellManager] 📝 Added command case: {command} (Trust: {trust_score})")
+            logger.info(f"[ShellManager] 📝 Added command case: {command} (Trust: {trust_score})")
             return True
         except Exception as e:
-            print(f"[ShellManager] ❌ Failed to add case: {e}")
+            logger.error(f"[ShellManager] ❌ Failed to add case: {e}", exc_info=True)
             return False
 
     def retrieve_context(self, query: str, top_k: int = 3) -> Dict[str, List[str]]:
@@ -134,7 +134,7 @@ class ShellManager:
                 if res and res['documents']:
                     context["docs"] = res['documents'][0]
             except Exception as e:
-                print(f"[ShellManager] Doc retrieval failed: {e}")
+                logger.warning(f"[ShellManager] Doc retrieval failed: {e}")
 
         if self.cases_collection:
             try:
@@ -156,7 +156,7 @@ class ShellManager:
                             
                     context["cases"] = valid_cases
             except Exception as e:
-                print(f"[ShellManager] Case retrieval failed: {e}")
+                logger.warning(f"[ShellManager] Case retrieval failed: {e}")
                 
         return context
 

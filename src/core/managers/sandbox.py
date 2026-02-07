@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 import shutil
 
 from src.config.settings.settings import settings
+from src.utils.logger import logger
 
 class Sandbox:
     """
@@ -18,10 +19,10 @@ class Sandbox:
         
         try:
             self.client = docker.from_env()
-            print("[Sandbox] Docker client initialized.")
+            logger.info("[Sandbox] Docker client initialized.")
         except Exception as e:
-            print(f"[Sandbox] ⚠️ Docker client initialization failed: {e}")
-            print("[Sandbox] Sandbox will run in MOCK mode (or fail). Please ensure Docker Desktop is running.")
+            logger.warning(f"[Sandbox] Docker client initialization failed: {e}")
+            logger.warning("[Sandbox] Sandbox will run in MOCK mode (or fail). Please ensure Docker Desktop is running.")
 
     def is_available(self):
         return self.client is not None
@@ -40,19 +41,19 @@ class Sandbox:
         dockerfile_path = os.path.join(skill_dir, "Dockerfile")
         
         if not os.path.exists(dockerfile_path):
-            print(f"[Sandbox] Dockerfile not found for {skill_name}")
+            logger.warning(f"[Sandbox] Dockerfile not found for {skill_name}")
             return None
             
-        print(f"[Sandbox] Building image for {skill_name}...")
+        logger.info(f"[Sandbox] Building image for {skill_name}...")
         try:
             image, logs = self.client.images.build(path=skill_dir, tag=tag, rm=True)
             for chunk in logs:
                 if 'stream' in chunk:
-                    print(chunk['stream'].strip())
-            print(f"[Sandbox] ✅ Image built: {tag}")
+                    logger.debug(chunk['stream'].strip())
+            logger.info(f"[Sandbox] Image built successfully: {tag}")
             return tag
         except Exception as e:
-            print(f"[Sandbox] ❌ Build failed: {e}")
+            logger.error(f"[Sandbox] Build failed: {e}", exc_info=True)
             return None
 
     def run_skill(self, image_tag: str, command: str, env: Dict[str, str] = None, timeout: int = None) -> Dict[str, Any]:

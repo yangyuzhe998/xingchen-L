@@ -15,11 +15,25 @@ from src.memory.storage.diary import DiaryStorage
 
 
 @pytest.fixture
-def memory_service():
-    """创建测试用的 MemoryService 实例"""
-    vector_storage = ChromaStorage("src/memory_data/test_chroma")
-    json_storage = JsonStorage("src/memory_data/test_long_term.json")
-    diary_storage = DiaryStorage("src/memory_data/test_diary.md")
+def memory_service(tmp_path):
+    """创建测试用的 MemoryService 实例，使用隔离的临时目录"""
+    from src.config.settings.settings import settings
+    
+    # 清空全局缓存路径（MemoryService 内部使用 settings 路径）
+    # 这是一个 workaround，因为 MemoryService 混用了传入存储和全局 settings 路径
+    global_cache_path = settings.SHORT_TERM_CACHE_PATH
+    if os.path.exists(global_cache_path):
+        try:
+            os.remove(global_cache_path)
+        except:
+            pass
+    
+    test_dir = tmp_path / "memory_data"
+    test_dir.mkdir(parents=True, exist_ok=True)
+    
+    vector_storage = ChromaStorage(str(test_dir / "test_chroma"))
+    json_storage = JsonStorage(str(test_dir / "test_long_term.json"))
+    diary_storage = DiaryStorage(str(test_dir / "test_diary.md"))
     
     service = MemoryService(vector_storage, json_storage, diary_storage)
     return service

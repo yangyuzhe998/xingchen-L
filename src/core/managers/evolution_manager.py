@@ -207,39 +207,10 @@ class EvolutionManager:
 
     def _analyze_search_results(self, request, search_result_text):
         """
-        分析搜索结果并尝试提取 MCP Config
+        分析搜索结果 (MCP 功能已移除，暂时返回 False)
         """
-        prompt = f"""
-请分析以下关于 MCP Server 的搜索结果，判断是否有能够满足需求 "{request}" 的现成 MCP Server。
-如果存在，请提取其运行命令（通常是 `npx` 或 `docker run`）。
-
-搜索结果：
-{search_result_text}
-
-请返回如下 JSON 格式（不要Markdown）：
-{{
-    "found": true/false,
-    "config": {{
-        "command": "npx",
-        "args": ["-y", "@modelcontextprotocol/server-xxx"]
-    }}
-}}
-如果没找到或不确定，found 为 false。
-"""
-        llm_response = self._get_llm().chat([{"role": "user", "content": prompt}])
-        
-        try:
-            clean_json = llm_response.replace("```json", "").replace("```", "").strip()
-            result = json.loads(clean_json)
-            
-            if result.get("found") and result.get("config"):
-                config = result["config"]
-                print(f"[EvolutionManager] 🎯 Found potential MCP: {config}")
-                return library_manager.load_mcp_tool(config)
-                
-        except json.JSONDecodeError:
-            print(f"[EvolutionManager] Failed to parse LLM response for MCP search.")
-            
+        # MCP 功能已移除，等待未来重新设计
+        logger.info(f"[EvolutionManager] MCP search skipped (feature removed)")
         return False
 
     def _notify_system(self, msg, memory):

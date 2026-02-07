@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 from src.config.settings.settings import settings
+from src.utils.logger import logger
 
 class PsycheEngine:
     """
@@ -46,7 +47,7 @@ class PsycheEngine:
             with open(self.state_file_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"[PsycheEngine] Load state failed: {e}, utilizing default state.")
+            logger.warning(f"[PsycheEngine] Load state failed: {e}, utilizing default state.")
             return {
                 "timestamp": datetime.now().isoformat(),
                 "dimensions": {

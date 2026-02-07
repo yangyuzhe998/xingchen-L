@@ -14,7 +14,6 @@ class LibraryManager:
     1. 技能编目 (Cataloging): 扫描 SKILL.md，存入 ChromaDB
     2. 技能检索 (Retrieval): 根据 Query 查找相关技能
     3. 技能借阅 (Checkout): 读取 SKILL.md 内容
-    4. MCP 管理 (MCP Manager): 加载和管理 MCP 工具
     """
     _instance = None
     
@@ -34,35 +33,6 @@ class LibraryManager:
             
         self.root_dir = os.path.join("src", "skills_library")
 
-    def load_mcp_tool(self, config: Dict) -> bool:
-        """
-        加载 MCP 工具
-        :param config: MCP 配置 (command, args, env)
-        :return: Success
-        """
-        # [TODO] 真正的 MCP 加载逻辑需要集成 mcp-python SDK
-        # 这里暂时模拟注册过程，将 MCP 工具注册到 ToolRegistry
-        try:
-            tool_name = f"mcp_{int(time.time())}"
-            print(f"[Library] Loading MCP tool: {config}")
-            
-            # 动态注册一个代理函数
-            # 注意：实际 MCP 需要复杂的 Client/Server 通信，这里仅作为占位符
-            # 在完整实现中，这里应该启动 MCP Client 并连接到 Server
-            
-            @tool_registry.register(
-                name=tool_name,
-                description=f"MCP Tool loaded from {config.get('command')}",
-                tier=ToolTier.SLOW
-            )
-            def mcp_proxy(**kwargs):
-                return f"MCP Tool executed with {kwargs} (Mock)"
-                
-            return True
-        except Exception as e:
-            logger.error(f"[Library] Failed to load MCP tool: {e}", exc_info=True)
-            return False
-
     def set_memory(self, memory: Memory):
         self.memory = memory
         self.collection = memory.get_skill_collection()
@@ -70,10 +40,10 @@ class LibraryManager:
     def scan_and_index(self):
         """扫描 src/skills_library 下所有的 SKILL.md 并入库"""
         if not self.collection:
-            print("[Library] ❌ Memory not initialized, cannot index.")
+            logger.error("[Library] ❌ Memory not initialized, cannot index.")
             return
 
-        print("[Library] 🔍 Scanning skills library...")
+        logger.info("[Library] 🔍 Scanning skills library...")
         
         # 1. 获取数据库中现有的所有 ID
         existing_ids = set()
@@ -113,17 +83,17 @@ class LibraryManager:
                     documents=documents,
                     metadatas=metadatas
                 )
-                print(f"[Library] ✅ Upserted {len(found_skills)} skills.")
+                logger.info(f"[Library] ✅ Upserted {len(found_skills)} skills.")
             except Exception as e:
-                print(f"[Library] Batch upsert failed: {e}")
+                logger.error(f"[Library] Batch upsert failed: {e}", exc_info=True)
 
         # 5. 执行清理 (删除已不存在的技能)
         if deleted_ids:
             try:
                 self.collection.delete(ids=list(deleted_ids))
-                print(f"[Library] 🗑️ Cleaned up {len(deleted_ids)} stale skills: {deleted_ids}")
+                logger.info(f"[Library] 🗑️ Cleaned up {len(deleted_ids)} stale skills: {deleted_ids}")
             except Exception as e:
-                print(f"[Library] Cleanup failed: {e}")
+                logger.error(f"[Library] Cleanup failed: {e}", exc_info=True)
 
         # 6. 记录新技能到日记
         if new_ids and self.memory:
@@ -131,7 +101,7 @@ class LibraryManager:
             if new_skill_names:
                 diary_content = f"今天我学会了新技能: {', '.join(new_skill_names)}。感觉自己变强了呢！"
                 self.memory.write_diary_entry(diary_content)
-                print(f"[Library] 📝 Logged new skills to diary: {new_skill_names}")
+                logger.info(f"[Library] 📝 Logged new skills to diary: {new_skill_names}")
 
     def _parse_skill_file(self, file_path: str) -> Optional[Dict]:
         """解析单个 SKILL.md，返回数据结构而不直接入库"""
@@ -140,26 +110,26 @@ class LibraryManager:
                 content = f.read()
             
             if not content.startswith("---"):
-                print(f"[Library] ⚠️ Invalid SKILL.md format (no frontmatter): {file_path}")
+                logger.warning(f"[Library] ⚠️ Invalid SKILL.md format (no frontmatter): {file_path}")
                 return None
 
             parts = content.split("---", 2)
             if len(parts) < 3:
-                print(f"[Library] ⚠️ Invalid SKILL.md format: {file_path}")
+                logger.warning(f"[Library] ⚠️ Invalid SKILL.md format: {file_path}")
                 return None
                 
             frontmatter_raw = parts[1]
             try:
                 meta = yaml.safe_load(frontmatter_raw)
             except yaml.YAMLError as e:
-                print(f"[Library] ⚠️ YAML parse error in {file_path}: {e}")
+                logger.warning(f"[Library] ⚠️ YAML parse error in {file_path}: {e}")
                 return None
 
             name = meta.get("name")
             desc = meta.get("description")
             
             if not name or not desc:
-                print(f"[Library] ⚠️ Missing name/description in {file_path}")
+                logger.warning(f"[Library] ⚠️ Missing name/description in {file_path}")
                 return None
 
             # 生成 ID
@@ -181,7 +151,7 @@ class LibraryManager:
             }
             
         except Exception as e:
-            print(f"[Library] Failed to parse {file_path}: {e}")
+            logger.error(f"[Library] Failed to parse {file_path}: {e}", exc_info=True)
             return None
 
     def search_skills(self, query: str, top_k: int = 3) -> List[Dict]:
@@ -206,7 +176,7 @@ class LibraryManager:
             return skills
             
         except Exception as e:
-            print(f"[Library] Search failed: {e}")
+            logger.error(f"[Library] Search failed: {e}", exc_info=True)
             return []
 
     def checkout_skill(self, file_path: str) -> str:

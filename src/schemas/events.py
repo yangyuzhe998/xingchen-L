@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, Optional, Union
 from enum import Enum
 import uuid
@@ -42,13 +42,21 @@ class CycleEndPayload(BaseModel):
 
 class BaseEvent(BaseModel):
     """基础事件模型"""
+    # Pydantic V2 style configuration
+    model_config = ConfigDict(
+        use_enum_values=True,
+        extra="allow"  # 允许额外的字段，保证兼容性
+    )
+    
     id: Optional[int] = None
     trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: float = Field(default_factory=time.time)
     type: EventType
     source: str
-    # 强化 Payload 类型，允许特定的 Payload 模型或通用 Dict
+    # 注意：Dict[str, Any] 放在前面，确保通用字典能正确匹配
+    # Pydantic 会按顺序尝试匹配 Union 中的类型
     payload: Union[
+        Dict[str, Any],  # 放在最前面，优先匹配通用字典
         UserInputPayload, 
         DriverResponsePayload, 
         ProactiveInstructionPayload, 
@@ -56,13 +64,8 @@ class BaseEvent(BaseModel):
         MemoryFullPayload,
         NavigatorSuggestionPayload,
         CycleEndPayload,
-        Dict[str, Any]
     ] = Field(default_factory=dict)
     meta: Dict[str, Any] = Field(default_factory=dict)
-
-    class Config:
-        use_enum_values = True
-        extra = "allow" # 允许额外的字段，保证兼容性
 
     @property
     def payload_data(self) -> Dict[str, Any]:

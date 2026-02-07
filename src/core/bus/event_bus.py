@@ -3,6 +3,8 @@ import json
 import uuid
 import time
 import os
+import atexit
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
@@ -12,15 +14,27 @@ from src.utils.logger import logger
 from src.schemas.events import BaseEvent as Event # 引入 Pydantic Event
 
 class SQLiteEventBus:
-    def __init__(self, db_path=None):
+    def __init__(self, db_path=None, max_workers=10):
         self.db_path = db_path if db_path else settings.BUS_DB_PATH
         self._init_db()
         self._lock = threading.Lock() # 简单的线程锁，防止并发写入冲突
         self._subscribers = [] # 观察者列表
+        
+        # 线程池：用于异步通知订阅者，避免每事件一线程导致的线程爆炸
+        self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="EventBus")
+        
+        # 确保程序退出时优雅关闭线程池
+        atexit.register(self.shutdown)
 
     def subscribe(self, callback):
         """订阅事件"""
         self._subscribers.append(callback)
+    
+    def shutdown(self):
+        """关闭线程池 (程序退出时调用)"""
+        if hasattr(self, '_executor') and self._executor:
+            self._executor.shutdown(wait=False)
+            logger.debug("[EventBus] ThreadPool shutdown.")
 
     def _init_db(self):
         """初始化数据库表结构"""
@@ -83,15 +97,20 @@ class SQLiteEventBus:
         return event_id
 
     def _notify_subscribers(self, event):
-        """通知订阅者"""
+        """通知订阅者 (使用线程池)"""
         for callback in self._subscribers:
             try:
-                # [TODO] [FutureOptimization]: 当前使用每事件一线程的简单模式。
-                # 如果并发量过高 (>100 QPS)，应升级为 ThreadPoolExecutor 以防止线程爆炸。
-                # 目前保持简单，暂不引入线程池。
-                threading.Thread(target=callback, args=(event,), daemon=True).start()
+                # 使用线程池提交任务，复用线程，避免线程爆炸
+                self._executor.submit(self._safe_callback, callback, event)
             except Exception as e:
-                logger.error(f"[Bus] Subscriber Notification Failed: {e}", exc_info=True)
+                logger.error(f"[Bus] Failed to submit callback: {e}", exc_info=True)
+    
+    def _safe_callback(self, callback, event):
+        """安全执行回调 (捕获异常)"""
+        try:
+            callback(event)
+        except Exception as e:
+            logger.error(f"[Bus] Subscriber callback error: {e}", exc_info=True)
 
     def get_events(self, limit=20, offset=0, event_type=None, start_time=None) -> List[Event]:
         """查询事件历史"""

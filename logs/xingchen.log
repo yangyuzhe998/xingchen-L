@@ -1,0 +1,268 @@
+2026-02-07 11:40:30 - [XingChen-V] - INFO - [EventBus] 总线已连接: E:\xingchen-V\src\memory_data\bus.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_eventbus_init0\test_events.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_eventbus_database_schema0\test_events.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_eventbus_has_indexes0\test_events.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_publish_event0\test_events.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_publish_multiple_events0\test_events.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_publish_with_chinese0\test_events.db
+2026-02-07 11:40:33 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_subscribe_callback0\test_events.db
+2026-02-07 11:40:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_multiple_subscribers0\test_events.db
+2026-02-07 11:40:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_get_events0\test_events.db
+2026-02-07 11:40:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_get_events_by_type0\test_events.db
+2026-02-07 11:40:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_get_latest_cycle0\test_events.db
+2026-02-07 11:40:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_concurrent_publish0\test_events.db
+2026-02-07 11:40:35 - [XingChen-V] - ERROR - [Memory] JSON 加载失败: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "E:\xingchen-V\src\memory\storage\local.py", line 31, in load
+    data = json.load(f)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2026-02-07 11:40:35 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:35 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:36 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:37 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:38 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:39 - [XingChen-V] - INFO - [Memory] 长期记忆 (JSON) 已提交。
+2026-02-07 11:40:39 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:40 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:40 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [Memory] 长期记忆 (JSON) 已提交。
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [Memory] 别名已更新 (JSON): 仔仔 -> User
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_init0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_append0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_append_multiple0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_replay0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 重放 3 条未提交操作
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_clear0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 日志已清空
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_get_entry_count0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 日志已清空
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_write_performance0\wal.log
+2026-02-07 11:40:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_replay_performance0\wal.log
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [WAL] 重放 1000 条未提交操作
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_corrupted_entry0\wal.log
+2026-02-07 11:40:43 - [XingChen-V] - WARNING - [WAL] 第 2 行解析失败: Expecting value: line 1 column 1 (char 0)
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [WAL] 重放 2 条未提交操作
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_empty_file0\wal.log
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-30\test_wal_entries_have_timestam0\wal.log
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [WAL] 重放 1 条未提交操作
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 84d2dfce] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 84d2dfce] Received response (7 chars).
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: cc233f68] Sending to deepseek-chat... (Msg: 1, Chars: 4, Tools: 1)
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: cc233f68] Received response (Tool Calls: 1).
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 47d1ab63] Sending to deepseek-chat... (Msg: 1, Chars: 4)
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 47d1ab63] Received response (5 chars).
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: e176c121] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 11:40:43 - [XingChen-V] - ERROR - [deepseek] [TraceID: e176c121] Error: API Error
+Traceback (most recent call last):
+  File "E:\xingchen-V\src\utils\llm_client.py", line 80, in chat
+    response = self.client.chat.completions.create(**kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1105, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1109, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1164, in _execute_mock_call
+    raise effect
+Exception: API Error
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 789f6717] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 11:40:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 789f6717] Received response (2 chars).
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 测试 INFO 日志
+2026-02-07 11:40:43 - [XingChen-V] - WARNING - 测试 WARNING 日志
+2026-02-07 11:40:43 - [XingChen-V] - ERROR - 测试 ERROR 日志
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 测试日志文件创建
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 唯一测试消息_12345
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 格式测试消息
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 这是一条中文日志消息：你好世界！
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 特殊字符: @#$%^&*()_+-=[]{}|;':",./<>?
+2026-02-07 11:40:43 - [XingChen-V] - INFO - 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 
+2026-02-07 11:48:30 - [XingChen-V] - INFO - [EventBus] 总线已连接: E:\xingchen-V\src\memory_data\bus.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_eventbus_init0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_eventbus_database_schema0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_eventbus_has_indexes0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_publish_event0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_publish_multiple_events0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_publish_with_chinese0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_subscribe_callback0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_multiple_subscribers0\test_events.db
+2026-02-07 11:48:34 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_get_events0\test_events.db
+2026-02-07 11:48:35 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_get_events_by_type0\test_events.db
+2026-02-07 11:48:35 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_get_latest_cycle0\test_events.db
+2026-02-07 11:48:35 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_concurrent_publish0\test_events.db
+2026-02-07 11:48:35 - [XingChen-V] - ERROR - [Memory] JSON 加载失败: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "E:\xingchen-V\src\memory\storage\local.py", line 31, in load
+    data = json.load(f)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2026-02-07 11:48:36 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:36 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:36 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:39 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:40 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:41 - [XingChen-V] - INFO - [Memory] 长期记忆 (JSON) 已提交。
+2026-02-07 11:48:41 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:41 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:42 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:42 - [XingChen-V] - INFO - [Memory] 长期记忆 (JSON) 已提交。
+2026-02-07 11:48:42 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 11:48:42 - [XingChen-V] - INFO - [Memory] 别名已更新 (JSON): 仔仔 -> User
+2026-02-07 11:48:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_init0\wal.log
+2026-02-07 11:48:42 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_append0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_append_multiple0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_replay0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 重放 3 条未提交操作
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_clear0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 日志已清空
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_get_entry_count0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 日志已清空
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_write_performance0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_replay_performance0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 重放 1000 条未提交操作
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_corrupted_entry0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - WARNING - [WAL] 第 2 行解析失败: Expecting value: line 1 column 1 (char 0)
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 重放 2 条未提交操作
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_empty_file0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-31\test_wal_entries_have_timestam0\wal.log
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [WAL] 重放 1 条未提交操作
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 7f3957f2] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 7f3957f2] Received response (7 chars).
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: be39c0d7] Sending to deepseek-chat... (Msg: 1, Chars: 4, Tools: 1)
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: be39c0d7] Received response (Tool Calls: 1).
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 81d0d072] Sending to deepseek-chat... (Msg: 1, Chars: 4)
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: 81d0d072] Received response (5 chars).
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: d6cd9c14] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 11:48:43 - [XingChen-V] - ERROR - [deepseek] [TraceID: d6cd9c14] Error: API Error
+Traceback (most recent call last):
+  File "E:\xingchen-V\src\utils\llm_client.py", line 80, in chat
+    response = self.client.chat.completions.create(**kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1105, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1109, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1164, in _execute_mock_call
+    raise effect
+Exception: API Error
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: b04f8a2f] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 11:48:43 - [XingChen-V] - INFO - [deepseek] [TraceID: b04f8a2f] Received response (2 chars).
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 测试 INFO 日志
+2026-02-07 11:48:43 - [XingChen-V] - WARNING - 测试 WARNING 日志
+2026-02-07 11:48:43 - [XingChen-V] - ERROR - 测试 ERROR 日志
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 测试日志文件创建
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 唯一测试消息_12345
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 格式测试消息
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 这是一条中文日志消息：你好世界！
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 特殊字符: @#$%^&*()_+-=[]{}|;':",./<>?
+2026-02-07 11:48:43 - [XingChen-V] - INFO - 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 
+2026-02-07 14:56:59 - [XingChen-V] - INFO - [EventBus] 总线已连接: E:\xingchen-V\src\memory_data\bus.db
+2026-02-07 14:56:59 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_eventbus_init0\test_events.db
+2026-02-07 14:56:59 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_eventbus_database_schema0\test_events.db
+2026-02-07 14:57:00 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_eventbus_has_indexes0\test_events.db
+2026-02-07 14:57:00 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_publish_event0\test_events.db
+2026-02-07 14:57:00 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_publish_multiple_events0\test_events.db
+2026-02-07 14:57:01 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_publish_with_chinese0\test_events.db
+2026-02-07 14:57:01 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_subscribe_callback0\test_events.db
+2026-02-07 14:57:01 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_multiple_subscribers0\test_events.db
+2026-02-07 14:57:02 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_get_events0\test_events.db
+2026-02-07 14:57:02 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_get_events_by_type0\test_events.db
+2026-02-07 14:57:02 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_get_latest_cycle0\test_events.db
+2026-02-07 14:57:02 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-32\test_concurrent_publish0\test_events.db
+2026-02-07 15:06:00 - [XingChen-V] - INFO - [EventBus] 总线已连接: E:\xingchen-V\src\memory_data\bus.db
+2026-02-07 15:06:03 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_eventbus_init0\test_events.db
+2026-02-07 15:06:03 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_eventbus_database_schema0\test_events.db
+2026-02-07 15:06:03 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_eventbus_has_indexes0\test_events.db
+2026-02-07 15:06:03 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_publish_event0\test_events.db
+2026-02-07 15:06:04 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_publish_multiple_events0\test_events.db
+2026-02-07 15:06:04 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_publish_with_chinese0\test_events.db
+2026-02-07 15:06:04 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_subscribe_callback0\test_events.db
+2026-02-07 15:06:04 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_multiple_subscribers0\test_events.db
+2026-02-07 15:06:04 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_get_events0\test_events.db
+2026-02-07 15:06:05 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_get_events_by_type0\test_events.db
+2026-02-07 15:06:05 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_get_latest_cycle0\test_events.db
+2026-02-07 15:06:05 - [XingChen-V] - INFO - [EventBus] 总线已连接: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_concurrent_publish0\test_events.db
+2026-02-07 15:06:05 - [XingChen-V] - ERROR - [Memory] JSON 加载失败: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "E:\xingchen-V\src\memory\storage\local.py", line 31, in load
+    data = json.load(f)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2026-02-07 15:06:06 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:06 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:06 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:08 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:10 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:11 - [XingChen-V] - INFO - [Memory] 长期记忆 (JSON) 已提交。
+2026-02-07 15:06:11 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:12 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:12 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [Memory] 长期记忆 (JSON) 已提交。
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [Memory] ChromaDB 向量数据库 (Memory & Skills & Docs & Cases & Aliases) 初始化成功。
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [Memory] 别名已更新 (JSON): 仔仔 -> User
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_init0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_append0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_append_multiple0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_replay0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 重放 3 条未提交操作
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_clear0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 日志已清空
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_get_entry_count0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 日志已清空
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_write_performance0\wal.log
+2026-02-07 15:06:13 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_replay_performance0\wal.log
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [WAL] 重放 1000 条未提交操作
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_corrupted_entry0\wal.log
+2026-02-07 15:06:14 - [XingChen-V] - WARNING - [WAL] 第 2 行解析失败: Expecting value: line 1 column 1 (char 0)
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [WAL] 重放 2 条未提交操作
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_empty_file0\wal.log
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [WAL] 初始化完成，日志路径: C:\Users\13495\AppData\Local\Temp\pytest-of-13495\pytest-33\test_wal_entries_have_timestam0\wal.log
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [WAL] 重放 1 条未提交操作
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: b3a7b0c7] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: b3a7b0c7] Received response (7 chars).
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: 35a79321] Sending to deepseek-chat... (Msg: 1, Chars: 4, Tools: 1)
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: 35a79321] Received response (Tool Calls: 1).
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: 574185d2] Sending to deepseek-chat... (Msg: 1, Chars: 4)
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: 574185d2] Received response (5 chars).
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: be3849d1] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 15:06:14 - [XingChen-V] - ERROR - [deepseek] [TraceID: be3849d1] Error: API Error
+Traceback (most recent call last):
+  File "E:\xingchen-V\src\utils\llm_client.py", line 80, in chat
+    response = self.client.chat.completions.create(**kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1105, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1109, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "C:\Users\13495\AppData\Local\Programs\Python\Python310\lib\unittest\mock.py", line 1164, in _execute_mock_call
+    raise effect
+Exception: API Error
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: 8514efe5] Sending to deepseek-chat... (Msg: 1, Chars: 2)
+2026-02-07 15:06:14 - [XingChen-V] - INFO - [deepseek] [TraceID: 8514efe5] Received response (2 chars).
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 测试 INFO 日志
+2026-02-07 15:06:14 - [XingChen-V] - WARNING - 测试 WARNING 日志
+2026-02-07 15:06:14 - [XingChen-V] - ERROR - 测试 ERROR 日志
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 测试日志文件创建
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 唯一测试消息_12345
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 格式测试消息
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 这是一条中文日志消息：你好世界！
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 特殊字符: @#$%^&*()_+-=[]{}|;':",./<>?
+2026-02-07 15:06:14 - [XingChen-V] - INFO - 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 长消息测试 

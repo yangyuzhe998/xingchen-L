@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from src.config.settings.settings import settings
 from src.utils.llm_client import LLMClient
 from src.config.prompts.prompts import MEMORY_SUMMARY_PROMPT
+from src.utils.logger import logger
 
 class DeepCleanManager:
     """
@@ -24,7 +25,7 @@ class DeepCleanManager:
         # 启动后台计时器
         self.timer_thread = threading.Thread(target=self._timer_loop, daemon=True)
         self.timer_thread.start()
-        print("[DeepClean] Manager initialized. Background timer started.")
+        logger.info("[DeepClean] Manager initialized. Background timer started.")
 
     def _init_archive_db(self):
         """初始化冷存储 SQLite"""
@@ -55,7 +56,7 @@ class DeepCleanManager:
             conn.commit()
             conn.close()
         except Exception as e:
-            print(f"[DeepClean] Failed to init archive DB: {e}")
+            logger.error(f"[DeepClean] Failed to init archive DB: {e}", exc_info=True)
 
     def _load_state(self):
         """加载上次维护时间"""
@@ -96,7 +97,7 @@ class DeepCleanManager:
                         should_run = True
                     # 或者如果上次维护时间太久远(超过48小时)，立即补做，不等待凌晨
                     elif self.last_clean_time and (now - self.last_clean_time) > timedelta(hours=48):
-                        print("[DeepClean] 检测到维护任务严重滞后，准备立即执行补救维护...")
+                        logger.warning("[DeepClean] 检测到维护任务严重滞后，准备立即执行补救维护...")
                         should_run = True
                 
                 if should_run and not self.running:
@@ -105,17 +106,17 @@ class DeepCleanManager:
                 # 每分钟检查一次
                 time.sleep(60)
             except Exception as e:
-                print(f"[DeepClean] Timer loop error: {e}")
+                logger.error(f"[DeepClean] Timer loop error: {e}", exc_info=True)
                 time.sleep(60)
 
     def perform_deep_clean(self, trigger="manual"):
         """执行深度维护 (核心逻辑)"""
         if self.running:
-            print("[DeepClean] Maintenance is already running.")
+            logger.warning("[DeepClean] Maintenance is already running.")
             return
 
         self.running = True
-        print(f"[DeepClean] Starting Deep Clean Sequence (Trigger: {trigger})...")
+        logger.info(f"[DeepClean] Starting Deep Clean Sequence (Trigger: {trigger})...")
         
         try:
             # 1. 归档长期记忆 (JSON -> Archive)
@@ -128,9 +129,9 @@ class DeepCleanManager:
             self.last_clean_time = datetime.now()
             self._save_state()
             
-            print("[DeepClean] Maintenance Complete.")
+            logger.info("[DeepClean] Maintenance Complete.")
         except Exception as e:
-            print(f"[DeepClean] Maintenance Failed: {e}")
+            logger.error(f"[DeepClean] Maintenance Failed: {e}", exc_info=True)
         finally:
             self.running = False
 
@@ -158,10 +159,10 @@ class DeepCleanManager:
             return
 
         if len(memories) < 20: # 阈值太低没必要做
-            print("[DeepClean] Memory count low, skipping archive.")
+            logger.debug("[DeepClean] Memory count low, skipping archive.")
             return
 
-        print(f"[DeepClean] Archiving {len(memories)} memories...")
+        logger.info(f"[DeepClean] Archiving {len(memories)} memories...")
         
         # 1. 生成摘要
         # 将所有 memory content 拼接
@@ -184,7 +185,7 @@ class DeepCleanManager:
                         "metadata": {"source": "deep_clean"}
                     })
         else:
-            print("[DeepClean] Summarization failed, aborting archive.")
+            logger.warning("[DeepClean] Summarization failed, aborting archive.")
             return
 
         # 2. 存入 SQLite (Archive)
@@ -201,7 +202,7 @@ class DeepCleanManager:
             conn.commit()
             conn.close()
         except Exception as e:
-            print(f"[DeepClean] SQLite write failed: {e}")
+            logger.error(f"[DeepClean] SQLite write failed: {e}", exc_info=True)
             return
 
         # 3. 更新 storage.json (Replace with summary)
@@ -213,6 +214,6 @@ class DeepCleanManager:
             # 或者我们不通知，下次启动时自然会加载新的。
             # 但为了运行时一致性，最好能 reload。
             # 这里先不做 reload，假设深度维护通常在闲时进行，影响不大。
-            print("[DeepClean] storage.json updated with summaries.")
+            logger.info("[DeepClean] storage.json updated with summaries.")
         except Exception as e:
-            print(f"[DeepClean] Failed to update storage.json: {e}")
+            logger.error(f"[DeepClean] Failed to update storage.json: {e}", exc_info=True)

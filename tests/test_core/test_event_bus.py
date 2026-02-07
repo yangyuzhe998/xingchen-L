@@ -113,10 +113,18 @@ class TestEventBusPublish:
         event_id = bus.publish(event)
         assert event_id > 0
         
-        # 验证可以读取
-        events = bus.get_events(limit=1)
+        # 验证可以读取 - 使用 get_latest_cycle 获取最近的事件
+        events = bus.get_latest_cycle(limit=10)
         assert len(events) > 0
-        assert events[-1].payload["消息"] == "你好世界"
+        
+        # 找到刚刚发布的事件
+        published_event = next((e for e in events if e.id == event_id), None)
+        assert published_event is not None, f"未找到 event_id={event_id} 的事件"
+        
+        # 使用 payload_data 属性安全访问字典
+        payload_dict = published_event.payload_data
+        assert payload_dict["消息"] == "你好世界"
+        assert published_event.source == "测试源"
         
         print(f"✓ 中文事件发布成功")
 

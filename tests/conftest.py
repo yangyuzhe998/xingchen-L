@@ -10,35 +10,32 @@ from pathlib import Path
 
 
 @pytest.fixture(scope="function")
-def clean_memory_data():
+def clean_memory_data(tmp_path):
     """
     每个测试前清理测试专用的记忆数据
-    使用 src/memory_data_test 目录，避免误删开发环境数据 (src/memory_data)
+    使用 pytest 内置的 tmp_path 确保完全隔离
     """
-    test_memory_dir = Path("src/memory_data_test")
-    
-    # 清理测试目录
-    if test_memory_dir.exists():
-        try:
-            shutil.rmtree(test_memory_dir)
-        except PermissionError:
-            pass
-        except Exception as e:
-            print(f"Cleanup error: {e}")
-    
-    # 重新创建
+    test_memory_dir = tmp_path / "memory_data"
     test_memory_dir.mkdir(parents=True, exist_ok=True)
     
     yield test_memory_dir
     
-    # 测试后清理
-    if test_memory_dir.exists():
-        try:
-            shutil.rmtree(test_memory_dir)
-        except PermissionError:
-            pass
-        except Exception as e:
-            print(f"Post-test cleanup error: {e}")
+    # tmp_path 会被 pytest 自动清理，无需手动清理
+
+
+@pytest.fixture(scope="function")
+def clean_wal(tmp_path):
+    """
+    提供隔离的 WAL 实例，使用临时目录避免数据污染
+    """
+    from src.memory.storage.write_ahead_log import WriteAheadLog
+    
+    wal_path = tmp_path / "wal.log"
+    wal = WriteAheadLog(log_path=str(wal_path))
+    
+    yield wal
+    
+    # tmp_path 会被 pytest 自动清理
 
 
 @pytest.fixture(scope="session")

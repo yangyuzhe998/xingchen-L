@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from src.utils.logger import logger
 
 class DiaryStorage:
     """
@@ -20,6 +21,6 @@ class DiaryStorage:
             with open(self.file_path, 'a', encoding='utf-8') as f:
                 f.write(header)
                 f.write(content + "\n")
-            print(f"[Memory] 日记已写入: {self.file_path}")
+            logger.info(f"[Memory] 日记已写入: {self.file_path}")
         except Exception as e:
-            print(f"[Memory] 日记写入失败: {e}")
+            logger.error(f"[Memory] 日记写入失败: {e}", exc_info=True)

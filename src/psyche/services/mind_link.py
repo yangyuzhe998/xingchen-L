@@ -4,6 +4,7 @@ import threading
 import time
 from typing import Optional, Dict
 from src.config.settings.settings import settings
+from src.utils.logger import logger
 
 class MindLink:
     """
@@ -38,7 +39,7 @@ class MindLink:
                 with open(self.storage_path, "r", encoding="utf-8") as f:
                     return json.load(f)
             except Exception as e:
-                print(f"[MindLink] Load buffer failed: {e}")
+                logger.error(f"[MindLink] Load buffer failed: {e}", exc_info=True)
                 
         # 默认空状态
         return {
@@ -53,7 +54,7 @@ class MindLink:
             with open(self.storage_path, "w", encoding="utf-8") as f:
                 json.dump(self._buffer, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"[MindLink] Save buffer failed: {e}")
+            logger.error(f"[MindLink] Save buffer failed: {e}", exc_info=True)
 
     def inject_intuition(self, content: str, source: str = "navigator"):
         """
@@ -67,7 +68,7 @@ class MindLink:
                 "source": source
             }
             self._save_buffer()
-            print(f"[MindLink] ⚡ 直觉注入: {content[:30]}...")
+            logger.info(f"[MindLink] ⚡ 直觉注入: {content[:30]}...")
 
     def read_intuition(self) -> str:
         """

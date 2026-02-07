@@ -14,16 +14,16 @@ from src.memory.storage.write_ahead_log import WriteAheadLog
 class TestWALBasicOperations:
     """测试 WAL 基础操作"""
     
-    def test_wal_init(self, clean_memory_data):
+    def test_wal_init(self, clean_wal):
         """测试 WAL 初始化"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         assert wal is not None
         assert os.path.exists(wal.log_path)
         print(f"✓ WAL 初始化成功，路径: {wal.log_path}")
     
-    def test_wal_append(self, clean_memory_data):
+    def test_wal_append(self, clean_wal):
         """测试 WAL 追加操作"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 追加一条操作
         wal.append("add_short_term", {"role": "user", "content": "测试消息"})
@@ -40,9 +40,9 @@ class TestWALBasicOperations:
         
         print(f"✓ WAL 追加成功")
     
-    def test_wal_append_multiple(self, clean_memory_data):
+    def test_wal_append_multiple(self, clean_wal):
         """测试 WAL 追加多条操作"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 追加多条
         for i in range(5):
@@ -55,9 +55,9 @@ class TestWALBasicOperations:
         assert len(lines) == 5
         print(f"✓ WAL 追加 5 条成功")
     
-    def test_wal_replay(self, clean_memory_data):
+    def test_wal_replay(self, clean_wal):
         """测试 WAL 重放"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 写入数据
         test_data = [
@@ -79,9 +79,9 @@ class TestWALBasicOperations:
         
         print(f"✓ WAL 重放 {len(entries)} 条成功")
     
-    def test_wal_clear(self, clean_memory_data):
+    def test_wal_clear(self, clean_wal):
         """测试 WAL 清空"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 写入数据
         wal.append("add_short_term", {"role": "user", "content": "测试"})
@@ -97,9 +97,9 @@ class TestWALBasicOperations:
         assert content == ""
         print(f"✓ WAL 清空成功")
     
-    def test_wal_get_entry_count(self, clean_memory_data):
+    def test_wal_get_entry_count(self, clean_wal):
         """测试获取 WAL 条目数"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         assert wal.get_entry_count() == 0
         
@@ -118,9 +118,9 @@ class TestWALBasicOperations:
 class TestWALPerformance:
     """测试 WAL 性能"""
     
-    def test_wal_write_performance(self, clean_memory_data):
+    def test_wal_write_performance(self, clean_wal):
         """测试 WAL 写入性能（应该 < 5ms per write）"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 写入 100 条
         start_time = time.time()
@@ -133,9 +133,9 @@ class TestWALPerformance:
         print(f"✓ 100 条写入耗时: {elapsed:.3f}s, 平均: {avg_time:.3f}ms/条")
         assert avg_time < 10, f"WAL 写入过慢: {avg_time:.3f}ms/条"
     
-    def test_wal_replay_performance(self, clean_memory_data):
+    def test_wal_replay_performance(self, clean_wal):
         """测试 WAL 重放性能"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 写入 1000 条
         for i in range(1000):
@@ -154,9 +154,9 @@ class TestWALPerformance:
 class TestWALErrorHandling:
     """测试 WAL 错误处理"""
     
-    def test_wal_corrupted_entry(self, clean_memory_data):
+    def test_wal_corrupted_entry(self, clean_wal):
         """测试 WAL 损坏条目处理"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 写入正常数据
         wal.append("add_short_term", {"role": "user", "content": "正常消息"})
@@ -175,9 +175,9 @@ class TestWALErrorHandling:
         assert len(entries) == 2
         print(f"✓ WAL 正确处理损坏条目，恢复 {len(entries)} 条")
     
-    def test_wal_empty_file(self, clean_memory_data):
+    def test_wal_empty_file(self, clean_wal):
         """测试 WAL 空文件处理"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         # 重放空文件
         entries = wal.replay()
@@ -189,9 +189,9 @@ class TestWALErrorHandling:
 class TestWALTimestamp:
     """测试 WAL 时间戳功能"""
     
-    def test_wal_entries_have_timestamps(self, clean_memory_data):
+    def test_wal_entries_have_timestamps(self, clean_wal):
         """测试 WAL 条目包含时间戳"""
-        wal = WriteAheadLog()
+        wal = clean_wal
         
         wal.append("add_short_term", {"role": "user", "content": "测试"})
         
