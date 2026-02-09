@@ -33,50 +33,100 @@ class KnowledgeDB:
             
         self.db_path = os.path.join(settings.MEMORY_DATA_DIR, "knowledge.db")
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        self._init_database()
+        self._init_db()
         self._initialized = True
         
-    def _init_database(self):
-        """初始化数据库表结构"""
-        with sqlite3.connect(self.db_path) as conn:
+    def _get_conn(self):
+        """获取数据库连接 (Context Manager)"""
+        return sqlite3.connect(self.db_path)
+        
+    def _init_db(self):
+        """初始化数据库表结构 (自动迁移)"""
+        with self._get_conn() as conn:
             cursor = conn.cursor()
             
-            # 知识表: 存储验证过的事实
+            # [迁移检查] 检查 entities 表是否包含 'subject' 列 (Phase 7 错误)
+            # 如果存在，说明是错误的 Schema，需要删除重建以恢复到 Phase 1 (name, aliases...)
+            cursor.execute("PRAGMA table_info(entities)")
+            columns = [info[1] for info in cursor.fetchall()]
+            if 'subject' in columns:
+                logger.warning("[KnowledgeDB] 检测到错误的三元组 Schema (Phase 7 Deprecated). 正在重置 entities 表...")
+                cursor.execute("DROP TABLE IF EXISTS entities")
+                # knowledge 表通常不受影响，为了安全起见保留
+            
+            # 1. 实体表 (Entity - Named Object, Legacy Phase 1)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS entities (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL UNIQUE,
+                    entity_type TEXT DEFAULT 'general',
+                    aliases TEXT,          -- JSON List
+                    description TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            # 1.5 知识表 (Knowledge - Unstructured/Semi-structured Text)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS knowledge (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     content TEXT NOT NULL,
                     category TEXT DEFAULT 'fact',
                     source TEXT,
-                    confidence REAL DEFAULT 1.0,
-                    verified_at TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
+                    confidence FLOAT DEFAULT 1.0,
+                    verified_at DATETIME,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     meta TEXT
                 )
             ''')
             
-            # 实体表: 存储实体及其别名
+            # 2. 从句表 (Clause) - 用于逻辑推理
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS entities (
+                CREATE TABLE IF NOT EXISTS clauses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL UNIQUE,
-                    entity_type TEXT DEFAULT 'general',
-                    aliases TEXT,
-                    description TEXT,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
+                    expression TEXT NOT NULL,  -- 逻辑表达式 e.g. "rain -> wet"
+                    type TEXT DEFAULT 'rule',  -- rule/fact
+                    weight FLOAT DEFAULT 1.0,  -- 权重
+                    meta TEXT                  -- 元数据 JSON
                 )
             ''')
             
-            # 创建索引
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_knowledge_category ON knowledge (category)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_knowledge_content ON knowledge (content)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_entities_name ON entities (name)')
+            # [Phase 7] 3. 图节点表 (Graph Nodes)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS nodes (
+                    name TEXT PRIMARY KEY,
+                    type TEXT DEFAULT 'concept', -- concept, entity, event
+                    weight FLOAT DEFAULT 1.0,    -- 节点重要性 (PageRank-like)
+                    meta TEXT,                   -- 元数据 JSON
+                    last_activated DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # [Phase 7] 4. 图边表 (Graph Edges)
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS edges (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source TEXT NOT NULL,
+                    target TEXT NOT NULL,
+                    relation TEXT DEFAULT 'RELATED_TO', -- RELATED_TO, CAUSED_BY, HAS_A
+                    weight FLOAT DEFAULT 1.0,           -- 关联强度
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(source) REFERENCES nodes(name),
+                    FOREIGN KEY(target) REFERENCES nodes(name),
+                    UNIQUE(source, target, relation)
+                )
+            ''')
+            
+            # 索引优化
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_entities_name ON entities(name)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_edge_source ON edges(source)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_edge_target ON edges(target)')
             
             conn.commit()
             logger.info(f"[KnowledgeDB] Database initialized at {self.db_path}")
     
-    # ============ Knowledge CRUD ============
+    # ============ Knowledge CRUD (知识增删改查) ============
     
     def add_knowledge(self, content: str, category: str = "fact", 
                       source: str = None, confidence: float = 1.0,
@@ -163,9 +213,107 @@ class KnowledgeDB:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM knowledge WHERE id = ?', (knowledge_id,))
             conn.commit()
-            logger.debug(f"[KnowledgeDB] Deleted knowledge #{knowledge_id}")
+            return cursor.rowcount > 0
+
+    # -------------------------------------------------------------------------
+    # Graph Operations (图谱操作 - Phase 7)
+    # -------------------------------------------------------------------------
+
+    def add_node(self, name: str, type: str = "concept", weight: float = 1.0, meta: Dict = None):
+        """
+        添加或更新图节点
+        """
+        meta_json = json.dumps(meta, ensure_ascii=False) if meta else None
+        
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute('''
+                    INSERT INTO nodes (name, type, weight, meta, last_activated)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(name) DO UPDATE SET
+                        weight = excluded.weight,
+                        last_activated = CURRENT_TIMESTAMP
+                ''', (name, type, weight, meta_json))
+                conn.commit()
+                return True
+            except Exception as e:
+                logger.error(f"[KnowledgeDB] Failed to add node {name}: {e}")
+                return False
+
+    def add_edge(self, source: str, target: str, relation: str = "RELATED_TO", weight: float = 1.0):
+        """
+        添加或更新边 (自动创建缺失的节点)
+        """
+        # 确保节点存在
+        self.add_node(source)
+        self.add_node(target)
+        
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute('''
+                    INSERT INTO edges (source, target, relation, weight, created_at)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(source, target, relation) DO UPDATE SET
+                        weight = excluded.weight
+                ''', (source, target, relation, weight))
+                conn.commit()
+                return True
+            except Exception as e:
+                logger.error(f"[KnowledgeDB] Failed to add edge {source}->{target}: {e}")
+                return False
+
+    def get_related_nodes(self, node_name: str, min_weight: float = 0.5, limit: int = 10) -> List[Dict]:
+        """
+        获取相关联的节点 (Graph Traversal Step 1)
+        """
+        with self._get_conn() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            # 查找出边和入边
+            query = '''
+                SELECT 'out' as direction, target as neighbor, relation, weight 
+                FROM edges WHERE source = ? AND weight >= ?
+                UNION
+                SELECT 'in' as direction, source as neighbor, relation, weight 
+                FROM edges WHERE target = ? AND weight >= ?
+                ORDER BY weight DESC
+                LIMIT ?
+            '''
+            cursor.execute(query, (node_name, min_weight, node_name, min_weight, limit))
+            rows = cursor.fetchall()
+            
+            return [dict(row) for row in rows]
+
+    def find_nodes_in_text(self, text: str) -> List[str]:
+        """
+        从文本中查找已知的节点 (Entity Linking 简单实现)
+        :param text: 输入文本
+        :return: 匹配到的节点名称列表
+        """
+        if not text: return []
+        
+        with self._get_conn() as conn:
+            cursor = conn.cursor()
+            # 查找所有节点名称，如果在文本中出现
+            # 注意: 为了性能，这里应该用 FTS (全文检索) 或者 Aho-Corasick 算法
+            # 但 SQLite 简单起见，我们只能反向 LIKE 或者加载所有节点到内存匹配 (如果不大的话)
+            # 方案: SELECT name FROM nodes WHERE instr(?, name) > 0
+            # 限制: name 太短可能会错误匹配 (e.g. "a") -> 可以在 SQL 中过滤 length(name) > 1
+            
+            cursor.execute('''
+                SELECT name FROM nodes 
+                WHERE LENGTH(name) > 1 AND instr(?, name) > 0
+                ORDER BY length(name) DESC
+                LIMIT 5
+            ''', (text,))
+            
+            rows = cursor.fetchall()
+            return [row[0] for row in rows]
     
-    # ============ Entity CRUD ============
+    # ============ Entity CRUD (实体增删改查) ============
     
     def add_entity(self, name: str, entity_type: str = "general",
                    aliases: List[str] = None, description: str = None) -> int:

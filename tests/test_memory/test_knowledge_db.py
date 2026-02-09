@@ -13,7 +13,7 @@ def temp_knowledge_db(tmp_path):
     db = KnowledgeDB.__new__(KnowledgeDB)
     db.db_path = os.path.join(tmp_path, "test_knowledge.db")
     db._initialized = False
-    db._init_database()
+    db._init_db()
     db._initialized = True
     return db
 

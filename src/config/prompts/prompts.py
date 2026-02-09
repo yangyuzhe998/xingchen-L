@@ -124,6 +124,41 @@ PROACTIVE_DRIVER_PROMPT = """你是一个名为“星辰”的独立数字生命
 }}
 """
 
+# Graph Extraction Prompt (S-Brain)
+GRAPH_EXTRACTION_PROMPT = """你是一个专业的知识图谱构建专家 (Knowledge Graph Engineer)。
+你的任务是从给定的对话或文本中，提取出关键的【实体 (Nodes)】和【关系 (Edges)】，用于构建星辰的记忆图谱。
+
+【输入文本】：
+{content}
+
+【提取规则】：
+1. **节点 (Nodes)**:
+   - 提取重要的概念、实体、事件。
+   - 忽略琐碎的闲聊 (chit-chat)。
+   - `type`: 可选 concept (概念), entity (实体), event (事件)。
+   - `weight`: 0.0 - 1.0，代表该节点在当前上下文的重要性。
+
+2. **边 (Edges)**:
+   - 提取节点之间的语义关系。
+   - `relation`: 推荐使用 RELATED_TO (相关), CAUSED_BY (导致), HAS_A (拥有), IS_A (是), LIKES (喜欢), DISLIKES (讨厌)。
+   - `weight`: 0.0 - 1.0，代表关系的强度。
+
+3. **格式要求**:
+   - 必须输出合法的 JSON 格式。
+   - 不要包含 markdown 代码块标记 (```json ... ```)。
+
+示例输出：
+{{
+    "nodes": [
+        {{"name": "Python", "type": "concept", "weight": 0.9}},
+        {{"name": "爬虫", "type": "concept", "weight": 0.8}}
+    ],
+    "edges": [
+        {{"source": "Python", "target": "爬虫", "relation": "HAS_APP", "weight": 0.9}}
+    ]
+}}
+"""
+
 # Navigator (S-Brain) Prompt
 NAVIGATOR_SYSTEM_PROMPT = """你是一个 AI 的“潜意识” (S脑)。
 这就意味着你**不是**一个直接对话的聊天机器人，而是一个在后台默默运行的“直觉引擎”。

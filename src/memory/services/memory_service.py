@@ -11,11 +11,15 @@ class MemoryService:
     记忆服务层
     整合 Vector, Json, Diary 存储，提供统一的记忆操作逻辑
     """
-    def __init__(self, vector_storage, json_storage, diary_storage):
+    def __init__(self, vector_storage, json_storage, diary_storage, knowledge_db=None):
         self.vector_storage = vector_storage
         self.json_storage = json_storage
         self.diary_storage = diary_storage
-        
+        # KnowledgeDB 是单例模式，因此我们可以使用传递的实例或创建一个新的实例
+        # 但为了依赖注入 (便于测试)，我们保留这个参数
+        from src.memory.storage.knowledge_db import KnowledgeDB
+        self.knowledge_db = knowledge_db or KnowledgeDB() 
+
         # 优先加载缓存的未归档记忆，然后是空的列表
         self.short_term: List[ShortTermMemoryEntry] = self._load_cache()
         if self.short_term:
@@ -49,17 +53,23 @@ class MemoryService:
         self.last_diary_time = datetime.now()
 
     def get_skill_collection(self):
+        """获取技能集合"""
         return self.vector_storage.get_skill_collection()
 
     def get_command_docs_collection(self):
+        """获取命令文档集合"""
         return self.vector_storage.get_command_docs_collection()
 
     def get_command_cases_collection(self):
+        """获取命令案例集合"""
         return self.vector_storage.get_command_cases_collection()
 
     def get_alias_collection(self):
         return self.vector_storage.get_alias_collection()
 
+    # [Phase 7 Refactor] Removed redundant property setter/getter
+    # self.knowledge_db is now a direct public attribute logic
+    
     def save_alias(self, alias, target_entity):
         """
         保存别名映射 (JSON Implementation)
@@ -76,11 +86,11 @@ class MemoryService:
                     except json.JSONDecodeError:
                         data = {}
             
-            # Normalize alias (trim)
+            # 标准化别名 (去重首尾空格)
             alias = alias.strip()
             if not alias: return
 
-            # Update map: alias -> {target, timestamp}
+            # 更新映射: alias -> {target, timestamp}
             data[alias] = {
                 "target": target_entity,
                 "timestamp": datetime.now().isoformat()
@@ -121,24 +131,26 @@ class MemoryService:
                     matches.append((alias, info['target'], len(alias)))
             
             if matches:
-                # Sort by length desc
+                # 按长度降序排序
                 matches.sort(key=lambda x: x[2], reverse=True)
                 best_match = matches[0]
-                return (best_match[0], best_match[1], 1.0) # Score 1.0 for exact substring match
+                return (best_match[0], best_match[1], 1.0) # 完全子串匹配得分为 1.0
                 
         except Exception as e:
             logger.warning(f"[Memory] 别名检索失败: {e}")
         return None
 
     def write_diary_entry(self, content):
+        """写入日记"""
         self.diary_storage.append(content)
-        # [Fix] 更新上次日记时间，使时间感知逻辑生效
+        # 更新上次日记时间，使时间感知逻辑生效
         self.last_diary_time = datetime.now()
 
     def add_short_term(self, role, content):
+        """添加短期记忆"""
         entry = ShortTermMemoryEntry(role=role, content=content)
         self.short_term.append(entry)
-        self._short_term_dirty = True # Mark dirty
+        self._short_term_dirty = True # 标记为脏数据
         
         if len(self.short_term) > settings.SHORT_TERM_MAX_COUNT:
             self.short_term.pop(0)
@@ -186,11 +198,41 @@ class MemoryService:
                  except Exception as e:
                     logger.warning(f"[Memory] Vector search failed: {e}")
        
-       # 合并逻辑
+        # 3. 图谱检索 (Graph Search - Phase 7)
+        graph_context = []
+        if search_mode == "hybrid" and query:
+            try:
+                # A. 实体链接 (Entity Linking)
+                found_nodes = self.knowledge_db.find_nodes_in_text(query)
+                
+                # B. 扩散激活 (Spreading Activation)
+                seen_nodes = set(found_nodes)
+                for node in found_nodes:
+                    # 获取直接关联的节点 (1-hop)
+                    related = self.knowledge_db.get_related_nodes(node, limit=3)
+                    for rel in related:
+                        neighbor = rel['neighbor']
+                        relation = rel['relation']
+                        if neighbor not in seen_nodes:
+                            # 格式化为自然语言: "Python --[RELATED_TO]--> Spider"
+                            graph_context.append(f"Knowledge: {node} --[{relation}]--> {neighbor}")
+                            seen_nodes.add(neighbor)
+            except Exception as e:
+                logger.warning(f"[Memory] Graph search failed: {e}")
+
+        # 合并逻辑
         if search_mode == "hybrid":
-             # 混合模式：优先关键词，补充向量联想，去重
-             all_hits = list(dict.fromkeys(keyword_hits + vector_hits)) # 保持顺序去重
-             results = all_hits
+             # 混合模式：优先关键词，补充向量联想，去重，最后附带图谱上下文
+             # 1. Memory Hits (Keyword + Vector)
+             memory_hits = list(dict.fromkeys(keyword_hits + vector_hits))
+             
+             # 2. Results composition
+             results = memory_hits
+             
+             # 3. Append Graph Context (if any)
+             if graph_context:
+                 results.append("\n--- Related Knowledge (Graph) ---")
+                 results.extend(graph_context)
         else:
              # 默认模式：仅关键词
              results = keyword_hits
@@ -202,12 +244,13 @@ class MemoryService:
         return "\n".join(results[:limit])
 
     def add_long_term(self, content, category="fact"):
+        """添加长期记忆"""
         entry = LongTermMemoryEntry(content=content, category=category)
         self.long_term.append(entry)
-        self._long_term_dirty = True # Mark dirty
+        self._long_term_dirty = True # 标记为脏数据
         
         # 同时保存到 JSON 文件
-        # [Optimization] 移除每次 add 都全量保存的逻辑，改为由 dirty check 驱动的批量保存
+        # 移除每次 add 都全量保存的逻辑，改为由 dirty check 驱动的批量保存
         # self.json_storage.save(all_data)
         
         # 同时存入向量库

@@ -10,6 +10,8 @@ from src.core.bus.event_bus import event_bus
 from src.schemas.events import BaseEvent as Event, SystemHeartbeatPayload
 from typing import Dict, Optional
 
+from src.memory.storage.knowledge_db import KnowledgeDB
+
 class Memory:
     """
     记忆模块 Facade (兼容旧接口)
@@ -26,14 +28,15 @@ class Memory:
         self.diary_storage = DiaryStorage(diary_path or settings.DIARY_PATH)
         self.graph_storage = GraphMemory(graph_path or settings.GRAPH_DB_PATH)
         
-        # [Fix P0-1] 初始化 WAL (Write-Ahead Log)
+        # 初始化 WAL (预写日志) 用于崩溃恢复
         self.wal = WriteAheadLog()
         
+        # MemoryService 会自动初始化 KnowledgeDB 单例
         self.service = MemoryService(self.vector_storage, self.json_storage, self.diary_storage)
         
         self.navigator = None
         
-        # [Fix P0-1] 启动时重放 WAL，恢复未提交的数据
+        # 启动时重放 WAL，恢复未提交的数据
         self._replay_wal()
 
     @property
@@ -43,6 +46,11 @@ class Memory:
     @property
     def long_term(self):
         return self.service.long_term
+
+    @property
+    def knowledge_db(self):
+        """[Phase 7] 从 Service 层暴露 KnowledgeDB"""
+        return self.service.knowledge_db
 
     def set_navigator(self, navigator):
         self.navigator = navigator
@@ -75,7 +83,7 @@ class Memory:
         return self.service.search_alias(query, limit, threshold)
 
     def add_short_term(self, role, content):
-        # [Fix P0-1] 先写 WAL，再执行操作
+        # 先写 WAL，再执行操作 (Crash Safety)
         try:
             self.wal.append("add_short_term", {"role": role, "content": content})
         except Exception as e:
@@ -83,10 +91,8 @@ class Memory:
             # WAL 失败不应阻止操作，但要记录
         
         self.service.add_short_term(role, content)
-        # 同步属性引用 (虽然 list 是引用类型，通常不需要，但为了保险)
-        # self.short_term = self.service.short_term (Deprecated: short_term is now a property)
-        
-        # 检查是否需要压缩 (逻辑复刻)
+
+        # 检查是否需要压缩
         if len(self.short_term) > settings.SHORT_TERM_MAX_COUNT:
             logger.info(f"[Memory] 短期记忆已达阈值({settings.SHORT_TERM_MAX_COUNT})，发布 memory_full 事件...")
             self.save_short_term_cache()
@@ -110,14 +116,13 @@ class Memory:
         return self.service.get_relevant_long_term(query, limit, search_mode)
 
     def add_long_term(self, content, category="fact"):
-        # [Fix P0-1] 先写 WAL
+        # 先写 WAL
         try:
             self.wal.append("add_long_term", {"content": content, "category": category})
         except Exception as e:
             logger.error(f"[Memory] WAL 写入失败: {e}", exc_info=True)
         
         self.service.add_long_term(content, category)
-        # self.long_term = self.service.long_term (Deprecated)
 
     def add_triplet(self, source: str, relation: str, target: str, weight: float = 1.0, meta: Dict = None, relation_type: str = "general"):
         """添加知识图谱三元组"""
@@ -148,7 +153,7 @@ class Memory:
         
     def force_save_all(self):
         """
-        统一强制保存入口 (Smart Commit)
+        统一强制保存入口 (智能提交)
         """
         # 1. 保存 Graph (GraphMemory 内部有 dirty check)
         if self.graph_storage:
@@ -161,7 +166,7 @@ class Memory:
         # 2. 调用 Service 的保存逻辑 (Json, Cache) - 内部也有 dirty check
         self.service.force_save_all()
         
-        # [Fix P0-1] 3. 成功保存后清空 WAL
+        # 3. 成功保存后清空 WAL
         try:
             self.wal.clear()
             logger.info("[Memory] WAL 已清空 (数据已持久化)")
@@ -170,7 +175,7 @@ class Memory:
     
     def _replay_wal(self):
         """
-        [Fix P0-1] 启动时重放 WAL，恢复未提交的数据
+        启动时重放 WAL，恢复未提交的数据
         
         智能恢复策略：
         1. Cache 已加载的数据不重复恢复

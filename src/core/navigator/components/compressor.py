@@ -6,7 +6,8 @@ from src.config.prompts.prompts import (
     FACT_EXTRACTION_PROMPT,
     COGNITIVE_GRAPH_PROMPT,
     ALIAS_EXTRACTION_PROMPT,
-    AUTONOMOUS_LEARNING_TRIGGER_PROMPT # [New]
+    AUTONOMOUS_LEARNING_TRIGGER_PROMPT, # [New]
+    GRAPH_EXTRACTION_PROMPT # [Phase 7]
 )
 import time
 import concurrent.futures
@@ -179,36 +180,44 @@ class Compressor:
         return 0
 
     def build_cognitive_graph(self, current_psyche, script):
-        """任务 3: 构建认知图谱 - Pure Logic"""
-        graph_prompt = COGNITIVE_GRAPH_PROMPT.format(
-            current_psyche=current_psyche,
-            script=script
-        )
+        """任务 3: 构建认知图谱 (Graph Extraction) - S-Brain Logic"""
+        # [Phase 7] 使用新的 Graph Extraction Prompt
+        graph_prompt = GRAPH_EXTRACTION_PROMPT.format(content=script)
         
         graph_response = self.llm.chat([{"role": "user", "content": graph_prompt}])
         if graph_response:
-            triplets = extract_json(graph_response)
-            
-            if isinstance(triplets, list):
+            try:
+                extraction = extract_json(graph_response)
+                if not extraction:
+                    return 0
+
                 count = 0
-                for t in triplets:
-                    if all(k in t for k in ["source", "target", "relation"]):
-                        meta_data = {
-                            "psyche_context": current_psyche,
-                            "emotion_tag": t.get("emotion_tag", "neutral")
-                        }
-                        
-                        self.memory.add_triplet(
-                            source=t["source"],
-                            relation=t["relation"],
-                            target=t["target"],
-                            weight=t.get("weight", 1.0),
-                            relation_type=t.get("relation_type", "general"),
-                            meta=meta_data
-                        )
-                        count += 1
-                # 不在此处 save_graph
+                nodes = extraction.get("nodes", [])
+                edges = extraction.get("edges", [])
+                
+                # 1. 保存节点
+                for node in nodes:
+                    self.memory.knowledge_db.add_node(
+                        name=node["name"],
+                        type=node.get("type", "concept"),
+                        weight=node.get("weight", 1.0)
+                    )
+                
+                # 2. 保存边
+                for edge in edges:
+                    self.memory.knowledge_db.add_edge(
+                        source=edge["source"],
+                        target=edge["target"],
+                        relation=edge.get("relation", "RELATED_TO"),
+                        weight=edge.get("weight", 1.0)
+                    )
+                    count += 1
+                
+                logger.info(f"[Compressor] Graph Extracted: {len(nodes)} nodes, {len(edges)} edges")
                 return count
+            except Exception as e:
+                logger.warning(f"[Compressor] Graph extraction parsing failed: {e}")
+                return 0
         return 0
 
     def extract_aliases(self, script):

@@ -192,19 +192,44 @@ class Driver:
             print(f"[{self.name}] 别名检索异常: {e}")
         
         # [New] 尝试检索图谱中的用户画像 (Graph Profile)
-        # 简单检索：直接查找 "用户" 相关的属性和社交关系
+        # 强制检索：直接查找 "User" 和 "用户" 的属性，不再依赖关键词
+        # 无论用户说什么，F脑都应该“记得”用户是谁
         try:
-            user_profile = self.memory.graph_storage.get_cognitive_subgraph("用户", relation_type="attribute")
-            user_profile += self.memory.graph_storage.get_cognitive_subgraph("用户", relation_type="social")
+            user_profile = []
+            # 1. 检索 "User" 实体 (标准实体名)
+            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("User", relation_type="attribute"))
+            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("User", relation_type="social"))
+            
+            # 2. 检索 "用户" 实体 (中文实体名，兼容性)
+            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("用户", relation_type="attribute"))
+            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("用户", relation_type="social"))
+            
+            # 3. 去重并格式化
             if user_profile:
-                profile_str = "\n【用户画像 (Graph Memory)】:\n"
+                profile_str = "\n【当前用户画像 (Active Profile)】:\n"
+                seen_relations = set()
                 for p in user_profile:
-                    # 格式化: 用户 --[relation]--> target (meta)
-                    profile_str += f"- 用户 {p['relation']} {p['target']}"
-                    if p.get('meta') and p['meta'].get('emotion_tag'):
-                         profile_str += f" (Emotion: {p['meta']['emotion_tag']})"
-                    profile_str += "\n"
-                long_term_context += profile_str
+                    # 简单去重: source-relation-target
+                    rel_key = f"{p['source']}-{p['relation']}-{p['target']}"
+                    if rel_key in seen_relations:
+                        continue
+                    seen_relations.add(rel_key)
+                    
+                    # 格式化: User --[relation]--> target (meta)
+                    # 如果 target 是 "User" 或 "用户"，则显示为 "我" (从 AI 视角看用户)
+                    # 但这里的 source 是 User，所以是 User has_name '仔仔'
+                    
+                    # 特殊处理 has_name / 名字
+                    if p['relation'] in ["has_name", "called", "name_is", "名字是"]:
+                         profile_str += f"- 名字: {p['target']}\n"
+                    else:
+                         profile_str += f"- {p['relation']}: {p['target']}"
+                         if p.get('meta') and p['meta'].get('emotion_tag'):
+                              profile_str += f" (Emotion: {p['meta']['emotion_tag']})"
+                         profile_str += "\n"
+                
+                # 将画像强制置顶
+                long_term_context = profile_str + "\n" + long_term_context
         except Exception as e:
             logger.warning(f"[{self.name}] 图谱画像检索失败: {e}")
             
