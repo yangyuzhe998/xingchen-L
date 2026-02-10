@@ -3,6 +3,14 @@ import os
 import argparse
 import uvicorn
 import asyncio
+import io
+
+# 强制设置环境编码为 UTF-8 (解决 Windows 终端乱码)
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    os.environ["PYTHONUTF8"] = "1"
+
 from src.utils.logger import logger
 
 # 添加项目根目录到 sys.path
@@ -17,8 +25,12 @@ def start_cli():
     from src.memory.memory_core import Memory
     from src.core.managers import CycleManager
     from src.ui.debug_app import DebugCLI
+    from src.tools.loader import load_all_tools
 
     logger.info("正在初始化 CLI 模式组件...")
+    
+    # 加载工具
+    load_all_tools()
     
     memory = Memory()
     psyche = psyche_engine
@@ -50,8 +62,12 @@ def create_app():
     from src.memory.memory_core import Memory
     from src.core.managers import CycleManager
     from src.ui.web_app import web_ui
+    from src.tools.loader import load_all_tools
     
     logger.info("正在初始化 Web 模式组件...")
+
+    # 加载工具
+    load_all_tools()
     
     # 初始化核心组件
     memory = Memory()

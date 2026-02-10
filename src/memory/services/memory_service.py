@@ -29,26 +29,28 @@ class MemoryService:
         self._long_term_dirty = False
         self._short_term_dirty = False
 
-        # 加载时将 dict 转换为 LongTermMemoryEntry 对象 (如果需要)
-        # 简单起见，这里假设 load 返回的是 dict 列表，我们暂时保持兼容，或者在 load 后转换
-        raw_long_term = self.json_storage.load()
+        # 1. 优先从 KnowledgeDB 加载长期记忆 (作为新的真相源)
         self.long_term = []
-        for item in raw_long_term:
-            if isinstance(item, dict):
-                # 尝试适配旧格式
-                content = item.get("content", "")
-                category = item.get("category", "fact")
-                created_at = item.get("created_at", datetime.now().isoformat())
-                meta = item.get("metadata", {})
+        try:
+            db_knowledge = self.knowledge_db.get_knowledge(limit=1000)
+            for item in db_knowledge:
                 self.long_term.append(LongTermMemoryEntry(
-                    content=content,
-                    category=category,
-                    created_at=created_at,
-                    metadata=meta
+                    content=item.get("content", ""),
+                    category=item.get("category", "fact"),
+                    created_at=item.get("created_at", datetime.now().isoformat()),
+                    metadata=json.loads(item.get("meta", "{}")) if item.get("meta") else {}
                 ))
-            elif isinstance(item, str):
-                # 旧格式纯字符串
-                self.long_term.append(LongTermMemoryEntry(content=item))
+            logger.info(f"[Memory] 从 KnowledgeDB 加载了 {len(self.long_term)} 条长期记忆。")
+        except Exception as e:
+            logger.error(f"[Memory] 从 KnowledgeDB 加载失败: {e}")
+            # 降级：如果 DB 出错，尝试从 JsonStorage 加载作为备份
+            raw_long_term = self.json_storage.load()
+            for item in raw_long_term:
+                if isinstance(item, dict):
+                    self.long_term.append(LongTermMemoryEntry(
+                        content=item.get("content", ""),
+                        category=item.get("category", "fact")
+                    ))
         
         self.last_diary_time = datetime.now()
 
@@ -72,66 +74,54 @@ class MemoryService:
     
     def save_alias(self, alias, target_entity):
         """
-        保存别名映射 (JSON Implementation)
+        保存别名映射 (KnowledgeDB Implementation)
         :param alias: 别名 (e.g. "仔仔")
         :param target_entity: 目标实体 (e.g. "User")
         """
-        try:
-            path = settings.ALIAS_MAP_PATH
-            data = {}
-            if os.path.exists(path):
-                with open(path, 'r', encoding='utf-8') as f:
-                    try:
-                        data = json.load(f)
-                    except json.JSONDecodeError:
-                        data = {}
-            
-            # 标准化别名 (去重首尾空格)
-            alias = alias.strip()
-            if not alias: return
+        # 标准化别名 (去重首尾空格)
+        alias = alias.strip()
+        if not alias: return
 
-            # 更新映射: alias -> {target, timestamp}
-            data[alias] = {
-                "target": target_entity,
-                "timestamp": datetime.now().isoformat()
-            }
+        try:
+            # 直接调用 KnowledgeDB 的实体别名管理功能
+            # 注意：如果 target_entity 不存在，会自动创建
+            self.knowledge_db.add_entity(target_entity, entity_type="person") # 确保实体存在
+            self.knowledge_db.add_entity_alias(target_entity, [alias])
             
-            with open(path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-                
-            logger.info(f"[Memory] 别名已更新 (JSON): {alias} -> {target_entity}")
+            logger.info(f"[Memory] 别名已更新 (KnowledgeDB): {alias} -> {target_entity}")
         except Exception as e:
             logger.error(f"[Memory] 别名存储失败: {e}", exc_info=True)
 
     def search_alias(self, query, limit=None, threshold=None):
         """
-        检索别名 (Substring Match Implementation)
+        检索别名 (KnowledgeDB Implementation)
         :param query: 用户输入的句子 (e.g. "仔仔饿了")
         :return: (alias, target_entity, score) or None
         """
         if limit is None: limit = settings.DEFAULT_ALIAS_LIMIT
-        if threshold is None: threshold = settings.DEFAULT_ALIAS_THRESHOLD
-
+        
         try:
-            path = settings.ALIAS_MAP_PATH
-            if not os.path.exists(path):
-                return None
-                
-            with open(path, 'r', encoding='utf-8') as f:
-                try:
-                    data = json.load(f)
-                except json.JSONDecodeError:
-                    return None
+            # 1. 获取所有实体及其别名
+            # 为了性能，未来应该在 DB 层实现倒排索引或 FTS
+            # 目前数据量小，加载所有实体到内存匹配是可以接受的
+            all_entities = self.knowledge_db.get_all_entities()
             
-            # 查找 query 中是否包含任何已知的 alias
-            # 优先匹配最长的 alias (防止 "小王" 匹配到 "小王子")
             matches = []
-            for alias, info in data.items():
-                if alias in query:
-                    matches.append((alias, info['target'], len(alias)))
+            for entity in all_entities:
+                target_name = entity['name']
+                aliases = entity.get('aliases', []) or []
+                
+                # 检查 target_name 本身
+                if target_name in query:
+                    matches.append((target_name, target_name, len(target_name)))
+                    
+                # 检查别名
+                for alias in aliases:
+                    if alias and alias in query:
+                        matches.append((alias, target_name, len(alias)))
             
             if matches:
-                # 按长度降序排序
+                # 按匹配长度降序排序 (最长匹配原则)
                 matches.sort(key=lambda x: x[2], reverse=True)
                 best_match = matches[0]
                 return (best_match[0], best_match[1], 1.0) # 完全子串匹配得分为 1.0
@@ -244,26 +234,39 @@ class MemoryService:
         return "\n".join(results[:limit])
 
     def add_long_term(self, content, category="fact"):
-        """添加长期记忆"""
+        """
+        添加长期记忆 (统一写入路径，支持双库幂等)
+        """
+        import hashlib
+        memory_id = hashlib.md5(f"{category}::{content}".encode()).hexdigest()
         entry = LongTermMemoryEntry(content=content, category=category)
-        self.long_term.append(entry)
-        self._long_term_dirty = True # 标记为脏数据
         
-        # 同时保存到 JSON 文件
-        # 移除每次 add 都全量保存的逻辑，改为由 dirty check 驱动的批量保存
-        # self.json_storage.save(all_data)
-        
-        # 同时存入向量库
+        # 1. 存入 KnowledgeDB (权威真相源，支持 md5 幂等)
+        try:
+            db_id = self.knowledge_db.add_knowledge(
+                content=content, 
+                category=category,
+                source="user_interaction"
+            )
+        except Exception as e:
+            logger.error(f"[Memory] KnowledgeDB 写入失败: {e}", exc_info=True)
+
+        # 2. 存入向量库 (语义索引，使用 memory_id 作为唯一 ID 实现幂等)
         collection = self.vector_storage.get_memory_collection()
         if collection:
             try:
-                collection.add(
+                # 使用 memory_id 确保 ChromaDB 不会重复存储相同内容的向量
+                collection.upsert(
                     documents=[content],
                     metadatas=[{"category": category, "timestamp": entry.created_at}],
-                    ids=[f"mem_{int(datetime.now().timestamp())}_{len(self.long_term)}"] # 增加索引防止极速写入冲突
+                    ids=[f"mem_{memory_id}"]
                 )
             except Exception as e:
                 logger.error(f"[Memory] 向量存储失败: {e}", exc_info=True)
+        
+        # 3. 更新内存列表 (仅保留引用，标记为脏)
+        self.long_term.append(entry)
+        self._long_term_dirty = True
 
     def _load_cache(self) -> List[ShortTermMemoryEntry]:
         """加载短期记忆缓存"""
@@ -307,16 +310,15 @@ class MemoryService:
 
     def commit_long_term(self):
         """
-        提交长期记忆 (JSON)
+        提交长期记忆
+        [Refactored v3.0] 移除 JsonStorage 写入逻辑
+        KnowledgeDB 和 ChromaDB 都是实时写入的，不需要 commit。
+        此方法现在主要用于清除 dirty 标志，或者未来做批量优化。
         """
         if self._long_term_dirty:
-            try:
-                all_data = [e.to_dict() for e in self.long_term]
-                self.json_storage.save(all_data)
-                self._long_term_dirty = False
-                logger.info("[Memory] 长期记忆 (JSON) 已提交。")
-            except Exception as e:
-                logger.error(f"[Memory] 长期记忆提交失败: {e}", exc_info=True)
+            # JsonStorage 已废弃
+            self._long_term_dirty = False
+            # logger.info("[Memory] 长期记忆已确认 (实时写入)。")
 
     def commit_short_term(self):
         """

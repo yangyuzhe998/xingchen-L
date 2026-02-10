@@ -1,6 +1,6 @@
 """
 自动分类器 (Auto Classifier)
-使用 LLM (智谱 GLM-4) 自动将对话/记忆归类到话题
+使用 LLM (S-Brain DeepSeek) 自动将对话/记忆归类到话题
 
 用途:
 - 自动识别对话所属话题

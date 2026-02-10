@@ -26,7 +26,8 @@ class Memory:
         self.vector_storage = ChromaStorage(vector_db_path or settings.VECTOR_DB_PATH)
         self.json_storage = JsonStorage(storage_path or settings.MEMORY_STORAGE_PATH)
         self.diary_storage = DiaryStorage(diary_path or settings.DIARY_PATH)
-        self.graph_storage = GraphMemory(graph_path or settings.GRAPH_DB_PATH)
+        # GraphMemory now uses KnowledgeDB internally, path argument is deprecated
+        self.graph_storage = GraphMemory(graph_path)
         
         # 初始化 WAL (预写日志) 用于崩溃恢复
         self.wal = WriteAheadLog()
@@ -203,11 +204,20 @@ class Memory:
             for entry in entries:
                 operation = entry.get("operation")
                 data = entry.get("data", {})
-                entry_time = entry.get("datetime")  # ISO format timestamp from WAL
+                entry_time = entry.get("timestamp")  # 使用 float 时间戳进行精确比较
                 
                 # 如果 Cache 有数据，且 WAL 条目时间早于或等于 Cache 最后一条，跳过
                 if last_cache_timestamp and entry_time:
-                    if entry_time <= last_cache_timestamp:
+                    # 确保 last_cache_timestamp 也是 float，如果不是（比如是字符串），则尝试解析
+                    compare_cache_time = last_cache_timestamp
+                    if isinstance(last_cache_timestamp, str):
+                        try:
+                            from datetime import datetime
+                            compare_cache_time = datetime.fromisoformat(last_cache_timestamp).timestamp()
+                        except:
+                            compare_cache_time = 0
+                    
+                    if entry_time <= compare_cache_time:
                         skipped_count += 1
                         continue
                 

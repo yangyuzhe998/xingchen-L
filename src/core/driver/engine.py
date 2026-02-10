@@ -242,6 +242,12 @@ class Driver:
                 skill_info += f"- {skill['name']} (ID: {skill['id']}): {skill['description']}\n"
             skill_info += "(如果需要使用，请调用 `read_skill` 获取详细指南，或直接尝试 `run_shell_command` 如果你知道怎么用)"
 
+        # [New] 构建工具列表字符串，明确告知 LLM 可用工具
+        all_tools = tool_registry.get_tools()
+        tool_list_str = ""
+        for t in all_tools:
+            tool_list_str += f"- {t.name}: {t.description}\n"
+
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         system_prompt = DRIVER_SYSTEM_PROMPT.format(
@@ -249,7 +255,8 @@ class Driver:
             psyche_desc=current_psyche,
             suggestion=intuition,
             long_term_context=long_term_context,
-            skill_info=skill_info
+            skill_info=skill_info,
+            tool_list=tool_list_str
         )
         
         messages = [

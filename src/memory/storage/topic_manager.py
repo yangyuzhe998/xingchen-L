@@ -69,11 +69,15 @@ class TopicManager:
         """
         topic_id = f"topic_{self._generate_id(name)}"
         
-        # 检查是否已存在
-        existing = self.topics.get(ids=[topic_id])
-        if existing["ids"]:
-            logger.info(f"[TopicManager] Topic already exists: {name}")
-            return topic_id
+        # 检查是否已存在（硬化：避免 Chroma 返回结构差异导致误判）
+        try:
+            existing = self.topics.get(ids=[topic_id])
+            if existing and existing.get("ids") and len(existing["ids"]) > 0:
+                logger.debug(f"[TopicManager] Topic already exists: {name}")
+                return topic_id
+        except Exception:
+            # 读取失败时不阻断创建流程
+            pass
         
         self.topics.add(
             ids=[topic_id],
@@ -158,31 +162,52 @@ class TopicManager:
                      emotion_tag: str = "neutral", category: str = "memory",
                      meta: Dict = None) -> str:
         """
-        添加记忆片段
-        :param content: 内容
-        :param topic_id: 所属话题 ID (可选)
-        :param task_id: 所属任务 ID (可选)
-        :param emotion_tag: 情感标签
-        :param category: 分类 (memory, knowledge, preference)
-        :param meta: 额外元数据
-        :return: 片段 ID
+        添加记忆片段 (支持基于场景的指纹幂等与印象强化)
         """
-        fragment_id = f"frag_{datetime.now().strftime('%Y%m%d%H%M%S')}_{self._generate_id(content[:50])}"
+        # 核心逻辑：指纹包含 task_id，确保不同实践场景下的记忆相互独立
+        seed = f"{category}:{topic_id or 'none'}:{task_id or 'none'}:{content}"
+        fingerprint = hashlib.md5(seed.encode()).hexdigest()[:12]
+        fragment_id = f"frag_{datetime.now().strftime('%Y%m%d')}_{fingerprint}"
         
+        # 1. 尝试获取现有片段
+        existing = self.fragments.get(ids=[fragment_id])
+        
+        if existing and existing["ids"] and len(existing["ids"]) > 0:
+            # 2. 如果已存在，执行“强化印象”逻辑
+            old_meta = existing["metadatas"][0]
+            count = old_meta.get("mention_count", 1) + 1
+            weight = min(2.0, old_meta.get("weight", 1.0) + 0.1) # 强化该场景下的印象
+            
+            updated_meta = {
+                **old_meta,
+                "last_activated": datetime.now().isoformat(),
+                "mention_count": count,
+                "weight": weight
+            }
+            if meta:
+                updated_meta.update(meta)
+            
+            self.fragments.update(
+                ids=[fragment_id],
+                metadatas=[updated_meta]
+            )
+            logger.info(f"[TopicManager] 场景印象强化: {fragment_id} (场景ID: {task_id}, 次数: {count})")
+            return fragment_id
+
+        # 3. 如果不存在，创建新片段 (该场景下的第一印象)
         metadata = {
-            "timestamp": datetime.now().isoformat(),
+            "created_at": datetime.now().isoformat(),
+            "last_activated": datetime.now().isoformat(),
+            "mention_count": 1,
+            "weight": 1.0,
             "emotion_tag": emotion_tag,
             "category": category,
-            "type": "fragment"
+            "type": "fragment",
+            "fingerprint": fingerprint,
+            "topic_id": topic_id or "none",
+            "task_id": task_id or "none"
         }
         
-        # 添加层级信息
-        if topic_id:
-            metadata["topic_id"] = topic_id
-        if task_id:
-            metadata["task_id"] = task_id
-        
-        # 合并额外元数据
         if meta:
             metadata.update(meta)
         
@@ -192,7 +217,7 @@ class TopicManager:
             metadatas=[metadata]
         )
         
-        logger.debug(f"[TopicManager] Added fragment: {content[:30]}...")
+        logger.debug(f"[TopicManager] 新增场景片段: {content[:30]}... (Topic: {topic_id}, Task: {task_id})")
         return fragment_id
     
     def search_fragments(self, query: str, limit: int = 10,
@@ -236,8 +261,8 @@ class TopicManager:
         results = self.fragments.get(limit=limit * 2)  # 获取更多以防排序后不够
         
         items = self._format_get_results(results)
-        # 按时间戳倒序排列
-        items.sort(key=lambda x: x.get("metadata", {}).get("timestamp", ""), reverse=True)
+        # 按最后活跃时间倒序排列
+        items.sort(key=lambda x: x.get("metadata", {}).get("last_activated", ""), reverse=True)
         
         return items[:limit]
     

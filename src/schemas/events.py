@@ -53,10 +53,9 @@ class BaseEvent(BaseModel):
     timestamp: float = Field(default_factory=time.time)
     type: EventType
     source: str
-    # 注意：Dict[str, Any] 放在前面，确保通用字典能正确匹配
-    # Pydantic 会按顺序尝试匹配 Union 中的类型
+    # 调整 Union 顺序：将具体 Payload 类型放在 Dict[str, Any] 前面
+    # 这样 Pydantic 会优先尝试匹配具体的模型类，提升类型校验的严格性
     payload: Union[
-        Dict[str, Any],  # 放在最前面，优先匹配通用字典
         UserInputPayload, 
         DriverResponsePayload, 
         ProactiveInstructionPayload, 
@@ -64,6 +63,7 @@ class BaseEvent(BaseModel):
         MemoryFullPayload,
         NavigatorSuggestionPayload,
         CycleEndPayload,
+        Dict[str, Any]  # 放在最后作为兜底
     ] = Field(default_factory=dict)
     meta: Dict[str, Any] = Field(default_factory=dict)
 
