@@ -9,9 +9,14 @@ class KnowledgeBase:
     知识库基础 Mixin: 负责数据库连接管理与表结构初始化
     """
     def _initialize_db(self):
-        self.db_path = os.path.join(settings.MEMORY_DATA_DIR, "knowledge.db")
+        if not getattr(self, "db_path", None):
+            self.db_path = os.path.join(settings.MEMORY_DATA_DIR, "knowledge.db")
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._init_db_schema()
+
+    def _init_db(self):
+        """Backward-compatible alias for tests/legacy call sites."""
+        self._initialize_db()
 
     def _get_conn(self):
         """获取数据库连接 (Context Manager)"""

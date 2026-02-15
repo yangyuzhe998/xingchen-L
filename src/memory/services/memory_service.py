@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional
 from src.memory.models.entry import ShortTermMemoryEntry, LongTermMemoryEntry
 from src.config.settings.settings import settings
 from src.utils.logger import logger
@@ -54,6 +54,27 @@ class MemoryService:
         
         self.last_diary_time = datetime.now()
 
+        # Alias cache for fast substring matching
+        # alias -> target_name
+        self._alias_cache: Dict[str, str] = {}
+        self._load_alias_cache()
+
+    def _load_alias_cache(self):
+        """一次性加载所有别名到内存缓存中。"""
+        try:
+            all_entities = self.knowledge_db.get_all_entities()
+            for entity in all_entities:
+                name = entity['name']
+                # 实体名本身也可以作为自己的别名
+                self._alias_cache[name] = name
+                aliases = entity.get('aliases', []) or []
+                for alias in aliases:
+                    if alias:
+                        self._alias_cache[alias.strip()] = name
+            logger.info(f"[Memory] 别名缓存加载完成，共 {len(self._alias_cache)} 条记录。")
+        except Exception as e:
+            logger.warning(f"[Memory] 别名缓存加载失败: {e}")
+
     def get_skill_collection(self):
         """获取技能集合"""
         return self.vector_storage.get_skill_collection()
@@ -88,46 +109,37 @@ class MemoryService:
             self.knowledge_db.add_entity(target_entity, entity_type="person") # 确保实体存在
             self.knowledge_db.add_entity_alias(target_entity, [alias])
             
+            # 更新缓存
+            self._alias_cache[alias] = target_entity
             logger.info(f"[Memory] 别名已更新 (KnowledgeDB): {alias} -> {target_entity}")
         except Exception as e:
             logger.error(f"[Memory] 别名存储失败: {e}", exc_info=True)
 
     def search_alias(self, query, limit=None, threshold=None):
         """
-        检索别名 (KnowledgeDB Implementation)
+        检索别名（缓存实现）
         :param query: 用户输入的句子 (e.g. "仔仔饿了")
         :return: (alias, target_entity, score) or None
         """
-        if limit is None: limit = settings.DEFAULT_ALIAS_LIMIT
-        
+        if limit is None:
+            limit = settings.DEFAULT_ALIAS_LIMIT
+
+        if not query:
+            return None
+
         try:
-            # 1. 获取所有实体及其别名
-            # 为了性能，未来应该在 DB 层实现倒排索引或 FTS
-            # 目前数据量小，加载所有实体到内存匹配是可以接受的
-            all_entities = self.knowledge_db.get_all_entities()
-            
             matches = []
-            for entity in all_entities:
-                target_name = entity['name']
-                aliases = entity.get('aliases', []) or []
-                
-                # 检查 target_name 本身
-                if target_name in query:
-                    matches.append((target_name, target_name, len(target_name)))
-                    
-                # 检查别名
-                for alias in aliases:
-                    if alias and alias in query:
-                        matches.append((alias, target_name, len(alias)))
-            
+            for alias, target in self._alias_cache.items():
+                if alias and alias in query:
+                    matches.append((alias, target, len(alias)))
+
             if matches:
-                # 按匹配长度降序排序 (最长匹配原则)
                 matches.sort(key=lambda x: x[2], reverse=True)
-                best_match = matches[0]
-                return (best_match[0], best_match[1], 1.0) # 完全子串匹配得分为 1.0
-                
+                best = matches[0]
+                return (best[0], best[1], 1.0)
         except Exception as e:
             logger.warning(f"[Memory] 别名检索失败: {e}")
+
         return None
 
     def write_diary_entry(self, content):
@@ -186,7 +198,7 @@ class MemoryService:
                      if search_res and search_res['documents']:
                          vector_hits = search_res['documents'][0]
                  except Exception as e:
-                    logger.warning(f"[Memory] Vector search failed: {e}")
+                     logger.warning(f"[Memory] Vector search failed: {e}")
        
         # 3. 图谱检索 (Graph Search - Phase 7)
         graph_context = []
@@ -311,14 +323,20 @@ class MemoryService:
     def commit_long_term(self):
         """
         提交长期记忆
-        [Refactored v3.0] 移除 JsonStorage 写入逻辑
-        KnowledgeDB 和 ChromaDB 都是实时写入的，不需要 commit。
-        此方法现在主要用于清除 dirty 标志，或者未来做批量优化。
+        
+        当前长期记忆的权威真相源是 KnowledgeDB；但为了兼容现有组件与测试，
+        这里仍然会将内存中的 long_term 镜像写入 JsonStorage。
         """
-        if self._long_term_dirty:
-            # JsonStorage 已废弃
+        if not self._long_term_dirty:
+            return
+
+        try:
+            os.makedirs(os.path.dirname(self.json_storage.file_path), exist_ok=True)
+            data = [e.to_dict() for e in self.long_term]
+            self.json_storage.save(data)
             self._long_term_dirty = False
-            # logger.info("[Memory] 长期记忆已确认 (实时写入)。")
+        except Exception as e:
+            logger.error(f"[Memory] commit_long_term failed: {e}", exc_info=True)
 
     def commit_short_term(self):
         """

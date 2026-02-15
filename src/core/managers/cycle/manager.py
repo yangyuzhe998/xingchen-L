@@ -1,4 +1,7 @@
-from src.core.bus.event_bus import event_bus, Event
+import threading
+
+from src.core.bus.event_bus import event_bus
+from src.schemas.events import BaseEvent as Event
 from src.utils.logger import logger
 from .triggers.count import MessageCountTrigger
 from .triggers.emotion import EmotionTrigger
@@ -45,10 +48,43 @@ class CycleManager:
         """事件分发"""
         if not self.running:
             return
-            
+
+        # Debug CLI request: 强制触发一次 S 脑分析
+        if event.type == "debug_request":
+            payload = event.payload_data
+            action = payload.get("action")
+            if action == "force_s":
+                threading.Thread(target=self._handle_force_s, daemon=True).start()
+                return
+
         for t in self.triggers:
             # 这里的 check 是同步的，如果 Trigger 内部逻辑复杂，应自行异步
             t.check(event)
+
+    def _handle_force_s(self):
+        """处理 DebugCLI 的 /force_s 请求"""
+        try:
+            event_bus.publish(Event(
+                type="debug_response",
+                source="cycle_manager",
+                payload={"action": "force_s", "status": "started"},
+                meta={},
+            ))
+            self.trigger_reasoning("debug_force_s")
+            event_bus.publish(Event(
+                type="debug_response",
+                source="cycle_manager",
+                payload={"action": "force_s", "status": "done"},
+                meta={},
+            ))
+        except Exception as e:
+            logger.error(f"[CycleManager] force_s failed: {e}", exc_info=True)
+            event_bus.publish(Event(
+                type="debug_response",
+                source="cycle_manager",
+                payload={"action": "force_s", "status": "error", "error": str(e)},
+                meta={},
+            ))
 
     def trigger_reasoning(self, reason):
         """

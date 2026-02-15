@@ -1,5 +1,5 @@
 
-from typing import Dict, List, Any, Callable
+from typing import Dict, List, Any, Callable, Optional
 from src.tools.definitions import ToolDefinition, ToolTier
 import inspect
 import json
@@ -9,7 +9,7 @@ from src.utils.logger import logger
 class ToolRegistry:
     """
     工具注册中心 (Singleton)
-    管理所有的 Agent 工具，支持按 Tier (Fast/Slow) 过滤。
+    管理所有的 Agent 工具，支持按 Tier (Fast/Slow)过滤。
     """
     _instance = None
     _tools: Dict[str, ToolDefinition] = {}
@@ -25,7 +25,7 @@ class ToolRegistry:
         装饰器：注册一个函数为工具
         """
         def decorator(func):
-            # 如果没有提供 Schema，尝试自动生成 (这里简化处理，实际可能需要 Pydantic)
+            # 如果没有提供 Schema，尝试自动生成
             tool_schema = schema if schema else cls._generate_default_schema(func)
             
             tool_def = ToolDefinition(
@@ -75,7 +75,6 @@ class ToolRegistry:
             raise ValueError(f"Tool '{name}' not found.")
         
         try:
-            # logger.debug(f"[ToolRegistry] Executing {name} with args: {kwargs}")
             return tool.func(**kwargs)
         except Exception as e:
             logger.error(f"[ToolRegistry] Execution failed for {name}: {e}", exc_info=True)
@@ -84,8 +83,7 @@ class ToolRegistry:
     @staticmethod
     def _generate_default_schema(func) -> Dict:
         """
-        简单的 Schema 生成器 (Placeholder)
-        生产环境建议手动提供严谨的 JSON Schema
+        简单的 Schema 生成器
         """
         sig = inspect.signature(func)
         params = {}
@@ -98,5 +96,24 @@ class ToolRegistry:
             "required": list(params.keys())
         }
 
-# 全局实例
-tool_registry = ToolRegistry()
+_tool_registry_instance: Optional[ToolRegistry] = None
+
+def get_tool_registry() -> ToolRegistry:
+    """获取全局 ToolRegistry 实例（延迟初始化）。"""
+    global _tool_registry_instance
+    if _tool_registry_instance is None:
+        _tool_registry_instance = ToolRegistry()
+    return _tool_registry_instance
+
+class _ToolRegistryProxy(ToolRegistry):
+    """延迟初始化代理类（继承以通过 isinstance 检查）。"""
+    def __init__(self):
+        pass
+
+    def __getattribute__(self, name):
+        if name in ("__class__", "__instancecheck__", "__subclasscheck__", "register"):
+            return super().__getattribute__(name)
+        return getattr(get_tool_registry(), name)
+
+# 全局实例（保持原 import 使用方式不变）
+tool_registry = _ToolRegistryProxy()

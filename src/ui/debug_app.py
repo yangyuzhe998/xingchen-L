@@ -10,7 +10,8 @@ from src.core.navigator.core import Navigator
 from src.psyche import psyche_engine
 from src.memory.memory_core import Memory
 from src.core.managers import CycleManager
-from src.core.bus.event_bus import event_bus, Event
+from src.core.bus.event_bus import event_bus
+from src.schemas.events import BaseEvent as Event
 from src.utils.logger import logger
 from src.interfaces.ui_interface import UserInterface
 
@@ -45,8 +46,38 @@ class DebugCLI(UserInterface):
         """
         try:
             timestamp = datetime.fromtimestamp(event.timestamp).strftime('%H:%M:%S.%f')[:-3]
-            
-            # 颜色代码 (Windows 终端可能需要 colorama，这里暂时用简单的符号区分)
+
+            # 特殊处理 debug_response：更友好输出
+            if event.type == "debug_response":
+                payload = event.payload_data
+                action = payload.get("action")
+                print(f"\n{timestamp} === [Debug Response] Source: {event.source}")
+
+                if action == "dump_short_term":
+                    data = payload.get("data", [])
+                    print(f"ShortTerm Count: {len(data)}")
+                    for i, item in enumerate(data[-30:]):
+                        role = item.get("role", "?")
+                        content = item.get("content", "")
+                        ts = item.get("timestamp", "")
+                        if ts:
+                            try:
+                                ts_str = str(ts)[:19]
+                            except:
+                                ts_str = ""
+                        else:
+                            ts_str = ""
+                        # 截断输出避免刷屏
+                        display = content if len(content) <= 200 else content[:200] + "..."
+                        print(f"  {i+1:02d}. [{role}] {display}")
+                    return
+
+                print(f"Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+                if event.meta:
+                    print(f"Meta: {json.dumps(event.meta, indent=2, ensure_ascii=False)}")
+                return
+
+            # 其他事件：默认格式
             prefix = ""
             if event.type == "user_input":
                 prefix = ">>> [User Input]"
@@ -61,25 +92,21 @@ class DebugCLI(UserInterface):
             else:
                 prefix = f"--- [{event.type}]"
 
-            # 构建日志行
             log_line = f"\n{timestamp} {prefix} Source: {event.source}"
             print(log_line)
-            
-            # 打印 Payload (使用统一属性)
+
             payload = event.payload_data
-            # 如果 payload 仍然是字符串 (例如某些极端情况)，尝试解析
             if isinstance(payload, str):
                 try:
                     payload = json.loads(payload)
                 except:
                     pass
-            
+
             print(f"Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}")
-            
-            # 打印 Meta (如果有)
+
             if event.meta:
                 print(f"Meta: {json.dumps(event.meta, indent=2, ensure_ascii=False)}")
-                
+
         except Exception as e:
             print(f"[DebugCLI] Event Print Error: {e}")
 
@@ -99,14 +126,14 @@ class DebugCLI(UserInterface):
             try:
                 # 阻塞等待输入
                 user_input = input("\n(Debug) User: ").strip()
-                
+
                 if not user_input:
                     continue
 
                 if user_input.lower() in ['exit', 'quit']:
                     self.running = False
                     break
-                
+
                 # 处理调试指令
                 if user_input.startswith("/"):
                     self._handle_debug_command(user_input)
@@ -125,20 +152,39 @@ class DebugCLI(UserInterface):
 
     def _handle_debug_command(self, cmd: str):
         print(f"[Debug] Executing command: {cmd}")
-        
+
         if cmd == "/help":
             print("Available Commands:")
-            print("  /dump_memory  - 打印当前短期记忆")
+            print("  /dump_memory  - 请求当前短期记忆快照")
             print("  /psyche       - 打印当前心智状态")
             print("  /force_s      - 强制触发 S 脑思考")
-            
+
+        elif cmd == "/psyche":
+            try:
+                state = psyche_engine.get_raw_state()
+            except Exception:
+                state = getattr(psyche_engine, "state", {})
+            print(json.dumps(state, indent=2, ensure_ascii=False))
+
         elif cmd == "/dump_memory":
-            # 这里需要访问 memory 对象，但 UI 不直接持有 memory
-            # 这是一个设计上的妥协，在 Debug 模式下我们可能需要全局变量或者通过 handler 反射
-            # 暂时先跳过，或者通过 EventBus 发送 debug_request
-            pass 
-            
-        # ... 其他指令
+            event_bus.publish(Event(
+                type="debug_request",
+                source="debug_cli",
+                payload={"action": "dump_short_term"},
+                meta={},
+            ))
+
+        elif cmd == "/force_s":
+            event_bus.publish(Event(
+                type="debug_request",
+                source="debug_cli",
+                payload={"action": "force_s"},
+                meta={},
+            ))
+
+        else:
+            print("Unknown debug command. Use /help to list commands.")
+
 
 # 简单的启动器 (如果直接运行此文件)
 if __name__ == "__main__":
@@ -149,18 +195,16 @@ if __name__ == "__main__":
     memory.set_navigator(navigator)
     driver = Driver(memory=memory)
     cycle_manager = CycleManager(navigator, psyche)
-    
+
     # 启动 UI
     app = DebugCLI()
-    
+
     def handler(content):
-        # 简单的同步处理
         psyche_state = psyche.state
-        response = driver.think(content, psyche_state=psyche_state)
-        # EventBus 会自动打印结果，这里不需要 print
+        driver.think(content, psyche_state=psyche_state)
 
     app.set_input_handler(handler)
-    
+
     try:
         app.run()
     finally:

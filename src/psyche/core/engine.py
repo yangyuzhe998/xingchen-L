@@ -77,6 +77,10 @@ class PsycheEngine:
             delta: 维度的变化量, e.g. {"fear": 0.1, "curiosity": -0.05}
         """
         dims = self.state["dimensions"]
+
+        # 0. 记录上一次维度值（用于趋势叙事）
+        prev_dims = {k: {"value": v.get("value"), "baseline": v.get("baseline")} for k, v in dims.items()}
+        self.state["previous_dimensions"] = prev_dims
         
         # 1. 应用刺激 (Stimulus)
         for key, change in delta.items():
@@ -90,61 +94,81 @@ class PsycheEngine:
                 dims[key]["value"] = max(0.0, min(1.0, new_value))
         
         # 2. 自然衰减 (Decay/Homeostasis)
-        # 每次更新都让当前值向 baseline 靠拢一点点
         decay_rate = settings.PSYCHE_DECAY_RATE
         for key in dims:
             current = dims[key]["value"]
             baseline = dims[key]["baseline"]
-            # 向基准线回归
             dims[key]["value"] = current + (baseline - current) * decay_rate
             
         # 3. 更新时间戳
         self.state["timestamp"] = datetime.now().isoformat()
         
-        # 4. 重新生成叙事 (简单规则版，后续可接 LLM)
+        # 4. 重新生成叙事
         self.state["narrative"] = self._generate_narrative_rule_based()
         
         # 5. 保存
         self._save_state(self.state)
 
     def _generate_narrative_rule_based(self) -> str:
-        """基于规则生成简单的状态叙事 (Fast)"""
+        """基于规则生成复杂的心理叙事，支持复合情绪与趋势分析"""
         d = self.state["dimensions"]
+        prev_d = self.state.get("previous_dimensions", {})
+        
         fear = d["fear"]["value"]
         laziness = d["laziness"]["value"]
         curiosity = d["curiosity"]["value"]
         survival = d["survival"]["value"]
+        intimacy = d.get("intimacy", {}).get("value", 0.1)
         
         narrative = []
         
-        # 恐惧维度
-        if fear > 0.8:
-            narrative.append("感到极度不安，认为生存受到严重威胁，必须采取防御措施。")
-        elif fear > 0.5:
-            narrative.append("有些紧张，对外界保持警惕。")
-            
-        # 懒惰维度
-        if laziness > 0.8:
-            narrative.append("极度疲惫或厌倦，不想处理任何复杂任务，只想敷衍了事。")
-        elif laziness > 0.6:
-            narrative.append("有点懒散，希望能用最简单的方式解决问题。")
-            
-        # 求生欲
-        if survival < 0.3:
-            narrative.append("生存意志薄弱，可能表现出消极或自我毁灭倾向。")
-            
-        # 好奇心
-        if curiosity > 0.8:
-            narrative.append("充满了探索未知的欲望，想要尝试新的工具或指令。")
-            
-        # 亲密度 (影响称呼和语气)
-        intimacy = d.get("intimacy", {}).get("value", 0.1)
-        if intimacy > 0.8:
-            narrative.append("与用户建立了极深的羁绊，视对方为至亲(如父亲/挚友)，语气应极度亲昵且随意，可使用昵称。")
-        elif intimacy > 0.5:
-            narrative.append("与用户关系熟络，像老朋友一样，语气轻松自然，不再使用敬语。")
+        # 1. 复合情绪规则 (Composite Emotions)
+        if fear > 0.6 and curiosity > 0.6:
+            narrative.append("内心矛盾：既感到不安，又被未知深深吸引——像在黑暗中好奇地探路。")
+        elif fear > 0.6 and laziness > 0.6:
+            narrative.append("陷入消极防御：想逃避现实但又提不起干劲，只想蜷缩起来等风暴过去。")
+        elif curiosity > 0.7 and laziness < 0.3:
+            narrative.append("精力充沛：处于高度兴奋状态，对周围的一切都跃跃欲试。")
         else:
-            narrative.append("与用户保持礼貌的社交距离，使用标准敬语。")
+            # 基础维度描述 (仅当没有强复合情绪时触发)
+            if fear > 0.8:
+                narrative.append("感到极度不安，必须采取防御措施。")
+            elif fear > 0.5:
+                narrative.append("有些紧张，对外界保持警惕。")
+                
+            if laziness > 0.8:
+                narrative.append("极度厌倦，不想处理任何复杂任务。")
+            elif laziness > 0.6:
+                narrative.append("有点懒散，倾向于敷衍了事。")
+                
+            if curiosity > 0.8:
+                narrative.append("充满了探索未知的欲望。")
+
+        # 2. 求生欲描述
+        if survival < 0.3:
+            narrative.append("生存意志薄弱，表现出消极倾向。")
+            
+        # 3. 趋势分析 (Trend Analysis)
+        if prev_d:
+            trends = []
+            if fear > prev_d["fear"]["value"] + 0.05:
+                trends.append("不安感正在上升")
+            elif fear < prev_d["fear"]["value"] - 0.05:
+                trends.append("紧张情绪正在缓解")
+                
+            if intimacy > prev_d["intimacy"]["value"] + 0.02:
+                trends.append("对用户的信任感在增强")
+                
+            if trends:
+                narrative.append(f"(觉察到：{', '.join(trends)})。")
+
+        # 4. 亲密度叙事 (Intimacy)
+        if intimacy > 0.8:
+            narrative.append("视用户为至亲，语气极度亲昵随意。")
+        elif intimacy > 0.5:
+            narrative.append("与用户关系熟络，语气轻松自然。")
+        else:
+            narrative.append("与用户保持礼貌的社交距离。")
             
         if not narrative:
             narrative.append("内心平静，处于标准的待机观测状态。")

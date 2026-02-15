@@ -1,4 +1,5 @@
 
+
 import asyncio
 from src.tools.registry import ToolRegistry, ToolTier
 from src.utils.logger import logger
@@ -61,6 +62,49 @@ import hashlib
 from datetime import datetime
 from src.config.settings.settings import settings
 
+
+def _run_coro_sync(coro, timeout: float = 60.0):
+    """在同步函数中安全运行 coroutine。
+
+    - 若当前线程没有运行中的 event loop：使用 asyncio.run
+    - 若已有运行中的 event loop（典型：Web/Uvicorn 环境）：在新线程中启动独立 loop 执行
+
+    返回 coroutine 的结果；异常会向外抛出。
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+
+    import threading
+
+    result_container = {"result": None, "error": None}
+
+    def runner():
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result_container["result"] = loop.run_until_complete(coro)
+        except Exception as e:
+            result_container["error"] = e
+        finally:
+            try:
+                loop.close()
+            except Exception:
+                pass
+
+    t = threading.Thread(target=runner, daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+
+    if t.is_alive():
+        raise TimeoutError(f"Coroutine did not finish within {timeout}s")
+    if result_container["error"] is not None:
+        raise result_container["error"]
+
+    return result_container["result"]
+
+
 @ToolRegistry.register(
     name="web_crawl",
     description="[国内可用/本地版] 使用 Crawl4AI (Playwright) 抓取网页内容。自动保存到知识库临时区。适合读取长文章。",
@@ -109,7 +153,7 @@ def web_crawl(url: str, bypass_cache: bool = False):
 
     try:
         logger.info(f"[WebTools] Crawling URL: {url} (Bypass Cache: {bypass_cache})")
-        content = asyncio.run(_crawl())
+        content = _run_coro_sync(_crawl(), timeout=60)
         if content.startswith("Error"):
             logger.error(f"[WebTools] Crawl internal error: {content}")
             return content

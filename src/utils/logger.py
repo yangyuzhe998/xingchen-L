@@ -45,12 +45,12 @@ class Logger:
             # 控制台处理器 (在 Windows 上强制使用 UTF-8 输出以避免乱码)
             import io
             # 重新包装 sys.stdout 以支持 UTF-8
-            if sys.platform == 'win32':
-                try:
-                    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-                    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-                except (AttributeError, io.UnsupportedOperation):
-                    pass # 某些环境可能不支持重包装
+            # if sys.platform == 'win32':
+            #     try:
+            #         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+            #         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+            #     except (AttributeError, io.UnsupportedOperation):
+            #         pass # 某些环境可能不支持重包装
 
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setFormatter(formatter)

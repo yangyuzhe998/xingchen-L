@@ -37,8 +37,35 @@ class Memory:
         
         self.navigator = None
         
+        # 订阅事件总线以响应调试请求
+        event_bus.subscribe(self._on_event)
+        
         # 启动时重放 WAL，恢复未提交的数据
         self._replay_wal()
+
+    def _on_event(self, event):
+        """处理事件总线消息"""
+        if event.type == "debug_request":
+            payload = event.payload_data
+            action = payload.get("action")
+            if action == "dump_short_term":
+                self._handle_dump_short_term()
+
+    def _handle_dump_short_term(self):
+        """处理短期记忆转储请求"""
+        try:
+            data = [entry.to_dict() for entry in self.short_term]
+            event_bus.publish(Event(
+                type="debug_response",
+                source="memory",
+                payload={
+                    "action": "dump_short_term",
+                    "data": data
+                },
+                meta={}
+            ))
+        except Exception as e:
+            logger.error(f"[Memory] Dump short term failed: {e}")
 
     @property
     def short_term(self):

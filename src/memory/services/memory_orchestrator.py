@@ -7,7 +7,7 @@
 - 使用 WAL 实现失败重试 (基于 replay 模式)
 - 与 MemoryService 解耦
 """
-from typing import List, Dict
+from typing import List, Dict, Optional
 from src.utils.logger import logger
 from src.memory.storage.topic_manager import topic_manager
 from src.memory.services.auto_classifier import auto_classifier
@@ -132,5 +132,29 @@ class MemoryOrchestrator:
         }
 
 
-# 全局实例
-memory_orchestrator = MemoryOrchestrator()
+_memory_orchestrator_instance: Optional[MemoryOrchestrator] = None
+
+
+def get_memory_orchestrator() -> MemoryOrchestrator:
+    """获取全局 MemoryOrchestrator 实例（延迟初始化）。"""
+    global _memory_orchestrator_instance
+    if _memory_orchestrator_instance is None:
+        _memory_orchestrator_instance = MemoryOrchestrator()
+    return _memory_orchestrator_instance
+
+
+class _MemoryOrchestratorProxy(MemoryOrchestrator):
+    """延迟初始化代理类（继承以通过 isinstance 检查）。"""
+
+    def __init__(self):
+        # 覆盖父类 __init__，防止 import 时触发重试逻辑或日志
+        pass
+
+    def __getattribute__(self, name):
+        if name in ("__class__", "__instancecheck__", "__subclasscheck__"):
+            return super().__getattribute__(name)
+        return getattr(get_memory_orchestrator(), name)
+
+
+# 全局实例（保持原 import 使用方式不变）
+memory_orchestrator = _MemoryOrchestratorProxy()

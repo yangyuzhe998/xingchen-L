@@ -28,7 +28,10 @@ class Settings:
     DIARY_PATH = os.path.join(MEMORY_DATA_DIR, "diary.md")
     
     # [Refactored] Graph & Alias are now in KnowledgeDB (SQLite)
-    # GRAPH_DB_PATH & ALIAS_MAP_PATH are deprecated.
+    # NOTE: tests still expect these legacy paths to exist.
+    GRAPH_DB_PATH = os.path.join(MEMORY_DATA_DIR, "graph.db")
+    ALIAS_MAP_PATH = os.path.join(MEMORY_DATA_DIR, "alias_map.json")
+
     KNOWLEDGE_DB_PATH = os.path.join(MEMORY_DATA_DIR, "knowledge.db")
     
     ARCHIVE_DB_PATH = os.path.join(MEMORY_DATA_DIR, "archive.db") # Cold Storage

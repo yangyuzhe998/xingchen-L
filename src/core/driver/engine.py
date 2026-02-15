@@ -46,15 +46,34 @@ class Driver:
                 # 在新线程中执行，避免阻塞事件总线分发
                 threading.Thread(target=self.proactive_speak, args=(instruction,), daemon=True).start()
 
+    def _get_dynamic_cooldown(self) -> float:
+        """根据时间与心智状态动态计算主动发言冷却时间"""
+        base = float(settings.PROACTIVE_COOLDOWN)
+        hour = datetime.now().hour
+
+        # 深夜降低打扰 (23:00-07:00)
+        if hour >= 23 or hour < 7:
+            base *= 2
+
+        # laziness 高时更不主动
+        try:
+            laziness = psyche_engine.get_raw_state()["dimensions"]["laziness"]["value"]
+            base *= (1 + float(laziness))
+        except Exception:
+            pass
+
+        return base
+
     def proactive_speak(self, instruction):
         """
         [New] 主动发起对话 (基于 S脑 指令)
         """
-        # 1. 冷却检查
-        if time.time() - self.last_interaction_time < settings.PROACTIVE_COOLDOWN:
+        # 1. 动态冷却检查
+        dynamic_cooldown = self._get_dynamic_cooldown()
+        if time.time() - self.last_interaction_time < dynamic_cooldown:
             # 安全打印 instruction
             instr_str = str(instruction)
-            logger.info(f"[{self.name}] 处于冷却期，跳过主动发言指令: {instr_str[:50]}...")
+            logger.info(f"[{self.name}] 处于冷却期({dynamic_cooldown:.1f}s)，跳过主动发言指令: {instr_str[:50]}...")
             return
 
         # 如果正在思考（处理用户输入），则忽略这次主动尝试
@@ -94,22 +113,21 @@ class Driver:
                 # 输出结果
                 # 注意：在 CLI 模式下，这可能会打断用户的输入行，这是已知限制
                 logger.info(f"[{self.name}] (主动): {reply}")
-                print(f"\n[{self.name}] (主动): {reply}") # 保留 print 用于 CLI 显示，但同时也记录 Log
                 
                 # 存入短期记忆
                 self.memory.add_short_term("assistant", reply)
                 
                 # 发布事件
-            event_bus.publish(Event(
-                type="driver_response",
-                source="driver",
-                payload=DriverResponsePayload(content=reply),
-                meta={
-                    "inner_voice": inner_voice,
-                    "user_emotion_detect": emotion,
-                    "proactive": True
-                }
-            ))
+                event_bus.publish(Event(
+                    type="driver_response",
+                    source="driver",
+                    payload=DriverResponsePayload(content=reply),
+                    meta={
+                        "inner_voice": inner_voice,
+                        "user_emotion_detect": emotion,
+                        "proactive": True
+                    }
+                ))
         except Exception as e:
             logger.error(f"[{self.name}] 主动发言失败: {e}", exc_info=True)
         finally:
@@ -152,122 +170,18 @@ class Driver:
             return response
 
     def _think_internal(self, user_input, psyche_state=None, suggestion=""):
-        print(f"[{self.name}] 正在思考: {user_input}")
-        
-        # 1. 尝试演化心智状态 (Input Stimulus)
-        # 简单假设：每次用户输入都微弱增加一点好奇，但如果输入太长可能增加懒惰 (这里暂不实现复杂逻辑，留给 S 脑)
-        # [New] 根据输入长度和内容简单调整亲密度 (模拟)
-        # 在真实场景中，这应该由 S 脑根据情感分析来驱动
-        # 这里做一个简单的 Hack: 每次互动微弱增加亲密度
-        psyche_engine.update_state({"intimacy": 0.01})
+        """重构后的内部思考流程"""
+        # 1. 深度维护检查 (保持原有的手动触发逻辑)
+        if "深度维护" in user_input or "/deep_clean" in user_input:
+            return self._handle_deep_clean(user_input)
 
-        # 这里只做读取
-        current_psyche = psyche_engine.get_state_summary()
+        # 2. 准备上下文
+        context = self._prepare_context(user_input)
         
-        # 2. 读取 Mind-Link (潜意识直觉)
-        # [Fix] 增加重试/等待机制？暂时保持直接读取，但增加 Log
-        intuition = mind_link.read_intuition()
-        if intuition:
-             logger.info(f"[{self.name}] 🧠 感知到潜意识直觉: {intuition[:30]}...")
+        # 3. 组装消息
+        messages = self._build_messages(user_input, context)
         
-        # 获取长期记忆上下文 (传入 user_input 以进行关键词检索)
-        long_term_context = self.memory.get_relevant_long_term(query=user_input)
-        
-        # [New] 模糊别名解析 (Fuzzy Alias Resolution)
-        # 尝试从用户输入中检索是否包含已知的别名
-        try:
-            alias_match = self.memory.search_alias(query=user_input, threshold=0.4)
-            if alias_match:
-                alias, target, dist = alias_match
-                print(f"[{self.name}] 🔍 检测到模糊别名: '{alias}' -> '{target}' (dist: {dist:.4f})")
-                # 注入别名解释到 Context
-                alias_context = f"\n[System Note]: 用户当前提到的 '{alias}' 在系统中被识别为 '{target}'。\n"
-                # 如果是“用户”本身，还可以顺便加载用户的 Profile
-                if target == "User" or target == "用户":
-                    alias_context += "(已自动关联用户画像)\n"
-                
-                # 将其拼接到 long_term_context 最前方
-                long_term_context = alias_context + long_term_context
-        except Exception as e:
-            print(f"[{self.name}] 别名检索异常: {e}")
-        
-        # [New] 尝试检索图谱中的用户画像 (Graph Profile)
-        # 强制检索：直接查找 "User" 和 "用户" 的属性，不再依赖关键词
-        # 无论用户说什么，F脑都应该“记得”用户是谁
-        try:
-            user_profile = []
-            # 1. 检索 "User" 实体 (标准实体名)
-            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("User", relation_type="attribute"))
-            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("User", relation_type="social"))
-            
-            # 2. 检索 "用户" 实体 (中文实体名，兼容性)
-            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("用户", relation_type="attribute"))
-            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph("用户", relation_type="social"))
-            
-            # 3. 去重并格式化
-            if user_profile:
-                profile_str = "\n【当前用户画像 (Active Profile)】:\n"
-                seen_relations = set()
-                for p in user_profile:
-                    # 简单去重: source-relation-target
-                    rel_key = f"{p['source']}-{p['relation']}-{p['target']}"
-                    if rel_key in seen_relations:
-                        continue
-                    seen_relations.add(rel_key)
-                    
-                    # 格式化: User --[relation]--> target (meta)
-                    # 如果 target 是 "User" 或 "用户"，则显示为 "我" (从 AI 视角看用户)
-                    # 但这里的 source 是 User，所以是 User has_name '仔仔'
-                    
-                    # 特殊处理 has_name / 名字
-                    if p['relation'] in ["has_name", "called", "name_is", "名字是"]:
-                         profile_str += f"- 名字: {p['target']}\n"
-                    else:
-                         profile_str += f"- {p['relation']}: {p['target']}"
-                         if p.get('meta') and p['meta'].get('emotion_tag'):
-                              profile_str += f" (Emotion: {p['meta']['emotion_tag']})"
-                         profile_str += "\n"
-                
-                # 将画像强制置顶
-                long_term_context = profile_str + "\n" + long_term_context
-        except Exception as e:
-            logger.warning(f"[{self.name}] 图谱画像检索失败: {e}")
-            
-        # 搜索相关技能
-        relevant_skills = library_manager.search_skills(user_input, top_k=2)
-        skill_info = ""
-        if relevant_skills:
-            skill_info = "【相关技能推荐】:\n"
-            for skill in relevant_skills:
-                skill_info += f"- {skill['name']} (ID: {skill['id']}): {skill['description']}\n"
-            skill_info += "(如果需要使用，请调用 `read_skill` 获取详细指南，或直接尝试 `run_shell_command` 如果你知道怎么用)"
-
-        # [New] 构建工具列表字符串，明确告知 LLM 可用工具
-        all_tools = tool_registry.get_tools()
-        tool_list_str = ""
-        for t in all_tools:
-            tool_list_str += f"- {t.name}: {t.description}\n"
-
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        system_prompt = DRIVER_SYSTEM_PROMPT.format(
-            current_time=current_time,
-            psyche_desc=current_psyche,
-            suggestion=intuition,
-            long_term_context=long_term_context,
-            skill_info=skill_info,
-            tool_list=tool_list_str
-        )
-        
-        messages = [
-            {"role": "system", "content": system_prompt} 
-        ]
-        
-        # 从 Memory 模块获取最近历史 (修正为 15 轮)
-        messages.extend(self.memory.get_recent_history(limit=15))
-        messages.append({"role": "user", "content": user_input})
-        
-        # 发布 UserInput 事件到总线
+        # 4. 发布 UserInput 事件
         event_bus.publish(Event(
             type="user_input",
             source="user",
@@ -275,119 +189,180 @@ class Driver:
             meta={}
         ))
 
-        # 准备工具 (获取所有可用工具)
+        # 5. 调用 LLM (含工具循环)
         tools = tool_registry.get_openai_tools()
+        raw_response = self._call_llm_with_tools(messages, tools)
+
+        # 6. 解析响应
+        reply, inner_voice, emotion = self._parse_driver_response(raw_response)
+
+        # 7. 收尾：存储记忆并发布响应事件
+        self._finalize_interaction(user_input, reply, inner_voice, emotion, psyche_state, suggestion)
         
-        raw_response = None
+        return reply
+
+    def _prepare_context(self, user_input: str) -> Dict[str, Any]:
+        """准备思考所需的全部上下文信息"""
+        # A. 更新/读取心智
+        # 亲密度变化不在 F 脑硬编码，交由 S 脑/psyche_delta 驱动
+        current_psyche = psyche_engine.get_state_summary()
         
-        # 工具调用循环 (最多 3 轮)
-        for _ in range(3):
-            response = self.llm.chat(messages, tools=tools)
+        # B. 读取潜意识直觉
+        intuition = mind_link.read_intuition()
+        if intuition:
+            logger.info(f"[{self.name}] 🧠 感知到潜意识直觉: {intuition[:30]}...")
             
-            if not response:
-                break
-                
-            # 1. 如果是纯文本 (无工具调用)，直接结束
+        # C. 记忆检索 (含别名解析与画像)
+        long_term_context = self.memory.get_relevant_long_term(query=user_input)
+        
+        # 别名解析
+        try:
+            alias_match = self.memory.search_alias(query=user_input, threshold=0.4)
+            if alias_match:
+                alias, target, dist = alias_match
+                logger.info(f"[{self.name}] 🔍 检测到模糊别名: '{alias}' -> '{target}' (dist: {dist:.4f})")
+                alias_context = f"\n[System Note]: 用户当前提到的 '{alias}' 在系统中被识别为 '{target}'。\n"
+                if target in ["User", "用户"]:
+                    alias_context += "(已自动关联用户画像)\n"
+                long_term_context = alias_context + long_term_context
+        except Exception as e:
+            logger.warning(f"[{self.name}] 别名检索异常: {e}")
+
+        # 画像检索
+        try:
+            user_profile = self._get_user_profile_string()
+            if user_profile:
+                long_term_context = user_profile + "\n" + long_term_context
+        except Exception as e:
+            logger.warning(f"[{self.name}] 图谱画像检索失败: {e}")
+
+        # D. 技能与工具列表
+        relevant_skills = library_manager.search_skills(user_input, top_k=2)
+        skill_info = ""
+        if relevant_skills:
+            skill_info = "【相关技能推荐】:\n" + "".join([f"- {s['name']} (ID: {s['id']}): {s['description']}\n" for s in relevant_skills])
+            skill_info += "(如果需要使用，请调用 `read_skill` 获取详细指南，或直接尝试 `run_shell_command` 如果你知道怎么用)"
+
+        all_tools = tool_registry.get_tools()
+        tool_list_str = "".join([f"- {t.name}: {t.description}\n" for t in all_tools])
+
+        return {
+            "current_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "psyche_desc": current_psyche,
+            "suggestion": intuition,
+            "long_term_context": long_term_context,
+            "skill_info": skill_info,
+            "tool_list": tool_list_str
+        }
+
+    def _get_user_profile_string(self) -> str:
+        """从图谱中提取用户画像字符串"""
+        user_profile = []
+        for name in ["User", "用户"]:
+            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph(name, relation_type="attribute"))
+            user_profile.extend(self.memory.graph_storage.get_cognitive_subgraph(name, relation_type="social"))
+        
+        if not user_profile:
+            return ""
+
+        profile_str = "\n【当前用户画像 (Active Profile)】:\n"
+        seen_relations = set()
+        for p in user_profile:
+            rel_key = f"{p['source']}-{p['relation']}-{p['target']}"
+            if rel_key in seen_relations: continue
+            seen_relations.add(rel_key)
+            
+            if p['relation'] in ["has_name", "called", "name_is", "名字是"]:
+                profile_str += f"- 名字: {p['target']}\n"
+            else:
+                profile_str += f"- {p['relation']}: {p['target']}"
+                if p.get('meta', {}).get('emotion_tag'):
+                    profile_str += f" (Emotion: {p['meta']['emotion_tag']})"
+                profile_str += "\n"
+        return profile_str
+
+    def _build_messages(self, user_input: str, context: Dict[str, Any]) -> List[Dict[str, str]]:
+        """组装 LLM 请求消息列表"""
+        system_prompt = DRIVER_SYSTEM_PROMPT.format(**context)
+        messages = [{"role": "system", "content": system_prompt}]
+        messages.extend(self.memory.get_recent_history(limit=15))
+        messages.append({"role": "user", "content": user_input})
+        return messages
+
+    def _call_llm_with_tools(self, messages: List[Dict[str, str]], tools: List[Dict[str, Any]]) -> Optional[str]:
+        """执行 LLM 调用循环，处理工具调用"""
+        raw_response = None
+        for _ in range(3): # 最多 3 轮循环
+            response = self.llm.chat(messages, tools=tools)
+            if not response: break
+            
             if isinstance(response, str):
                 raw_response = response
                 break
                 
-            # 2. 如果有工具调用
-            if response.tool_calls:
-                # 将 Assistant 的回复 (包含 tool_calls) 加入历史
-                # 必须转为 dict，否则后续 LLMClient 计算长度会报错
+            if hasattr(response, 'tool_calls') and response.tool_calls:
+                # 记录 Assistant 的工具调用回复
                 if hasattr(response, 'model_dump'):
                     messages.append(response.model_dump())
-                elif hasattr(response, 'to_dict'):
-                    messages.append(response.to_dict())
                 else:
-                    messages.append(response)
+                    messages.append(response.to_dict() if hasattr(response, 'to_dict') else response)
                 
-                # 执行所有工具调用
                 for tool_call in response.tool_calls:
-                    function_name = tool_call.function.name
-                    function_args = tool_call.function.arguments
-                    call_id = tool_call.id
-                    
-                    print(f"[{self.name}] 🛠️ 正在调用工具: {function_name} Args: {function_args}")
-                    
-                    try:
-                        args = json.loads(function_args)
-                        result = tool_registry.execute(function_name, **args)
-                        # Truncate result for display
-                        display_result = str(result)[:100] + "..." if len(str(result)) > 100 else str(result)
-                        print(f"[{self.name}] 🛠️ 工具执行结果: {display_result}")
-                    except Exception as e:
-                        result = f"Error: {str(e)}"
-                        print(f"[{self.name}] 🛠️ 工具执行出错: {e}")
-                    
-                    # 将工具结果加入历史
+                    res = self._execute_tool(tool_call)
                     messages.append({
                         "role": "tool",
-                        "tool_call_id": call_id,
-                        "name": function_name,
-                        "content": str(result)
+                        "tool_call_id": tool_call.id,
+                        "name": tool_call.function.name,
+                        "content": str(res)
                     })
-                
-                # 继续下一轮循环，让 LLM 根据工具结果生成最终回复
-                continue
+                continue # 继续下一轮让 LLM 总结结果
             else:
-                # 虽然是 Message 对象但没有 tool_calls (可能是 content)
-                raw_response = response.content
+                raw_response = getattr(response, 'content', None)
                 break
-        
-        # [New] 手动触发深度维护 (Deep Clean)
-        if "深度维护" in user_input or "/deep_clean" in user_input:
-            logger.info(f"[{self.name}] 收到深度维护指令，正在转发给 S 脑...")
-            if hasattr(self.memory, 'navigator') and self.memory.navigator:
-                 # 异步触发，不阻塞当前对话
-                 threading.Thread(target=self.memory.navigator.deep_clean_manager.perform_deep_clean, args=("manual",), daemon=True).start()
-                 reply = "好的，正在启动深度维护程序。这可能需要几分钟时间，请稍候..."
-                 inner_voice = "系统维护"
-                 emotion = "serious"
-                 # 直接返回，跳过 LLM 解析
-                 self.memory.add_short_term("user", user_input)
-                 self.memory.add_short_term("assistant", reply)
-                 event_bus.publish(Event(type="driver_response", source="driver", payload={"content": reply}, meta={"inner_voice": inner_voice}))
-                 return reply
+        return raw_response
 
+    def _execute_tool(self, tool_call) -> str:
+        """执行单个工具调用"""
+        name = tool_call.function.name
+        args_str = tool_call.function.arguments
+        logger.info(f"[{self.name}] 🛠️ 正在调用工具: {name} Args: {args_str}")
+        try:
+            args = json.loads(args_str)
+            result = tool_registry.execute(name, **args)
+            display_result = str(result)[:100] + "..." if len(str(result)) > 100 else str(result)
+            logger.info(f"[{self.name}] 🛠️ 工具执行结果: {display_result}")
+            return result
+        except Exception as e:
+            logger.error(f"[{self.name}] 🛠️ 工具执行出错: {e}")
+            return f"Error: {str(e)}"
+
+    def _parse_driver_response(self, raw_response: Optional[str]):
+        """解析 LLM 原始响应为 (reply, inner_voice, emotion)"""
         if raw_response is None:
-            # 处理 LLM 故障的降级方案
-            print(f"[{self.name}] LLM 调用失败，使用降级回复。")
-            reply = "抱歉，我现在的思绪有点乱（连接错误），请稍后再试。"
-            inner_voice = "系统错误"
-            emotion = "error"
-        else:
-            # 解析 JSON 输出
-            try:
-                # 使用增强的 JSON 提取器
-                parsed_response = extract_json(raw_response)
-                
-                if parsed_response:
-                    reply = parsed_response.get("reply", raw_response)
-                    inner_voice = parsed_response.get("inner_voice", "")
-                    emotion = parsed_response.get("emotion", "neutral")
-                else:
-                    raise ValueError("No valid JSON found")
-                    
-            except Exception as e:
-                # 如果解析失败，可能 LLM 并没有返回 JSON，而是直接返回了文本
-                # 这在工具调用后尤其常见，虽然 Prompt 要求 JSON，但 LLM 可能“忘”了
-                # 我们做个兼容：直接把 raw_response 当作 reply
-                logger.warning(f"[{self.name}] JSON解析失败 (使用原始文本): {e}")
-                reply = raw_response
-                inner_voice = "直接输出"
-                emotion = "neutral"
+            return "抱歉，我现在的思绪有点乱（连接错误），请稍后再试。", "系统错误", "error"
 
-        # 将新的一轮对话存入 ShortTerm Memory
+        try:
+            parsed = extract_json(raw_response)
+            if parsed:
+                return (
+                    parsed.get("reply", raw_response),
+                    parsed.get("inner_voice", ""),
+                    parsed.get("emotion", "neutral")
+                )
+        except Exception as e:
+            logger.warning(f"[{self.name}] JSON解析失败 (使用原始文本): {e}")
+            
+        return raw_response, "直接输出", "neutral"
+
+    def _finalize_interaction(self, user_input, reply, inner_voice, emotion, psyche_state, suggestion):
+        """保存记忆并发布最终事件"""
         self.memory.add_short_term("user", user_input)
         self.memory.add_short_term("assistant", reply)
         
-        # 发布 DriverResponse 事件到总线 (包含 Meta 数据)
         event_bus.publish(Event(
             type="driver_response",
             source="driver",
-            payload={"content": reply},
+            payload=DriverResponsePayload(content=reply),
             meta={
                 "inner_voice": inner_voice,
                 "user_emotion_detect": emotion,
@@ -395,11 +370,24 @@ class Driver:
                 "suggestion_ref": suggestion
             }
         ))
+
+    def _handle_deep_clean(self, user_input: str) -> str:
+        """处理深度维护指令"""
+        logger.info(f"[{self.name}] 收到深度维护指令，正在转发给 S 脑...")
+        reply = "好的，正在启动深度维护程序。这可能需要几分钟时间，请稍候..."
+        if hasattr(self.memory, 'navigator') and self.memory.navigator:
+            threading.Thread(target=self.memory.navigator.deep_clean_manager.perform_deep_clean, args=("manual",), daemon=True).start()
         
+        self.memory.add_short_term("user", user_input)
+        self.memory.add_short_term("assistant", reply)
+        event_bus.publish(Event(
+            type="driver_response",
+            source="driver",
+            payload=DriverResponsePayload(content=reply),
+            meta={"inner_voice": "系统维护"}
+        ))
         return reply
 
     def act(self, action):
-        """
-        执行具体行动。
-        """
-        print(f"[{self.name}] 执行行动: {action}")
+        """执行具体行动。[Deprecated: 行动已通过工具系统执行]"""
+        logger.warning(f"[{self.name}] act() 已废弃，请使用工具系统。Action: {action}")

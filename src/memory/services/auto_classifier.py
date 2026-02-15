@@ -174,5 +174,28 @@ class AutoClassifier:
         }
 
 
-# 全局实例 (使用 S脑 DeepSeek)
-auto_classifier = AutoClassifier(llm_provider="deepseek")
+_auto_classifier_instance: Optional[AutoClassifier] = None
+
+
+def get_auto_classifier() -> AutoClassifier:
+    """获取全局 AutoClassifier 实例（延迟初始化）。"""
+    global _auto_classifier_instance
+    if _auto_classifier_instance is None:
+        _auto_classifier_instance = AutoClassifier(llm_provider="deepseek")
+    return _auto_classifier_instance
+
+
+class _AutoClassifierProxy(AutoClassifier):
+    """延迟初始化代理类。"""
+
+    def __init__(self):
+        pass
+
+    def __getattribute__(self, name):
+        if name in ("__class__", "__instancecheck__", "__subclasscheck__"):
+            return super().__getattribute__(name)
+        return getattr(get_auto_classifier(), name)
+
+
+# 全局实例
+auto_classifier = _AutoClassifierProxy()

@@ -1,4 +1,6 @@
 
+import ast
+import operator
 import subprocess
 import os
 from datetime import datetime
@@ -20,9 +22,44 @@ from src.utils.logger import logger
 def get_current_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+# 安全运算符映射
+SAFE_OPERATORS = {
+    ast.Add: operator.add, 
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul, 
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow, 
+    ast.USub: operator.neg,
+}
+
+def _eval_node(node):
+    """递归评估 AST 节点"""
+    if isinstance(node, ast.Constant):
+        return node.value
+    elif isinstance(node, ast.BinOp):
+        op = SAFE_OPERATORS.get(type(node.op))
+        if op is None: 
+            raise ValueError(f"不支持的运算符: {type(node.op).__name__}")
+        return op(_eval_node(node.left), _eval_node(node.right))
+    elif isinstance(node, ast.UnaryOp):
+        op = SAFE_OPERATORS.get(type(node.op))
+        if op is None: 
+            raise ValueError(f"不支持的一元运算符")
+        return op(_eval_node(node.operand))
+    else:
+        raise ValueError(f"不支持的表达式类型: {type(node).__name__}")
+
+def safe_eval(expr: str):
+    """安全的数学表达式求值"""
+    try:
+        tree = ast.parse(expr, mode='eval')
+        return _eval_node(tree.body)
+    except Exception as e:
+        raise ValueError(f"计算失败: {e}")
+
 @ToolRegistry.register(
     name="calculate",
-    description="执行简单的数学计算 (Python eval)。",
+    description="执行简单的数学计算 (基于 AST 安全解析)。支持 +, -, *, /, **, ()",
     tier=ToolTier.FAST,
     schema={
         "type": "object",
@@ -34,17 +71,22 @@ def get_current_time():
 )
 def calculate(expression: str):
     try:
-        # 安全限制：仅允许简单算术
-        allowed = set("0123456789+-*/(). ")
-        if not all(c in allowed for c in expression):
-            return "Error: 仅支持简单算术表达式 (0-9, +, -, *, /, (, ))"
-        return str(eval(expression))
+        # 预清洗：移除所有空格
+        clean_expr = expression.replace(" ", "")
+        result = safe_eval(clean_expr)
+        return str(result)
     except Exception as e:
         return f"Error: {e}"
 
+DANGEROUS_COMMANDS = [
+    "rm ", "del ", "remove-item", "format-", 
+    "reg ", "net user", "shutdown", "restart",
+    "rmdir", "rd ", "wget", "curl", "Invoke-WebRequest"
+]
+
 @ToolRegistry.register(
     name="run_shell_command",
-    description="在系统终端执行 Shell 命令 (Windows PowerShell)。请谨慎使用。",
+    description="在系统终端执行 Shell 命令 (Windows PowerShell)。请谨慎使用。禁止执行删除、格式化或修改系统配置的危险操作。",
     tier=ToolTier.FAST,
     schema={
         "type": "object",
@@ -55,8 +97,13 @@ def calculate(expression: str):
     }
 )
 def run_shell_command(command: str):
+    command_lower = command.lower()
+    for danger in DANGEROUS_COMMANDS:
+        if danger in command_lower:
+            logger.warning(f"[SystemTools] 安全拦截危险命令: {command}")
+            return f"⚠️ 安全拦截: 命令包含危险关键词 '{danger}'。为了系统安全，请通过手动终端执行此类操作。"
+
     logger.info(f"[SystemTools] Executing shell command: {command}")
-    print(f"Executing shell command: {command}")
     try:
         # 使用 powershell 执行
         result = subprocess.run(["powershell", "-Command", command], capture_output=True, text=True, timeout=30)
@@ -165,5 +212,3 @@ def read_document(file_path: str, start_line: int = 0, end_line: int = 2000):
     except Exception as e:
         logger.error(f"[SystemTools] Read document failed: {e}", exc_info=True)
         return f"Error reading file: {e}"
-def read_skill(path: str):
-    return library_manager.checkout_skill(path)

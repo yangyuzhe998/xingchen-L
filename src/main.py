@@ -6,10 +6,11 @@ import asyncio
 import io
 
 # 强制设置环境编码为 UTF-8 (解决 Windows 终端乱码)
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-    os.environ["PYTHONUTF8"] = "1"
+# 强制设置环境编码为 UTF-8 (解决 Windows 终端乱码)
+# if sys.platform == 'win32':
+#     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+#     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+#     os.environ["PYTHONUTF8"] = "1"
 
 from src.utils.logger import logger
 

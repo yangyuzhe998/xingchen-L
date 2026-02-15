@@ -110,14 +110,37 @@ class WebApp(UserInterface):
             event_type = event_type.value
             
         if event_type == EventType.DRIVER_RESPONSE.value:
-            content = event.payload.get("content", "")
+            # Robust extraction
+            payload = event.payload
+            if hasattr(payload, "content"):
+                content = payload.content
+            elif isinstance(payload, dict):
+                content = payload.get("content", "")
+            else:
+                content = str(payload)
+                
             meta = event.meta
             self.display_message("assistant", content, meta)
+
+            # [P3-05] 推送内心独白（作为系统消息）
+            inner_voice = meta.get('inner_voice', '')
+            if inner_voice and inner_voice != "直接输出":
+                self.display_message("system", f"💭 {inner_voice}", 
+                                    {"type": "inner_voice"})
         
         elif event_type == EventType.NAVIGATOR_SUGGESTION.value:
-            suggestion = event.payload.get("content", "")
-            # Optional: push system notification
-            pass
+            payload = event.payload
+            if hasattr(payload, "content"):
+                suggestion = payload.content
+            elif isinstance(payload, dict):
+                suggestion = payload.get("content", "")
+            else:
+                suggestion = ""
+            
+            # [P3-05] 推送 S脑建议给前端
+            if suggestion:
+                self.display_message("system", f"🧭 S脑直觉: {suggestion}",
+                                    {"type": "navigator_suggestion"})
 
     # --- UserInterface Implementation ---
 
