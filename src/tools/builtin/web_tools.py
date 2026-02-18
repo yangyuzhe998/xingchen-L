@@ -1,6 +1,7 @@
 
 
 import asyncio
+import requests
 from src.tools.registry import ToolRegistry, ToolTier
 from src.utils.logger import logger
 
@@ -18,11 +19,121 @@ try:
     DDGS_AVAILABLE = True
 except ImportError:
     DDGS_AVAILABLE = False
-    logger.warning("[WebTools] duckduckgo-search not installed. 'web_search' tool will be disabled.")
+    logger.info("[WebTools] duckduckgo-search not available, using domestic search engines.")
+
+# Check for BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+    BS4_AVAILABLE = True
+except ImportError:
+    BS4_AVAILABLE = False
+    logger.warning("[WebTools] beautifulsoup4 not installed. Domestic search will be limited.")
+
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+}
+
+
+def _sogou_search(query: str, max_results: int = 5) -> str:
+    """使用搜狗搜索 (国内直连，无需 API Key)"""
+    if not BS4_AVAILABLE:
+        return None
+    try:
+        url = f"https://www.sogou.com/web?query={requests.utils.quote(query)}"
+        resp = requests.get(url, headers=_HEADERS, timeout=10)
+        resp.raise_for_status()
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+        results = []
+
+        for item in soup.select("div.vrwrap"):
+            a = item.select_one("h3 a") or item.select_one("a")
+            # 搜狗的摘要在 p.star-wiki 或 div.space-txt 或 p 标签内
+            snippet = item.select_one("p.star-wiki") or item.select_one("div.space-txt") or item.select_one("p")
+
+            if a:
+                title = a.get_text(strip=True)
+                href = a.get("href", "")
+                body = snippet.get_text(strip=True) if snippet else ""
+                results.append({"title": title, "href": href, "body": body})
+
+            if len(results) >= max_results:
+                break
+
+        if not results:
+            return None
+
+        formatted = ""
+        for i, r in enumerate(results):
+            formatted += f"{i+1}. [{r['title']}]({r['href']})\n   {r['body']}\n\n"
+        return formatted
+
+    except Exception as e:
+        logger.warning(f"[WebTools] Sogou search failed: {e}")
+        return None
+
+
+def _baidu_search(query: str, max_results: int = 5) -> str:
+    """使用百度搜索 (国内直连备选)"""
+    if not BS4_AVAILABLE:
+        return None
+    try:
+        url = f"https://www.baidu.com/s?wd={requests.utils.quote(query)}&rn={max_results}"
+        resp = requests.get(url, headers=_HEADERS, timeout=10)
+        resp.raise_for_status()
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+        results = []
+
+        for item in soup.select("div.c-container"):
+            a = item.select_one("h3 a")
+            snippet = item.select_one("span.content-right_8Zs40") or item.select_one("div.c-abstract") or item.select_one("p")
+
+            if a:
+                title = a.get_text(strip=True)
+                href = a.get("href", "")
+                body = snippet.get_text(strip=True) if snippet else ""
+                results.append({"title": title, "href": href, "body": body})
+
+            if len(results) >= max_results:
+                break
+
+        if not results:
+            return None
+
+        formatted = ""
+        for i, r in enumerate(results):
+            formatted += f"{i+1}. [{r['title']}]({r['href']})\n   {r['body']}\n\n"
+        return formatted
+
+    except Exception as e:
+        logger.warning(f"[WebTools] Baidu search failed: {e}")
+        return None
+
+
+def _ddg_search(query: str, max_results: int = 5) -> str:
+    """使用 DuckDuckGo 搜索 (需要翻墙)"""
+    if not DDGS_AVAILABLE:
+        return None
+    try:
+        results = DDGS().text(query, max_results=max_results)
+        if not results:
+            return None
+
+        formatted = ""
+        for i, r in enumerate(results):
+            formatted += f"{i+1}. [{r['title']}]({r['href']})\n   {r['body']}\n\n"
+        return formatted
+    except Exception as e:
+        logger.warning(f"[WebTools] DuckDuckGo search failed: {e}")
+        return None
+
 
 @ToolRegistry.register(
     name="web_search",
-    description="[国内可用/本地版] 使用 DuckDuckGo 进行网络搜索。支持获取搜索结果的标题、链接和摘要。",
+    description="[国内可用] 网络搜索。优先搜狗，备选百度/DuckDuckGo。",
     tier=ToolTier.SLOW,
     schema={
         "type": "object",
@@ -35,27 +146,19 @@ except ImportError:
 )
 def web_search(query: str, max_results: int = 5):
     """
-    使用 DuckDuckGo 搜索
+    智能搜索：搜狗 → 百度 → DuckDuckGo 逐级降级。
     """
-    if not DDGS_AVAILABLE:
-        return "Error: 缺少依赖 'duckduckgo-search'。请运行 `pip install duckduckgo-search`。"
-    
-    try:
-        logger.info(f"[WebTools] Searching for: {query} (Max: {max_results})")
-        results = DDGS().text(query, max_results=max_results)
-        if not results:
-            logger.info(f"[WebTools] No results found for: {query}")
-            return "No results found."
-            
-        formatted_results = ""
-        for i, r in enumerate(results):
-            formatted_results += f"{i+1}. [{r['title']}]({r['href']})\n   {r['body']}\n\n"
-        
-        logger.info(f"[WebTools] Search completed. Found {len(results)} results.")
-        return formatted_results
-    except Exception as e:
-        logger.error(f"[WebTools] Search failed: {e}", exc_info=True)
-        return f"Search Error: {str(e)}"
+    logger.info(f"[WebTools] Searching for: {query} (Max: {max_results})")
+
+    # 策略: 搜狗优先 → 百度备选 → DuckDuckGo 最后
+    for name, fn in [("Sogou", _sogou_search), ("Baidu", _baidu_search), ("DuckDuckGo", _ddg_search)]:
+        result = fn(query, max_results)
+        if result:
+            logger.info(f"[WebTools] ✅ {name} search succeeded.")
+            return result
+        logger.info(f"[WebTools] {name} unavailable, trying next...")
+
+    return f"搜索失败：所有搜索引擎均无法获取结果。请检查网络连接。(Query: {query})"
 
 import os
 import hashlib

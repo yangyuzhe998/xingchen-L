@@ -34,11 +34,13 @@ class MemoryService:
         try:
             db_knowledge = self.knowledge_db.get_knowledge(limit=1000)
             for item in db_knowledge:
+                meta = json.loads(item.get("meta", "{}")) if item.get("meta") else {}
                 self.long_term.append(LongTermMemoryEntry(
                     content=item.get("content", ""),
                     category=item.get("category", "fact"),
                     created_at=item.get("created_at", datetime.now().isoformat()),
-                    metadata=json.loads(item.get("meta", "{}")) if item.get("meta") else {}
+                    metadata=meta,
+                    emotional_tag=meta.get("emotional_tag", {})  # 恢复情感标签
                 ))
             logger.info(f"[Memory] 从 KnowledgeDB 加载了 {len(self.long_term)} 条长期记忆。")
         except Exception as e:
@@ -176,70 +178,65 @@ class MemoryService:
         :param search_mode: "keyword" (精准) | "hybrid" (混合/S脑用)
         """
         if limit is None: limit = settings.DEFAULT_LONG_TERM_LIMIT
-        results = []
         
-        # 1. 关键词匹配 (基础)
-        keyword_hits = []
+        # 1. 执行检索逻辑并获取匹配的对象条目 (Helper Logic)
+        matched_entries: List[LongTermMemoryEntry] = []
+        
+        # 关键词匹配逻辑
         if query:
             query_lower = query.lower()
             for entry in self.long_term:
-                content = entry.content
-                if query_lower in content.lower():
-                    keyword_hits.append(content)
+                if query_lower in entry.content.lower():
+                    matched_entries.append(entry)
         
-        # 2. 向量检索 (S脑增强)
-        vector_hits = []
+        # 2. [Phase 3.3] 触景生情：提取情感标签并产生轻微影响
+        from src.psyche import psyche_engine
+        emotional_impact = {}
+        for entry in matched_entries[:limit]:
+            if hasattr(entry, 'emotional_tag') and entry.emotional_tag:
+                for emo, val in entry.emotional_tag.items():
+                    # 以 0.1 的弱化系数影响当前情绪
+                    emotional_impact[emo] = emotional_impact.get(emo, 0) + float(val) * 0.1
+        
+        if emotional_impact:
+            psyche_engine.apply_emotion(emotional_impact)
+            logger.debug(f"[Memory] 触景生情：检索触发情绪反馈 {emotional_impact}")
+
+        # 3. 构造返回文本 (保持原有兼容性)
+        results = [e.content for e in matched_entries[:limit]]
+
+        # 4. 向量检索 (S脑增强 - 保持原有逻辑)
         if search_mode == "hybrid" and query:
              collection = self.vector_storage.get_memory_collection()
              if collection:
                  try:
-                     # 向量检索逻辑
                      search_res = collection.query(query_texts=[query], n_results=limit)
                      if search_res and search_res['documents']:
-                         vector_hits = search_res['documents'][0]
+                         vector_docs = search_res['documents'][0]
+                         results = list(dict.fromkeys(results + vector_docs))
                  except Exception as e:
                      logger.warning(f"[Memory] Vector search failed: {e}")
        
-        # 3. 图谱检索 (Graph Search - Phase 7)
+        # 5. 图谱检索 (保持原有逻辑)
         graph_context = []
         if search_mode == "hybrid" and query:
             try:
-                # A. 实体链接 (Entity Linking)
                 found_nodes = self.knowledge_db.find_nodes_in_text(query)
-                
-                # B. 扩散激活 (Spreading Activation)
                 seen_nodes = set(found_nodes)
                 for node in found_nodes:
-                    # 获取直接关联的节点 (1-hop)
                     related = self.knowledge_db.get_related_nodes(node, limit=3)
                     for rel in related:
-                        neighbor = rel['neighbor']
-                        relation = rel['relation']
-                        if neighbor not in seen_nodes:
-                            # 格式化为自然语言: "Python --[RELATED_TO]--> Spider"
-                            graph_context.append(f"Knowledge: {node} --[{relation}]--> {neighbor}")
-                            seen_nodes.add(neighbor)
+                        if rel['neighbor'] not in seen_nodes:
+                            graph_context.append(f"Knowledge: {node} --[{rel['relation']}]--> {rel['neighbor']}")
+                            seen_nodes.add(rel['neighbor'])
             except Exception as e:
                 logger.warning(f"[Memory] Graph search failed: {e}")
 
-        # 合并逻辑
-        if search_mode == "hybrid":
-             # 混合模式：优先关键词，补充向量联想，去重，最后附带图谱上下文
-             # 1. Memory Hits (Keyword + Vector)
-             memory_hits = list(dict.fromkeys(keyword_hits + vector_hits))
-             
-             # 2. Results composition
-             results = memory_hits
-             
-             # 3. Append Graph Context (if any)
-             if graph_context:
-                 results.append("\n--- Related Knowledge (Graph) ---")
-                 results.extend(graph_context)
-        else:
-             # 默认模式：仅关键词
-             results = keyword_hits
+        if search_mode == "hybrid" and graph_context:
+            results.append("\n--- Related Knowledge (Graph) ---")
+            results.extend(graph_context)
 
-        # 兜底：如果没查到，返回最新的几条事实（避免空上下文）
+        # 兜底：如果没查到，返回最新的几条事实
         if not results and limit > 0:
              results = [e.content for e in self.long_term[-limit:]]
             
@@ -248,17 +245,36 @@ class MemoryService:
     def add_long_term(self, content, category="fact"):
         """
         添加长期记忆 (统一写入路径，支持双库幂等)
+        [Phase 3] 自动附带当前情绪快照
         """
         import hashlib
+        from src.psyche import psyche_engine
+
+        # 抓取当前即时情绪作为标签
+        current_emotions = {
+            k: v["value"] for k, v in psyche_engine.get_raw_state().get("emotions", {}).items()
+        }
+
         memory_id = hashlib.md5(f"{category}::{content}".encode()).hexdigest()
-        entry = LongTermMemoryEntry(content=content, category=category)
+        entry = LongTermMemoryEntry(
+            content=content, 
+            category=category,
+            emotional_tag=current_emotions
+        )
         
+        # 合并元数据
+        meta_to_save = {
+            "emotional_tag": current_emotions,
+            "source": "user_interaction"
+        }
+
         # 1. 存入 KnowledgeDB (权威真相源，支持 md5 幂等)
         try:
             db_id = self.knowledge_db.add_knowledge(
                 content=content, 
                 category=category,
-                source="user_interaction"
+                source="user_interaction",
+                meta=json.dumps(meta_to_save, ensure_ascii=False)
             )
         except Exception as e:
             logger.error(f"[Memory] KnowledgeDB 写入失败: {e}", exc_info=True)
@@ -270,7 +286,11 @@ class MemoryService:
                 # 使用 memory_id 确保 ChromaDB 不会重复存储相同内容的向量
                 collection.upsert(
                     documents=[content],
-                    metadatas=[{"category": category, "timestamp": entry.created_at}],
+                    metadatas=[{
+                        "category": category, 
+                        "timestamp": entry.created_at,
+                        "emotional_tag": json.dumps(current_emotions)
+                    }],
                     ids=[f"mem_{memory_id}"]
                 )
             except Exception as e:

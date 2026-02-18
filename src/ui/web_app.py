@@ -1,8 +1,10 @@
 
 import os
+import json
 import asyncio
-from typing import Dict, Any, Callable
-from fastapi import FastAPI, Request, WebSocket
+from typing import Dict, Any, Callable, Optional
+from fastapi import FastAPI, Request, WebSocket, Depends, HTTPException, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -12,6 +14,25 @@ from pydantic import BaseModel
 from src.interfaces.ui_interface import UserInterface
 from src.utils.logger import logger
 from src.core.bus.event_bus import event_bus, Event
+from src.config.settings.settings import settings
+
+security = HTTPBearer(auto_error=False)
+
+def verify_api_key(request: Request, auth: Optional[HTTPAuthorizationCredentials] = Security(security)):
+    """验证 API Key，支持 Header (Bearer) 或 Query Parameter (key)"""
+    # 优先尝试从 Header 获取
+    token = auth.credentials if auth else None
+    
+    # 备选：从查询参数获取 (为了兼容 SSE/EventSource)
+    if not token:
+        token = request.query_params.get("key")
+        
+    if not token or token != settings.WEB_API_KEY:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid or missing API Key"
+        )
+    return token
 
 class WebApp(UserInterface):
     """
@@ -37,6 +58,7 @@ class WebApp(UserInterface):
         self.app.mount("/static", StaticFiles(directory=self.static_dir), name="static")
         
         self._main_loop = None
+        self._is_subscribed = False # [Fix] 订阅标志位
 
         # Register Routes
         self._register_routes()
@@ -45,9 +67,11 @@ class WebApp(UserInterface):
         async def startup_event():
             self._main_loop = asyncio.get_running_loop()
             logger.info(f"Web UI Main Loop Captured: {self._main_loop}")
-        
-        # Subscribe to EventBus
-        event_bus.subscribe(self._on_bus_event)
+            # 仅在启动时订阅一次
+            if not self._is_subscribed:
+                event_bus.subscribe(self._on_bus_event)
+                self._is_subscribed = True
+                logger.info("EventBus subscribed by WebApp.")
 
     def _register_routes(self):
         @self.app.get("/", response_class=HTMLResponse)
@@ -55,7 +79,7 @@ class WebApp(UserInterface):
             return self.templates.TemplateResponse("index.html", {"request": request})
 
         @self.app.post("/api/chat")
-        async def chat(request: Request):
+        async def chat(request: Request, _ = Depends(verify_api_key)):
             data = await request.json()
             user_input = data.get("content")
             if not user_input:
@@ -72,7 +96,7 @@ class WebApp(UserInterface):
             return {"status": "ok"}
 
         @self.app.get("/api/stream")
-        async def stream(request: Request):
+        async def stream(request: Request, _ = Depends(verify_api_key)):
             """SSE Stream for pushing messages to frontend"""
             async def event_generator():
                 while True:
@@ -108,39 +132,72 @@ class WebApp(UserInterface):
         # 如果 event.type 是枚举，获取其 value
         if hasattr(event_type, "value"):
             event_type = event_type.value
-            
-        if event_type == EventType.DRIVER_RESPONSE.value:
-            # Robust extraction
-            payload = event.payload
+
+        # Helper: 统一从 payload 中提取 content
+        def extract_content(payload):
             if hasattr(payload, "content"):
-                content = payload.content
-            elif isinstance(payload, dict):
-                content = payload.get("content", "")
-            else:
-                content = str(payload)
-                
+                return payload.content
+            if isinstance(payload, dict):
+                return payload.get("content", "")
+            return str(payload)
+
+        if event_type == EventType.DRIVER_RESPONSE.value:
+            content = extract_content(event.payload)
             meta = event.meta
             self.display_message("assistant", content, meta)
-
+        
             # [P3-05] 推送内心独白（作为系统消息）
             inner_voice = meta.get('inner_voice', '')
             if inner_voice and inner_voice != "直接输出":
                 self.display_message("system", f"💭 {inner_voice}", 
                                     {"type": "inner_voice"})
         
+        elif event_type == EventType.USER_INPUT.value:
+            # [Phase 7] 处理用户输入事件，同步到 UI
+            content = extract_content(event.payload)
+            self.display_message("user", content, event.meta)
+
         elif event_type == EventType.NAVIGATOR_SUGGESTION.value:
-            payload = event.payload
-            if hasattr(payload, "content"):
-                suggestion = payload.content
-            elif isinstance(payload, dict):
-                suggestion = payload.get("content", "")
-            else:
-                suggestion = ""
+            content = extract_content(event.payload)
             
             # [P3-05] 推送 S脑建议给前端
-            if suggestion:
-                self.display_message("system", f"🧭 S脑直觉: {suggestion}",
+            if content:
+                self.display_message("system", f"🧭 S脑直觉: {content}",
                                     {"type": "navigator_suggestion"})
+
+        elif event_type == "psyche_update" or event_type == "psyche_delta":
+            # [Phase 6.4] 推送心智与情绪状态给前端展示面板
+            from src.psyche import psyche_engine
+            state = psyche_engine.get_raw_state()
+            
+            msg_data = {
+                "role": "system_status",
+                "content": "psyche_update",
+                "meta": {
+                    "dimensions": {k: v["value"] for k, v in state.get("dimensions", {}).items()},
+                    "emotions": {k: v["value"] for k, v in state.get("emotions", {}).items()},
+                    "narrative": state.get("narrative", "")
+                }
+            }
+            # 推送到 SSE 队列
+            asyncio.run_coroutine_threadsafe(
+                self._message_queue.put(json.dumps(msg_data)), 
+                self._main_loop
+            ) if self._main_loop else None
+
+        elif event_type == "system_heartbeat":
+            # [Phase 6.5] 推送系统心跳 (存活状态、Uptime、统计)
+            msg_data = {
+                "role": "system_status",
+                "content": "heartbeat",
+                "meta": event.meta
+            }
+            if self._main_loop:
+                asyncio.run_coroutine_threadsafe(
+                    self._message_queue.put(json.dumps(msg_data)), 
+                    self._main_loop
+                )
+
 
     # --- UserInterface Implementation ---
 

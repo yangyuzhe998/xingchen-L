@@ -6,7 +6,6 @@ import asyncio
 import io
 
 # 强制设置环境编码为 UTF-8 (解决 Windows 终端乱码)
-# 强制设置环境编码为 UTF-8 (解决 Windows 终端乱码)
 # if sys.platform == 'win32':
 #     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 #     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
@@ -88,22 +87,16 @@ def create_app():
     
     return web_ui.app
 
-# 为 Uvicorn 暴露 app 对象
-if os.environ.get("LAUNCH_MODE") == "web":
-    app = create_app()
-
 def start_web():
     """启动 Web Server 模式 (同步入口)"""
-    os.environ["LAUNCH_MODE"] = "web"
-    # 重新导入以触发 app 创建
-    import importlib
-    import src.main
-    importlib.reload(src.main)
+    # [Fix] 不再使用 importlib.reload，直接调用 create_app()
+    # 旧方式会导致 WebApp 被初始化两次，EventBus 注册重复 subscriber
+    web_app = create_app()
     
     logger.info("正在启动 Uvicorn 服务器...")
     logger.info("\n🌐 Web UI 访问地址: http://127.0.0.1:8000\n")
     
-    uvicorn.run("src.main:app", host="127.0.0.1", port=8000, log_level="info", reload=False)
+    uvicorn.run(web_app, host="127.0.0.1", port=8000, log_level="info")
 
 
 def main():

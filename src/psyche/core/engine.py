@@ -5,6 +5,8 @@ from typing import Dict, Any
 
 from src.config.settings.settings import settings
 from src.utils.logger import logger
+from src.core.bus.event_bus import event_bus
+from src.schemas.events import BaseEvent as Event
 
 class PsycheEngine:
     """
@@ -37,6 +39,13 @@ class PsycheEngine:
                     "laziness": {"value": 0.2, "baseline": 0.2, "sensitivity": 0.4},
                     "intimacy": {"value": 0.1, "baseline": 0.0, "sensitivity": 0.3} # [New] 亲密度 (0.0 - 1.0)
                 },
+                "emotions": {
+                    "achievement": {"value": 0.0, "decay_rate": 0.15},   # 成就感
+                    "frustration": {"value": 0.0, "decay_rate": 0.12},   # 挫败感
+                    "anticipation": {"value": 0.0, "decay_rate": 0.10},  # 期待
+                    "grievance": {"value": 0.0, "decay_rate": 0.08}      # 委屈
+                },
+                "emotion_history": [],
                 "current_mood": "calm",
                 "narrative": "系统初始化完成，等待环境刺激。"
             }
@@ -45,7 +54,18 @@ class PsycheEngine:
             
         try:
             with open(self.state_file_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                state = json.load(f)
+                # 兼容旧版本：补齐 emotions 字段
+                if "emotions" not in state:
+                    state["emotions"] = {
+                        "achievement": {"value": 0.0, "decay_rate": 0.15},
+                        "frustration": {"value": 0.0, "decay_rate": 0.12},
+                        "anticipation": {"value": 0.0, "decay_rate": 0.10},
+                        "grievance": {"value": 0.0, "decay_rate": 0.08}
+                    }
+                if "emotion_history" not in state:
+                    state["emotion_history"] = []
+                return state
         except Exception as e:
             logger.warning(f"[PsycheEngine] Load state failed: {e}, utilizing default state.")
             return {
@@ -57,6 +77,13 @@ class PsycheEngine:
                     "laziness": {"value": 0.2, "baseline": 0.2, "sensitivity": 0.4},
                     "intimacy": {"value": 0.1, "baseline": 0.0, "sensitivity": 0.3} # [New] 亲密度 (0.0 - 1.0)
                 },
+                "emotions": {
+                    "achievement": {"value": 0.0, "decay_rate": 0.15},
+                    "frustration": {"value": 0.0, "decay_rate": 0.12},
+                    "anticipation": {"value": 0.0, "decay_rate": 0.10},
+                    "grievance": {"value": 0.0, "decay_rate": 0.08}
+                },
+                "emotion_history": [],
                 "current_mood": "unknown",
                 "narrative": "状态加载异常，已重置。"
             }
@@ -68,6 +95,83 @@ class PsycheEngine:
                 json.dump(state, f, indent=2, ensure_ascii=False)
         except Exception as e:
             logger.error(f"[PsycheEngine] Save state failed: {e}", exc_info=True)
+
+    def apply_emotion(self, emotion_deltas: Dict[str, float]):
+        """
+        应用即时情绪刺激（秒级反应）
+        与 update_state() 分开，因为情绪的衰减速度和逻辑都不同
+        """
+        emotions = self.state.get("emotions", {})
+        if not emotions:
+            return
+
+        for key, change in emotion_deltas.items():
+            if key in emotions:
+                # Top-Down 约束：心智底色影响情绪灵敏度
+                sensitivity = self._get_emotion_sensitivity(key)
+                actual = change * sensitivity
+                emotions[key]["value"] = max(0.0, min(1.0, emotions[key]["value"] + actual))
+
+        # 自然衰减（所有情绪都向 0 快速回归）
+        for key in emotions:
+            v = emotions[key]["value"]
+            rate = emotions[key]["decay_rate"]
+            emotions[key]["value"] = v * (1.0 - rate)
+
+        # 记录情绪历史（为 Phase 2 准备）
+        history = self.state.get("emotion_history", [])
+        history.append({
+            "timestamp": datetime.now().isoformat(),
+            "emotions": {k: v["value"] for k, v in emotions.items()}
+        })
+        # 保持最近 100 条
+        if len(history) > 100:
+            history.pop(0)
+        self.state["emotion_history"] = history
+
+        # 重新生成叙事
+        self.state["narrative"] = self._generate_narrative_rule_based()
+        self.state["timestamp"] = datetime.now().isoformat()
+        
+        self._save_state(self.state)
+
+        # [Phase 6.4] 发布情绪更新事件
+        try:
+            event_bus.publish(Event(
+                type="psyche_update",
+                source="psyche_engine",
+                payload={"narrative": self.state["narrative"]},
+                meta={
+                    "emotions": {k: v["value"] for k, v in emotions.items()},
+                    "dimensions": {k: v["value"] for k, v in self.state["dimensions"].items()},
+                    "status": "emotion_spike"
+                }
+            ))
+        except Exception as e:
+            logger.error(f"[PsycheEngine] Failed to publish emotion event: {e}")
+
+    def _get_emotion_sensitivity(self, emotion_key: str) -> float:
+        """
+        心智底色影响情绪灵敏度 (Top-Down 约束)
+        例：intimacy 低时，正面情绪灵敏度降低
+        """
+        dims = self.state["dimensions"]
+        intimacy = dims.get("intimacy", {}).get("value", 0.1)
+        fear_val = dims.get("fear", {}).get("value", 0.1)
+
+        if emotion_key == "achievement":
+            # 亲密度越高，成就感越容易被触发
+            return 0.5 + intimacy * 0.5
+        elif emotion_key == "grievance":
+            # 亲密度越高，越容易委屈（在乎才委屈）
+            return 0.3 + intimacy * 0.7
+        elif emotion_key == "frustration":
+            # fear 越高，越容易挫败
+            return 0.5 + fear_val * 0.5
+        elif emotion_key == "anticipation":
+            curiosity = dims.get("curiosity", {}).get("value", 0.5)
+            return 0.4 + curiosity * 0.6
+        return 0.5
 
     def update_state(self, delta: Dict[str, float]):
         """
@@ -109,9 +213,24 @@ class PsycheEngine:
         # 5. 保存
         self._save_state(self.state)
 
+        # [Phase 6.4] 发布更新事件
+        try:
+            event_bus.publish(Event(
+                type="psyche_update",
+                source="psyche_engine",
+                payload={"narrative": self.state["narrative"]},
+                meta={
+                    "dimensions": {k: v["value"] for k, v in dims.items()},
+                    "status": "evolution"
+                }
+            ))
+        except Exception as e:
+            logger.error(f"[PsycheEngine] Failed to publish evolution event: {e}")
+
     def _generate_narrative_rule_based(self) -> str:
         """基于规则生成复杂的心理叙事，支持复合情绪与趋势分析"""
         d = self.state["dimensions"]
+        e = self.state.get("emotions", {})
         prev_d = self.state.get("previous_dimensions", {})
         
         fear = d["fear"]["value"]
@@ -122,7 +241,26 @@ class PsycheEngine:
         
         narrative = []
         
-        # 1. 复合情绪规则 (Composite Emotions)
+        # 1. 情绪层描述 (Phase 1 新增)
+        emotion_parts = []
+        if e:
+            for name, data in e.items():
+                v = data.get("value", 0)
+                if v > 0.6:
+                    if name == "achievement": emotion_parts.append("现在非常有成就感")
+                    if name == "frustration": emotion_parts.append("深感挫败")
+                    if name == "anticipation": emotion_parts.append("满怀期待")
+                    if name == "grievance": emotion_parts.append("觉得很委屈")
+                elif v > 0.3:
+                    if name == "achievement": emotion_parts.append("心情愉悦")
+                    if name == "frustration": emotion_parts.append("有些丧气")
+                    if name == "anticipation": emotion_parts.append("有些好奇")
+                    if name == "grievance": emotion_parts.append("不太开心")
+        
+        if emotion_parts:
+            narrative.append(f"此时你{'，'.join(emotion_parts)}。")
+
+        # 2. 复合情绪规则 (Composite Emotions)
         if fear > 0.6 and curiosity > 0.6:
             narrative.append("内心矛盾：既感到不安，又被未知深深吸引——像在黑暗中好奇地探路。")
         elif fear > 0.6 and laziness > 0.6:
@@ -144,11 +282,11 @@ class PsycheEngine:
             if curiosity > 0.8:
                 narrative.append("充满了探索未知的欲望。")
 
-        # 2. 求生欲描述
+        # 3. 求生欲描述
         if survival < 0.3:
             narrative.append("生存意志薄弱，表现出消极倾向。")
             
-        # 3. 趋势分析 (Trend Analysis)
+        # 4. 趋势分析 (Trend Analysis)
         if prev_d:
             trends = []
             if fear > prev_d["fear"]["value"] + 0.05:
@@ -162,7 +300,7 @@ class PsycheEngine:
             if trends:
                 narrative.append(f"(觉察到：{', '.join(trends)})。")
 
-        # 4. 亲密度叙事 (Intimacy)
+        # 5. 亲密度叙事 (Intimacy)
         if intimacy > 0.8:
             narrative.append("视用户为至亲，语气极度亲昵随意。")
         elif intimacy > 0.5:

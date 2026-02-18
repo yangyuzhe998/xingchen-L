@@ -1,26 +1,42 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XingChen-V</title>
+    <title>星辰-V 数字化生命</title>
     <style>
         :root {
-            --bg-color: #1e1e1e;
-            --text-color: #d4d4d4;
-            --accent-color: #007acc;
-            --user-msg-bg: #2d2d2d;
-            --ai-msg-bg: #252526;
+            --bg-color: #0d1117;
+            --sidebar-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent-color: #58a6ff;
+            --user-msg-bg: #1f6feb;
+            --ai-msg-bg: #21262d;
+            --border-color: #30363d;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             display: flex;
-            flex-direction: column;
             height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        #main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         #chat-container {
             flex: 1;
@@ -31,95 +47,209 @@
             gap: 15px;
         }
         .message {
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 8px;
-            line-height: 1.5;
-            position: relative;
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            word-wrap: break-word;
         }
         .message.user {
             align-self: flex-end;
             background-color: var(--user-msg-bg);
-            border-bottom-right-radius: 2px;
+            color: white;
         }
         .message.assistant {
             align-self: flex-start;
             background-color: var(--ai-msg-bg);
-            border-bottom-left-radius: 2px;
-            border-left: 3px solid var(--accent-color);
+            border: 1px solid var(--border-color);
+        }
+        .message.system {
+            align-self: center;
+            background-color: transparent;
+            color: #8b949e;
+            font-size: 0.9em;
+            max-width: 100%;
+            text-align: center;
+            border: 1px dashed var(--border-color);
         }
         .meta-info {
-            font-size: 0.8em;
-            color: #888;
-            margin-top: 5px;
-            font-style: italic;
+            font-size: 0.85em;
+            color: #8b949e;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #30363d;
         }
         #input-area {
             padding: 20px;
-            background-color: #252526;
-            border-top: 1px solid #333;
+            background-color: var(--bg-color);
+            border-top: 1px solid var(--border-color);
             display: flex;
             gap: 10px;
         }
         #message-input {
             flex: 1;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #3e3e42;
-            background-color: #1e1e1e;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #0d1117;
             color: white;
-            font-family: inherit;
+            font-size: 1em;
         }
         #send-btn {
-            padding: 10px 20px;
-            background-color: var(--accent-color);
+            padding: 0 20px;
+            background-color: #238636;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             color: white;
             cursor: pointer;
+            font-weight: bold;
         }
-        #send-btn:hover {
-            background-color: #0062a3;
-        }
+        #send-btn:hover { background-color: #2ea043; }
+
+        /* Dashboard Styles */
+        .stat-group { margin-bottom: 25px; }
+        .stat-title { font-size: 0.8em; color: #8b949e; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .stat-item { margin-bottom: 12px; }
+        .stat-label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 4px; }
+        .stat-bar-bg { height: 6px; background: #30363d; border-radius: 3px; overflow: hidden; }
+        .stat-bar-fill { height: 100%; background: var(--accent-color); transition: width 0.5s ease; }
+        .narrative-box { font-size: 0.85em; line-height: 1.5; color: #8b949e; font-style: italic; background: #161b22; padding: 10px; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <div class="message assistant">
-            XingChen-V Online. How can I help you?
+    <div id="sidebar">
+        <h2 style="font-size: 1.2em; margin-top: 0;">星辰-V 核心状态</h2>
+        
+        <div class="stat-group">
+            <div class="stat-title">心智维度 (洋流)</div>
+            <div id="dimensions-container">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-title">即时情绪 (波纹)</div>
+            <div id="emotions-container">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-title">系统状态</div>
+            <div id="system-stats" class="narrative-box" style="font-style: normal; margin-top: 10px;">
+                Uptime: <span id="uptime-val">---</span><br>
+                记忆总量: <span id="mem-count">---</span>
+            </div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-title">心理叙事</div>
+            <div id="narrative-content" class="narrative-box">正在加载心智状态...</div>
         </div>
     </div>
-    <div id="input-area">
-        <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
-        <button id="send-btn">Send</button>
+
+    <div id="main-chat">
+        <div id="chat-container">
+            <div class="message assistant">
+                星辰-V 已上线。系统处于生产硬化模式，心智演化已同步。
+            </div>
+        </div>
+        <div id="input-area">
+            <input type="text" id="message-input" placeholder="输入消息..." autocomplete="off">
+            <button id="send-btn">发送</button>
+        </div>
     </div>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
         const inputField = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
+        
+        const dimContainer = document.getElementById('dimensions-container');
+        const emoContainer = document.getElementById('emotions-container');
+        const narrativeBox = document.getElementById('narrative-content');
+        const uptimeVal = document.getElementById('uptime-val');
+        const memCount = document.getElementById('mem-count');
 
-        // SSE Connection
-        const eventSource = new EventSource('/api/stream');
+        // 中英文标签映射
+        const CN_LABELS = {
+            // 心智维度
+            'fear': '恐惧',
+            'survival': '生存欲',
+            'curiosity': '好奇心',
+            'laziness': '惰性',
+            'intimacy': '亲密度',
+            // 即时情绪
+            'achievement': '成就感',
+            'frustration': '挫败感',
+            'anticipation': '期待',
+            'grievance': '委屈'
+        };
+
+        // 从 URL 参数或 localStorage 获取 API Key
+        const urlParams = new URLSearchParams(window.location.search);
+        const apiKey = urlParams.get('key') || localStorage.getItem('web_api_key') || 'default_secret_key_change_me';
+
+        // SSE Connection with simple auth (query param or fallback)
+        const eventSource = new EventSource(`/api/stream?key=${apiKey}`);
         
         eventSource.onmessage = function(event) {
             const data = JSON.parse(event.data);
-            appendMessage(data.role, data.content, data.meta);
+            if (data.role === 'system_status') {
+                updateDashboard(data.content, data.meta);
+            } else {
+                appendMessage(data.role, data.content, data.meta);
+            }
         };
+
+        function updateDashboard(type, meta) {
+            if (type === 'psyche_update') {
+                if (meta.dimensions) {
+                    renderBars(dimContainer, meta.dimensions, '#58a6ff');
+                }
+                if (meta.emotions) {
+                    renderBars(emoContainer, meta.emotions, '#ff7b72');
+                }
+                if (meta.narrative) {
+                    narrativeBox.textContent = meta.narrative;
+                }
+            } else if (type === 'heartbeat') {
+                if (meta.uptime_str) {
+                    uptimeVal.textContent = meta.uptime_str;
+                }
+                if (meta.memory_stats) {
+                    const stats = meta.memory_stats;
+                    memCount.textContent = `${stats.facts || 0} 事实 / ${stats.topics || 0} 话题`;
+                }
+            }
+        }
+
+        function renderBars(container, data, color) {
+            container.innerHTML = '';
+            for (const [key, val] of Object.entries(data)) {
+                const item = document.createElement('div');
+                item.className = 'stat-item';
+                const label = CN_LABELS[key] || key;
+                const percent = (val * 100).toFixed(0) + '%';
+                item.innerHTML = `
+                    <div class="stat-label"><span>${label}</span><span>${percent}</span></div>
+                    <div class="stat-bar-bg"><div class="stat-bar-fill" style="width: ${percent}; background: ${color}"></div></div>
+                `;
+                container.appendChild(item);
+            }
+        }
 
         function appendMessage(role, content, meta) {
             const div = document.createElement('div');
             div.className = `message ${role}`;
             
-            // Content
             let htmlContent = content.replace(/\n/g, '<br>');
             div.innerHTML = htmlContent;
 
-            // Meta (Inner Voice)
-            if (meta && meta.inner_voice) {
+            if (meta && meta.inner_voice && meta.inner_voice !== "系统维护") {
                 const metaDiv = document.createElement('div');
                 metaDiv.className = 'meta-info';
-                metaDiv.textContent = `(${meta.inner_voice})`;
+                metaDiv.textContent = `💭 ${meta.inner_voice}`;
                 div.appendChild(metaDiv);
             }
 
@@ -131,7 +261,6 @@
             const text = inputField.value.trim();
             if (!text) return;
 
-            // Optimistic UI update
             appendMessage('user', text);
             inputField.value = '';
 
@@ -139,12 +268,13 @@
                 await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({ content: text })
                 });
             } catch (error) {
-                console.error('Send failed:', error);
+                console.error('发送失败:', error);
             }
         }
 

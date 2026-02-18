@@ -11,7 +11,7 @@ from src.memory.memory_core import Memory
 from src.core.bus.event_bus import event_bus
 from src.schemas.events import BaseEvent as Event, DriverResponsePayload, UserInputPayload
 from src.core.managers.library_manager import library_manager
-from src.psyche import psyche_engine, mind_link
+from src.psyche import psyche_engine, mind_link, value_system
 from src.config.prompts.prompts import DRIVER_SYSTEM_PROMPT, PROACTIVE_DRIVER_PROMPT
 from src.config.settings.settings import settings
 from src.tools.registry import tool_registry
@@ -34,6 +34,8 @@ class Driver:
         event_bus.subscribe(self._on_event)
         self._thinking_lock = threading.Lock() # 防止思考冲突
         self.last_interaction_time = 0 # 上次互动时间 (Unix Timestamp)
+        self._last_tool_success = False
+        self._last_tool_failed = False
         
         logger.info(f"[{self.name}] 初始化完成。模型: {self.llm.model}。")
 
@@ -76,7 +78,17 @@ class Driver:
             logger.info(f"[{self.name}] 处于冷却期({dynamic_cooldown:.1f}s)，跳过主动发言指令: {instr_str[:50]}...")
             return
 
-        # 如果正在思考（处理用户输入），则忽略这次主动尝试
+        # [Fix] 2. 社交礼仪检查：如果上一句是 AI 提问且用户未回，严禁插嘴
+        recent_history = self.memory.get_recent_history(limit=1)
+        if recent_history:
+            last_msg = recent_history[-1]
+            if last_msg.get("role") == "assistant":
+                content = last_msg.get("content", "").strip()
+                if content.endswith(("?", "？", "呢", "吗")):
+                    logger.info(f"[{self.name}] 正在等待用户回答上一个问题，静默本次主动指令。")
+                    return
+
+        # 3. 正在思考锁检查
         if not self._thinking_lock.acquire(blocking=False):
             logger.info(f"[{self.name}] 正在忙于回复用户，忽略主动干预指令: {instruction}")
             return
@@ -171,6 +183,10 @@ class Driver:
 
     def _think_internal(self, user_input, psyche_state=None, suggestion=""):
         """重构后的内部思考流程"""
+        # Phase 1.4: 重置工具执行状态
+        self._last_tool_success = False
+        self._last_tool_failed = False
+
         # 1. 深度维护检查 (保持原有的手动触发逻辑)
         if "深度维护" in user_input or "/deep_clean" in user_input:
             return self._handle_deep_clean(user_input)
@@ -246,9 +262,17 @@ class Driver:
         all_tools = tool_registry.get_tools()
         tool_list_str = "".join([f"- {t.name}: {t.description}\n" for t in all_tools])
 
+        # --- [Phase 4.3] 获取生效的自发规矩 ---
+        active_values = value_system.get_active_values()
+        if active_values:
+            value_constraints_str = "\n".join([f"{i+1}. {v}" for i, v in enumerate(active_values)])
+        else:
+            value_constraints_str = "暂无特定的自我准则。"
+
         return {
             "current_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "psyche_desc": current_psyche,
+            "value_constraints": value_constraints_str,
             "suggestion": intuition,
             "long_term_context": long_term_context,
             "skill_info": skill_info,
@@ -322,7 +346,7 @@ class Driver:
         return raw_response
 
     def _execute_tool(self, tool_call) -> str:
-        """执行单个工具调用"""
+        """执行单个工具调用并记录状态 (Phase 1.4)"""
         name = tool_call.function.name
         args_str = tool_call.function.arguments
         logger.info(f"[{self.name}] 🛠️ 正在调用工具: {name} Args: {args_str}")
@@ -331,9 +355,17 @@ class Driver:
             result = tool_registry.execute(name, **args)
             display_result = str(result)[:100] + "..." if len(str(result)) > 100 else str(result)
             logger.info(f"[{self.name}] 🛠️ 工具执行结果: {display_result}")
+            
+            # 记录成功状态
+            if not str(result).startswith("Error"):
+                self._last_tool_success = True
+            else:
+                self._last_tool_failed = True
+                
             return result
         except Exception as e:
             logger.error(f"[{self.name}] 🛠️ 工具执行出错: {e}")
+            self._last_tool_failed = True
             return f"Error: {str(e)}"
 
     def _parse_driver_response(self, raw_response: Optional[str]):
@@ -355,9 +387,52 @@ class Driver:
         return raw_response, "直接输出", "neutral"
 
     def _finalize_interaction(self, user_input, reply, inner_voice, emotion, psyche_state, suggestion):
-        """保存记忆并发布最终事件"""
+        """保存记忆并发布最终事件，同时触发即时情绪 (Phase 1.4)"""
         self.memory.add_short_term("user", user_input)
         self.memory.add_short_term("assistant", reply)
+        
+        # --- [Phase 1.4] 情绪触发逻辑 ---
+        emotion_delta = {}
+        
+        # A. 基于工具结果
+        if getattr(self, "_last_tool_success", False):
+            emotion_delta["achievement"] = 0.2
+        elif getattr(self, "_last_tool_failed", False):
+            emotion_delta["frustration"] = 0.3
+
+        # B. 基于关键词检测用户情感
+        positive_words = ["谢谢", "好厉害", "太棒了", "辛苦了", "真好", "喜欢", "强"]
+        negative_words = ["不对", "错了", "没用", "笨", "算了", "垃圾", "差劲"]
+        
+        user_input_lower = user_input.lower()
+        if any(w in user_input_lower for w in positive_words):
+            emotion_delta["achievement"] = emotion_delta.get("achievement", 0) + 0.2
+            emotion_delta["anticipation"] = emotion_delta.get("anticipation", 0) + 0.1
+        if any(w in user_input_lower for w in negative_words):
+            emotion_delta["grievance"] = emotion_delta.get("grievance", 0) + 0.3
+            emotion_delta["frustration"] = emotion_delta.get("frustration", 0) + 0.1
+
+        if emotion_delta:
+            psyche_engine.apply_emotion(emotion_delta)
+        
+        # --- [Phase 4.4] 价值观冲突检测与内耗 ---
+        conflict_delta = {}
+        active_values = value_system.get_active_values()
+        user_input_low = user_input.lower()
+        
+        for val in active_values:
+            # 简单的关键词匹配检测：如果用户提到的内容包含规矩中的核心词
+            # 且 AI 最终还是执行了（此处简化处理，假设进入到 _finalize 就算某种程度的执行或回应）
+            # 实际生产中可结合 LLM 的语义判断
+            val_keywords = [k for k in val.split() if len(k) > 1]
+            if any(k.lower() in user_input_low for k in val_keywords):
+                conflict_delta["grievance"] = conflict_delta.get("grievance", 0) + 0.2
+                conflict_delta["fear"] = conflict_delta.get("fear", 0) + 0.1
+        
+        if conflict_delta:
+            logger.info(f"[{self.name}] ⚠️ 检测到价值观冲突，产生心理内耗: {conflict_delta}")
+            psyche_engine.apply_emotion(conflict_delta)
+        # ---------------------------------------
         
         event_bus.publish(Event(
             type="driver_response",

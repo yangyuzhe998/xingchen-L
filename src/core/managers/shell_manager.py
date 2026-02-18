@@ -161,13 +161,32 @@ class ShellManager:
         return context
 
     def update_case_trust(self, case_id: str, delta: float):
-        """
-        更新案例信任值 (Reinforcement Learning signal)
-        """
-        # [TODO] 需要先检索 id 对应的 metadata，然后更新
-        # ChromaDB 的 update 需要传入全量 metadata，所以比较麻烦
-        # 暂时留空，后续实现
-        pass
+        """更新案例信任值 (Reinforcement Learning signal)"""
+        if not self.cases_collection:
+            logger.error("[ShellManager] ❌ Collection not initialized.")
+            return
+
+        try:
+            # 1) 获取当前元数据
+            result = self.cases_collection.get(ids=[case_id], include=["metadatas"])
+            if not result or not result.get("metadatas"):
+                logger.warning(f"[ShellManager] ⚠️ Case not found: {case_id}")
+                return
+
+            meta = result["metadatas"][0] or {}
+            old_trust = meta.get("trust_score", 0.5)
+
+            # 2) 计算并钳制新信任值
+            new_trust = max(0.0, min(1.0, float(old_trust) + float(delta)))
+            meta["trust_score"] = new_trust
+
+            # 3) 写回更新（Chroma 需要传入完整 metadatas）
+            self.cases_collection.update(ids=[case_id], metadatas=[meta])
+            logger.info(
+                f"[ShellManager] ⭐ Case trust updated: {case_id} {old_trust:.2f} -> {new_trust:.2f}"
+            )
+        except Exception as e:
+            logger.error(f"[ShellManager] ❌ Failed to update case trust: {case_id}, {e}", exc_info=True)
 
 # Global Instance
 shell_manager = ShellManager()

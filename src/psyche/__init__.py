@@ -1,11 +1,13 @@
 from typing import Optional
 
 from .core.engine import PsycheEngine
+from .core.values import ValueSystem
 from .services.mind_link import MindLink
 
 
 _psyche_engine_instance: Optional[PsycheEngine] = None
 _mind_link_instance: Optional[MindLink] = None
+_value_system_instance: Optional[ValueSystem] = None
 
 
 def get_psyche_engine() -> PsycheEngine:
@@ -22,6 +24,14 @@ def get_mind_link() -> MindLink:
     if _mind_link_instance is None:
         _mind_link_instance = MindLink()
     return _mind_link_instance
+
+
+def get_value_system() -> ValueSystem:
+    """获取全局 ValueSystem 实例（延迟初始化）。"""
+    global _value_system_instance
+    if _value_system_instance is None:
+        _value_system_instance = ValueSystem()
+    return _value_system_instance
 
 
 class _PsycheEngineProxy(PsycheEngine):
@@ -50,15 +60,32 @@ class _MindLinkProxy(MindLink):
         return getattr(get_mind_link(), name)
 
 
+class _ValueSystemProxy(ValueSystem):
+    """延迟初始化代理类（继承以通过 isinstance 检查）。"""
+
+    def __init__(self):
+        # 覆盖父类 __init__，防止 import 时触发文件读写与目录创建
+        pass
+
+    def __getattribute__(self, name):
+        if name in ("__class__", "__instancecheck__", "__subclasscheck__"):
+            return super().__getattribute__(name)
+        return getattr(get_value_system(), name)
+
+
 # 全局代理（保持原 import 使用方式不变）
 psyche_engine = _PsycheEngineProxy()
 mind_link = _MindLinkProxy()
+value_system = _ValueSystemProxy()
 
 __all__ = [
     "PsycheEngine",
     "MindLink",
+    "ValueSystem",
     "get_psyche_engine",
     "get_mind_link",
+    "get_value_system",
     "psyche_engine",
     "mind_link",
+    "value_system",
 ]

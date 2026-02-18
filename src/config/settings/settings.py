@@ -78,6 +78,9 @@ class Settings:
     F_BRAIN_MODEL = "qwen-max"
     S_BRAIN_MODEL = "deepseek-reasoner"
 
+    # Web Security
+    WEB_API_KEY = os.getenv("WEB_API_KEY", "default_secret_key_change_me")
+
     # Sandbox
     SANDBOX_MEM_LIMIT = "128m"
     SANDBOX_CPU_LIMIT = 500000000 # 0.5 CPU

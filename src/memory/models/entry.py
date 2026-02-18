@@ -17,6 +17,7 @@ class LongTermMemoryEntry(BaseModel):
     category: str = "fact" # fact | rule | preference
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    emotional_tag: Dict[str, float] = Field(default_factory=dict) # [Phase 3] 情感标签: {"achievement": 0.4, ...}
 
     def to_dict(self) -> Dict[str, Any]:
         # 注意: Pydantic v2 使用 model_dump()

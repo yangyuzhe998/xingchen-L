@@ -176,6 +176,21 @@ class SQLiteEventBus:
             )
         return events
 
+    def cleanup_old_events(self, days: int = 30) -> int:
+        """清理过期事件 (Production Hardening)"""
+        cutoff_timestamp = time.time() - (days * 86400)
+        try:
+            with self._lock:
+                with sqlite3.connect(self.db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM events WHERE timestamp < ?", (cutoff_timestamp,))
+                    count = cursor.rowcount
+                    conn.commit()
+            return count
+        except Exception as e:
+            logger.error(f"[Bus] Cleanup failed: {e}")
+            return 0
+
 
 _event_bus_instance: Optional[SQLiteEventBus] = None
 

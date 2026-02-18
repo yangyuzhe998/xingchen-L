@@ -5,6 +5,7 @@ from src.config.settings.settings import settings
 from src.utils.logger import logger
 from src.core.bus.event_bus import event_bus, Event
 from src.schemas.events import SystemHeartbeatPayload
+from src.psyche import psyche_engine
 
 class IdleTrigger(BaseTrigger):
     """
@@ -41,6 +42,30 @@ class IdleTrigger(BaseTrigger):
         """重置计时器 (在 S 脑分析后调用)"""
         self.last_activity_time = time.time()
 
+    def _decide_idle_action(self) -> str:
+        """根据心智状态决定空闲动作 (Phase 5.1)"""
+        try:
+            state = psyche_engine.get_raw_state()
+            dims = state.get("dimensions", {})
+            
+            laziness = dims.get("laziness", {}).get("value", 0.0)
+            curiosity = dims.get("curiosity", {}).get("value", 0.0)
+            intimacy = dims.get("intimacy", {}).get("value", 0.0)
+
+            if laziness > 0.7:
+                return "sleep"  # 懒惰高，继续休眠
+            
+            if curiosity > 0.6:
+                return "exploration"  # 好奇高，自主探索新知识
+            
+            if intimacy > 0.5:
+                return "connection"  # 亲密高，想找用户聊天
+                
+        except Exception as e:
+            logger.error(f"[{self.name}] 决策空闲动作失败: {e}")
+            
+        return "heartbeat"  # 默认发送普通心跳
+
     def _monitor_loop(self):
         while self.running:
             time.sleep(settings.IDLE_MONITOR_INTERVAL)
@@ -49,16 +74,29 @@ class IdleTrigger(BaseTrigger):
             idle_time = time.time() - self.last_activity_time
             
             if idle_time > settings.CYCLE_IDLE_TIMEOUT:
-                logger.info(f"[{self.name}] 系统空闲超时 ({idle_time:.1f}s > {settings.CYCLE_IDLE_TIMEOUT}s)")
+                action = self._decide_idle_action()
+                logger.info(f"[{self.name}] 系统空闲 ({idle_time:.1f}s)，决定动作: {action}")
                 
-                # 注入心跳事件，确保 S脑 有米下锅 (保持原逻辑)
+                if action == "sleep":
+                    # 仅记录，不触发 S 脑，重置时间
+                    self.reset()
+                    continue
+
+                payload_content = "系统已空闲一段时间。"
+                if action == "exploration":
+                    payload_content += " S脑产生了自主探索和学习的欲望。"
+                elif action == "connection":
+                    payload_content += " S脑产生了与用户建立联结的渴望。"
+                else:
+                    payload_content += " S脑需自发思考当前状态。"
+
                 event_bus.publish(Event(
                     type="system_heartbeat",
-                    source="cycle_manager", # 保持 source 不变，或者改为 idle_trigger
-                    payload=SystemHeartbeatPayload(content="系统已空闲一段时间。S脑需自发思考当前状态或决定是否进行社交活动。"),
-                    meta={}
+                    source="idle_trigger",
+                    payload=SystemHeartbeatPayload(content=payload_content),
+                    meta={"idle_action": action}
                 ))
                 
-                self._trigger(f"System Idle Timeout ({settings.CYCLE_IDLE_TIMEOUT}s)")
+                self._trigger(f"System Idle Action: {action}")
                 # 触发后重置，防止连续触发
                 self.reset()

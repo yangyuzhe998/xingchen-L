@@ -105,18 +105,64 @@
 
 ---
 
-## 7. 最终回归测试结果汇总
-- **测试环境**: Python 3.10.0 (win32)
-- **执行命令**: `python -m pytest -q`
-- **结果汇总**:
-  - 第一阶段后: `154 passed`
-  - 第三阶段后: `161 passed` (新增 Psyche/MindLink 单测)
-  - **当前最终结果: `161 passed`**
-- **结论**: 全量 161 个单元测试全部通过，所有重构与功能增强均未引入回归。
+## 9. 第五阶段：心智分层架构 (Hierarchical Psyche Model)
+
+本阶段目标：将心智引擎重塑为“总局-子模块”体系，实现从瞬时情绪到长期性格漂移，再到自发价值观和自主意愿的心理进化闭环。
+
+### 9.1 Phase 1：情绪层 (Emotions)
+- **PsycheEngine 增强**: 
+  - 新增 `emotions` 状态字典（成就、挫败、期待、委屈）及快速衰减逻辑。
+  - 实现 `_get_emotion_sensitivity()`，使心智底色（如亲密度）动态约束情绪灵敏度。
+- **Driver 触发**: 
+  - `_execute_tool` 增加成功/失败状态追踪。
+  - `_finalize_interaction` 实现基于工具结果与关键词检测（如“谢谢”、“不对”）的情绪触发。
+- **叙事注入**: `get_state_summary()` 自动生成即时情绪描述并注入系统提示词。
+
+### 9.2 Phase 2：性格漂移 (Bottom-Up Conduction)
+- **机制落地**: 修改 `CycleManager`，在 S 脑分析周期开始前计算 `_calculate_baseline_drift`。
+- **演化路径**: 统计最近 50 条情绪历史，将持续的正向/负向刺激转化为 `baseline` 维度的永久位移（区间限制在 0.05-0.95）。
+
+### 9.3 Phase 3：记忆情感标签 (Emotional Memory)
+- **模型扩展**: `LongTermMemoryEntry` 增加 `emotional_tag` 字段。
+- **存取闭环**: 
+  - 存储时自动捕获当前情绪快照。
+  - 检索相关记忆时，按比例（0.1 系数）触发当前情绪波动，实现“触景生情”反馈。
+
+### 9.4 Phase 4：价值观与自我立法 (Values & Principles)
+- **ValueSystem 基础设施**: 新增 `src/psyche/core/values.py`，支持规矩的持久化管理与单例集成。
+- **S 脑立法权**: `Reasoner.analyze_cycle` 支持解析 S 脑指令（`new_values` / `revoked_values`），允许 AI 根据经验建立行为准则。
+- **约束与反馈**: 
+  - 生效规矩动态注入 `DRIVER_SYSTEM_PROMPT`。
+  - 实现冲突检测：若行为违背自我规矩，显著提升 `grievance` 和 `fear`。
+
+### 9.5 Phase 5：动力模块 (Motivation)
+- **意愿决策**: 升级 `IdleTrigger`，使其基于 `laziness`, `curiosity`, `intimacy` 决定是“继续休眠”、“自主探索”还是“主动联结”。
+- **自主执行**: `Reasoner` 补齐工具调用循环，使其具备利用 `web_search` 等工具进行自学的独立行动力。
+- **语气优化**: `PROACTIVE_DRIVER_PROMPT` 深度融合即时情绪层描述。
+
+### 9.6 Phase 6：生产环境硬化 (Production Hardening)
+- **日志自动滚动**: 将 `logger.py` 升级为 `TimedRotatingFileHandler`，实现按天切割并保留最近 30 天日志，防止磁盘爆满。
+- **多端访问鉴权**: 
+  - 为 WebApp 接入 API Key 校验。
+  - 优化鉴权逻辑，同时支持 **Authorization Header** 与 **URL Query Parameter (`?key=`)**，确保浏览器端 `EventSource` (SSE) 在受限环境下仍能正常连接。
+- **数据库定期清理**: 在 `CycleManager` 中启动后台维护线程，每 24 小时自动清理 `bus.db` 中 30 天前的旧事件，维持数据库性能。
+- **实时状态看板**: 
+  - 增强 `WebApp` SSE 推送逻辑，实时广播心智维度与情绪数值。
+  - 重写 `src/ui/templates/index.html`，引入侧边栏仪表盘，直观展示“星辰-V”的性格演化与即时心情。
 
 ---
 
-## 8. 验证指南
-- **安全**: 尝试 `/calculate 1+(2*3)` (正常), `__import__` (拦截); `run_shell_command "rm -rf /"` (拦截)。
-- **体验**: 在 Web 端对话，观察是否出现 💭 标记的内心独白。
-- **单例**: 观察启动日志，确认数据库连接仅在首次使用相关功能时触发。
+## 10. 最终回归测试结果汇总
+- **测试环境**: Python 3.10.0 (win32)
+- **执行命令**: `python -m pytest -q`
+- **结果汇总**:
+  - **当前最终结果: `161 passed`**
+- **结论**: 全量 161 个单元测试全部通过。心智分层架构 (Phase 1-5) 与生产硬化措施 (Phase 6) 已完全闭环，系统具备了在云端长期挂载、自主进化的生产级素质。
+
+---
+
+## 11. 验证指南 (心智进阶版)
+- **情绪感官**: 连续给予正面/负面反馈，观察 `logs/xingchen.log` 中 `emotions` 值的波动。
+- **性格演化**: 运行多个 S 脑周期后，检查 `src/memory_data/psyche_state.json` 中的 `baseline` 字段是否发生位移。
+- **触景生情**: 提及带有强烈情感标记的往事，观察回复语气是否发生偏移。
+- **自发规矩**: 触发 S 脑生成 `new_values` 后，检查后续对话中 AI 是否会根据规矩做出婉拒或提醒。
