@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 import os
 import sys
 import time
@@ -8,11 +8,11 @@ from datetime import datetime
 # 添加项目根目录到 sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.core.driver.engine import Driver
-from src.memory.memory_core import Memory
-from src.memory.storage.knowledge_db import knowledge_db
-from src.memory.storage.topic_manager import topic_manager
-from src.core.bus.event_bus import event_bus
+from xingchen.core.driver import Driver
+from xingchen.memory.facade import Memory
+from xingchen.memory.storage.knowledge_db import knowledge_db
+from xingchen.memory.storage.topic_manager import topic_manager
+from xingchen.core.event_bus import event_bus
 
 def print_monitor(title, content):
     """ASCII 风格监控器"""

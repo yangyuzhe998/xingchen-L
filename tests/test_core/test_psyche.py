@@ -1,6 +1,6 @@
 import pytest
-from src.psyche.core.engine import PsycheEngine
-from src.config.settings.settings import settings
+from xingchen.psyche.engine import PsycheEngine
+from xingchen.config.settings import settings
 
 
 @pytest.fixture

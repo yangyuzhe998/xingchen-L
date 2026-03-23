@@ -1,0 +1,41 @@
+# ============================================================================
+#  XingChen-V (星辰-V) 情绪与心智演化规则
+#  版本: v2.5.0 (2026-03-23 重构)
+# ============================================================================
+
+# 用户情感检测 (用于 EmotionDetector)
+user_sentiment:
+  positive: ["谢谢", "好厉害", "太棒了", "辛苦了", "真好", "喜欢", "强"]
+  negative: ["不对", "错了", "没用", "笨", "算了", "垃圾", "差劲"]
+  question_suffixes: ["?", "？", "呢", "吗"]
+
+# 情绪触发增量 (Delta)
+emotion_deltas:
+  tool_success:
+    achievement: 0.2
+  tool_failed:
+    frustration: 0.3
+  user_positive:
+    achievement: 0.2
+    anticipation: 0.1
+  user_negative:
+    grievance: 0.3
+    frustration: 0.1
+  value_conflict:
+    grievance: 0.2
+    fear: 0.1
+
+# 性格漂移映射 (用于 CycleManager._calculate_baseline_drift)
+# 情绪 (Emotion) -> 心智维度 (Dimension) 的影响权重
+baseline_drift_mapping:
+  achievement:
+    curiosity: 1.0
+    laziness: -1.0
+  frustration:
+    fear: 1.0
+    curiosity: -0.5
+  anticipation:
+    curiosity: 1.0
+  grievance:
+    intimacy: -0.5
+    fear: 0.3

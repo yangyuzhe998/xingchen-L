@@ -1,15 +1,20 @@
 # Ignore memory data and sensitive files
-src/memory_data/
+data/
 .env
 __pycache__/
 *.pyc
 .DS_Store
 .vscode/
+.idea/
+.pytest_cache/
 openclaw_temp/
-tests/verify_memory_function.py
 xingchen-L/
 
 # Logs
 logs/
 *.log
 *.log.*
+
+# OS
+Thumbs.db
+Desktop.ini

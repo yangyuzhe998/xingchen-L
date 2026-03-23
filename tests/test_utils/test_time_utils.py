@@ -3,7 +3,7 @@
 """
 import pytest
 from datetime import datetime, timedelta
-from src.utils.time_utils import (
+from xingchen.utils.time_utils import (
     parse_relative_time,
     format_time_ago,
     get_time_context,
@@ -98,14 +98,14 @@ class TestHelperFunctions:
     
     def test_is_same_week(self):
         t1 = datetime(2026, 2, 2)  # Monday
-        t2 = datetime(2026, 2, 6)  # Friday
+        t2 = datetime(2026, 2, 8)  # Sunday
         t3 = datetime(2026, 2, 9)  # Next Monday
         
         assert is_same_week(t1, t2) is True
         assert is_same_week(t1, t3) is False
     
-    def test_get_day_period_morning(self):
-        assert get_day_period(datetime(2026, 2, 7, 9, 0, 0)) == "上午"
-    
-    def test_get_day_period_evening(self):
-        assert get_day_period(datetime(2026, 2, 7, 20, 0, 0)) == "晚上"
+    def test_get_day_period(self):
+        assert get_day_period(8) == "早晨"
+        assert get_day_period(14) == "下午"
+        assert get_day_period(20) == "晚上"
+        assert get_day_period(2) == "深夜"

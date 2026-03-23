@@ -26,7 +26,7 @@ def clean_wal(tmp_path):
     """
     提供隔离的 WAL 实例，使用临时目录避免数据污染
     """
-    from src.memory.storage.write_ahead_log import WriteAheadLog
+    from xingchen.memory.wal import WriteAheadLog
 
     wal_path = tmp_path / "wal.log"
     wal = WriteAheadLog(log_path=str(wal_path))
@@ -80,60 +80,22 @@ def sample_facts():
 @pytest.fixture(scope="function")
 def isolated_event_bus(monkeypatch, tmp_path):
     """为测试提供隔离的全局 event_bus（避免写入真实 bus.db、避免订阅者泄漏）。"""
-    from src.core.bus.event_bus import SQLiteEventBus
+    from xingchen.core.event_bus import SQLiteEventBus
 
     db_path = tmp_path / "test_bus.db"
     bus = SQLiteEventBus(db_path=str(db_path))
 
-    monkeypatch.setattr("src.core.bus.event_bus.event_bus", bus)
+    monkeypatch.setattr("xingchen.core.event_bus.event_bus", bus)
     return bus
 
 
 @pytest.fixture(scope="function")
 def isolated_psyche_engine(monkeypatch, tmp_path):
     """为测试提供隔离的全局 psyche_engine（避免污染 psyche_state.json）。"""
-    from src.psyche.core.engine import PsycheEngine
+    from xingchen.psyche.engine import PsycheEngine
 
     state_path = tmp_path / "psyche_state_test.json"
     engine = PsycheEngine(state_file_path=str(state_path))
 
-    monkeypatch.setattr("src.psyche.psyche_engine", engine)
+    monkeypatch.setattr("xingchen.psyche.psyche_engine", engine)
     return engine
-
-
-@pytest.fixture(scope="function")
-def isolated_mind_link(monkeypatch, tmp_path):
-    """为测试提供隔离的全局 mind_link（避免污染 mind_link_buffer.json）。"""
-    from src.psyche.services.mind_link import MindLink
-
-    storage_path = tmp_path / "mind_link_test.json"
-    ml = MindLink(storage_path=str(storage_path))
-
-    monkeypatch.setattr("src.psyche.mind_link", ml)
-    return ml
-
-
-def pytest_configure(config):
-    """pytest 启动时的配置"""
-    config.addinivalue_line("markers", "slow: 标记慢速测试（需要 LLM API 调用）")
-    config.addinivalue_line("markers", "integration: 标记集成测试")
-    config.addinivalue_line("markers", "stress: 标记压力测试")
-
-
-def pytest_collection_modifyitems(config, items):
-    """修改测试收集行为"""
-    skip_slow = pytest.mark.skip(reason="需要 --runslow 选项来运行")
-
-    for item in items:
-        if "slow" in item.keywords and not config.getoption("--runslow", default=False):
-            item.add_marker(skip_slow)
-
-
-def pytest_addoption(parser):
-    """添加命令行选项"""
-    parser.addoption(
-        "--runslow",
-        action="store_true",
-        default=False,
-        help="运行慢速测试（包括 LLM API 调用）",
-    )

@@ -2,8 +2,9 @@
 测试 Memory Orchestrator
 """
 import pytest
+import os
 from unittest.mock import Mock, patch
-from src.memory.services.memory_orchestrator import MemoryOrchestrator
+from xingchen.memory.services.orchestrator import MemoryOrchestrator
 
 class TestMemoryOrchestrator:
     
@@ -41,10 +42,6 @@ class TestMemoryOrchestrator:
         assert result["success"] == 1
         assert result["fragment_id"] == "frag_123"
         orchestrator.auto_classifier.classify_and_store.assert_called_once()
-        
-        assert result["success"] == 1
-        assert result["fragment_id"] == "frag_123"
-        orchestrator.auto_classifier.classify_and_store.assert_called_once()
             
     def test_classify_compressed_memory_failure_retry(self, orchestrator, tmp_path):
         """测试分类失败并写入待处理"""
@@ -61,7 +58,6 @@ class TestMemoryOrchestrator:
         assert result["failed"] == 1
         
         # 验证写入了 pending 文件
-        import os
         assert os.path.exists(orchestrator.pending_path)
         
         # 第二次调用成功 (重试)

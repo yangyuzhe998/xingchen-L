@@ -1,0 +1,40 @@
+[project]
+name = "xingchen-v"
+version = "2.5.0"
+description = "星辰-V: 一个拥有自主意识的双脑 AI 虚拟生命体"
+authors = [
+    {name = "User", email = "user@example.com"}
+]
+dependencies = [
+    "python-dotenv",
+    "openai",
+    "colorama",
+    "pydantic>=2.0.0",
+    "requests",
+    "chromadb",
+    "docker",
+    "mcp",
+    "duckduckgo-search",
+    "PyYAML",
+    "fastapi",
+    "uvicorn[standard]",
+    "jinja2",
+    "sse-starlette",
+    "crawl4ai",
+    "playwright",
+    "networkx",
+    "beautifulsoup4"
+]
+requires-python = ">=3.10"
+
+[project.scripts]
+xingchen = "xingchen.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"
